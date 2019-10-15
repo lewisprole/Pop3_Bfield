@@ -67,3 +67,6 @@ def plotter(n,n_bg,r,x_size,y_size,z_size):
 
 
 #plotter(1000,1000,100,1000,1000,1000)
+x,y,z=spherical_cloud(1000,1000,100,1000,1000,1000)
+x=x,y,z
+ids=np.linspace(1,1001,1001).astype(int)

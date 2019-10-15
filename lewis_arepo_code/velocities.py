@@ -16,9 +16,11 @@ def zero_vel(n):
     vx=np.zeros(n)
     vy=np.zeros(n)
     vz=np.zeros(n)
-    v=xy,vy,vz
+    v=vx,vy,vz
     return v
 
+
+v=zero_vel(2000)
 
 
 #def max_boltz(n,T,v):

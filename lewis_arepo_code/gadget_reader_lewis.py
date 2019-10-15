@@ -20,6 +20,7 @@ from  matplotlib import colors
 
 filename='snapshot_3636'
 filename='snapshot_344'
+filename="arepo_input.txt"
 
 with open(filename, mode='rb') as file:
     data = file.read()
@@ -282,8 +283,8 @@ def hexer(a):
     plt.colorbar()
     
     
-a=reader(data)
-#hexer(a)
+#a=reader(data)
+m=reader(data)
 
 
 

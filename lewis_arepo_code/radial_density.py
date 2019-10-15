@@ -35,13 +35,13 @@ def rhos(xs,ys,zs,x_size,y_size,z_size,R_cloud,A,a,f,c):
     
     return rho, rs
 
-rho,rs=rhos(x,y,z,1000,1000,1000,100,100,100**2,-2,0)
+rho,rs=rhos(x[0],x[1],x[2],1000,1000,1000,100,100,100**2,-2,0)
     
 
-fig = plt.figure()
-ax = plt.axes(projection='3d')
-im = ax.scatter3D(x,y,z, s=1,c=rho,cmap='hot')
-fig.colorbar(im)
-
-plt.plot(rs,rho,'x')
+#fig = plt.figure()
+#ax = plt.axes(projection='3d')
+#im = ax.scatter3D(x,y,z, s=1,c=rho,cmap='hot')
+#fig.colorbar(im)
+#
+#plt.plot(rs,rho,'x')
 

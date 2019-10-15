@@ -181,19 +181,46 @@ def tag_block(sofar,data,name,dtype,no_axis):
     return sofar
 
 
-
+def writer(sofar):
+    f= open("arepo_input.txt","w+b")
+    f.write(sofar)
+    f.close
 
 
 #test
-sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,hubble_param,flag_stellarage,flag_metals,npartHighword,flag_entropy,flag_dp,flag_1pt,scalefactor=[],(10,0,0,0,0,0),(5,0,0,0,0,0),6,7,8,9,(9,0,0,0,0,0),1,2,3,4,5,6,7,8,(1,2,3,4,5,6),1,2,3,4
+sofar=[]
+npart=(1000,0,0,0,0,0)
+massarr=(0,0,0,0,0,0)
+time=10
+redshift=0
+flag_sfr=0
+flag_feedback=0
+npartTotal=(1000,0,0,0,0,0)
+flag_cooling=0
+num_files=1
+boxsize=0
+cos1=0
+cos2=0
+hubble_param=1
+flag_stellarage=0
+flag_metals=0
+npartHighword=(0,0,0,0,0,0)
+flag_entropy=0
+flag_dp=0
+flag_1pt=0
+scalefactor=1
 
 sofar=header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
            npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
            hubble_param,flag_stellarage,flag_metals,npartHighword,
            flag_entropy,flag_dp,flag_1pt,scalefactor)
+
 sofar=tag_block(sofar,v,'VEL ','d',3)
 sofar=tag_block(sofar,x,'POS ','d',3)
+sofar=tag_block(sofar,rho,'MASS','d',1)
 sofar=tag_block(sofar,ids,'ID  ','i',1)
+writer(sofar)
+
 
 
     
