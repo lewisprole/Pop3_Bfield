@@ -20,7 +20,7 @@ from  matplotlib import colors
 
 filename='snapshot_3636'
 filename='snapshot_344'
-filename="arepo_input.txt"
+#filename="arepo_input.txt"
 
 with open(filename, mode='rb') as file:
     data = file.read()
@@ -170,7 +170,26 @@ def reader(Data):
                 a.nsink = nsink
                 a.N = N
                 a.time = time
+                a.redshift=redshift
+                a.flag_sfr=a.flag_sfrflag_sfr
+                a.flag_feedback=flag_feedback
+                a.npartTotal=npartTotal
+                a.flag_cooling=flag_cooling
+                a.num_files=num_files
+                a.boxsize=boxsize
+                a.cos1=cos1
+                a.cos2=cos2
+                a.hubble_param=hubble_param
+                a.flag_stellarage=flag_stellarage
+                a.flag_metals=flag_metals
+                a.npartHighword=npartHighword
+                a.flag_entropy=flag_entropy
+                a.flag_dp=flag_dp
+                a.flag_1pt=flag_1pt
                 a.scalefactor=scalefactor
+                
+                
+                
                 #
                 # Set the units here
                 a.unit_leng_cm = 1.0e+17
