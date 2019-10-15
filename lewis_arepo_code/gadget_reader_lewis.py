@@ -171,7 +171,7 @@ def reader(Data):
                 a.N = N
                 a.time = time
                 a.redshift=redshift
-                a.flag_sfr=a.flag_sfrflag_sfr
+                a.flag_sfr=flag_sfr
                 a.flag_feedback=flag_feedback
                 a.npartTotal=npartTotal
                 a.flag_cooling=flag_cooling

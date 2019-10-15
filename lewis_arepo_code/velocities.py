@@ -20,7 +20,7 @@ def zero_vel(n):
     return v
 
 
-v=zero_vel(2000)
+v=zero_vel(10000)
 
 
 #def max_boltz(n,T,v):
