@@ -205,7 +205,7 @@ flag_stellarage=0
 flag_metals=0
 npartHighword=(0,0,0,0,0,0)
 flag_entropy=0
-flag_dp=0
+flag_dp=1
 flag_1pt=0
 scalefactor=1
 
