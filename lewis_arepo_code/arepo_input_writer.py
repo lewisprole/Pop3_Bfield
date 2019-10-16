@@ -82,8 +82,6 @@ def tagger(sofar,data,name,dtype,no_axis):
     '''function to write the tag before a data block'''
     a=struct.pack('i',8)
     
-
-    
     if dtype =='i':
         f=4
     if dtype=='d':
@@ -109,7 +107,6 @@ def tagger(sofar,data,name,dtype,no_axis):
 
     sofar=sofar+a
 
-    
     return sofar
 
 
@@ -213,7 +210,7 @@ scalefactor=1
 
 x,y,z=spherical_spray.spherical_cloud(5000,5000,100,1000,1000,1000)
 x=x,y,z
-ids =np.linspace(1,10001,10001).astype(int)
+ids =np.linspace(1,10000,10000).astype(int)
 v=velocities.zero_vel(10000)
 rho,rs=radial_density.rhos(x[0],x[1],x[2],1000,1000,1000,100,100,100**2,-2,0)
 U=internal_energy.int_en(10000,10)
