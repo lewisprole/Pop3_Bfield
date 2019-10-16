@@ -11,10 +11,10 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import struct
 import binascii
-
-
-
-
+import spherical_spray
+import velocities
+import radial_density
+import internal_energy
 
 '''arepo initial conditions writer
 
@@ -209,15 +209,25 @@ flag_dp=1
 flag_1pt=0
 scalefactor=1
 
+
+
+x,y,z=spherical_spray.spherical_cloud(5000,5000,100,1000,1000,1000)
+x=x,y,z
+ids =np.linspace(1,10001,10001).astype(int)
+v=velocities.zero_vel(10000)
+rho,rs=radial_density.rhos(x[0],x[1],x[2],1000,1000,1000,100,100,100**2,-2,0)
+U=internal_energy.int_en(10000,10)
+
 sofar=header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
            npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
            hubble_param,flag_stellarage,flag_metals,npartHighword,
            flag_entropy,flag_dp,flag_1pt,scalefactor)
 
-sofar=tag_block(sofar,v,'VEL ','d',3)
 sofar=tag_block(sofar,x,'POS ','d',3)
-sofar=tag_block(sofar,rho,'MASS','d',1)
+sofar=tag_block(sofar,v,'VEL ','d',3)
 sofar=tag_block(sofar,ids,'ID  ','i',1)
+sofar=tag_block(sofar,rho,'MASS','d',1)
+sofar=tag_block(sofar,ids,'U   ','d',1)
 writer(sofar)
 
 

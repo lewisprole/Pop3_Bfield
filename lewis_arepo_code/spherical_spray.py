@@ -8,7 +8,7 @@ Created on Thu Oct 10 17:10:43 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+#from mpl_toolkits import mplot3d
 
 '''script to set up initial positions'''
 
@@ -96,6 +96,6 @@ def plotter(n,n_bg,r,x_size,y_size,z_size):
 
 
 #plotter(1000,1000,100,1000,1000,1000)
-x,y,z=spherical_cloud(5000,5000,100,1000,1000,1000)
-x=x,y,z
-ids=np.linspace(1,1001,1001).astype(int)
+#x,y,z=spherical_cloud(5000,5000,100,1000,1000,1000)
+#x=x,y,z
+#ids=np.linspace(1,1001,1001).astype(int)

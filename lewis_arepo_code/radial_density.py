@@ -8,7 +8,7 @@ Created on Fri Oct 11 11:07:49 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+#from mpl_toolkits import mplot3d
 from matplotlib import colors
 
 '''radial density distribution'''
@@ -35,7 +35,7 @@ def rhos(xs,ys,zs,x_size,y_size,z_size,R_cloud,A,a,f,c):
     
     return rho, rs
 
-rho,rs=rhos(x[0],x[1],x[2],1000,1000,1000,100,100,100**2,-2,0)
+#rho,rs=rhos(x[0],x[1],x[2],1000,1000,1000,100,100,100**2,-2,0)
     
 
 #fig = plt.figure()

@@ -8,7 +8,7 @@ Created on Fri Oct 11 12:46:38 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
+#from mpl_toolkits import mplot3d
 from matplotlib import colors
 
 def zero_vel(n):
@@ -20,7 +20,7 @@ def zero_vel(n):
     return v
 
 
-v=zero_vel(10000)
+#v=zero_vel(10000)
 
 
 #def max_boltz(n,T,v):
