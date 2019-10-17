@@ -20,7 +20,7 @@ from  matplotlib import colors
 
 filename='snapshot_3636'
 filename='snapshot_344'
-#filename="arepo_input.txt"
+filename="arepo_input.txt"
 
 with open(filename, mode='rb') as file:
     data = file.read()

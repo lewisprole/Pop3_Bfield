@@ -20,8 +20,9 @@ def sphere_fill(n,r,x_size,y_size,z_size):
     Z=[]
     N=0
     while int(N)<n:
-        xs,ys=np.random.randint(midx-r,midx+r,size=1),np.random.randint(midy-r,midy+r,size=1)
-        zs=np.random.randint(midz-r,midz+r,size=1)
+        xs=np.random.uniform(low=(midx-r),high=(midx+r),size=1)
+        ys=np.random.uniform(low=(midy-r),high=(midy+r),size=1)
+        zs=np.random.uniform(low=(midz-r),high=(midz+r),size=1)
         rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
         if rs < r:
             X=np.append(X,xs)
@@ -51,8 +52,9 @@ def bg_fill(n_bg,r,x_size,y_size,z_size):
     Z=[]
     N=0
     while int(N)<n_bg:
-        xs,ys=np.random.randint(midx-r,midx+r,size=1),np.random.randint(midy-r,midy+r,size=1)
-        zs=np.random.randint(midz-r,midz+r,size=1)
+        xs=np.random.uniform(low=(midx-r),high=(midx+r),size=1)
+        ys=np.random.uniform(low=(midy-r),high=(midy+r),size=1)
+        zs=np.random.uniform(low=(midz-r),high=(midz+r),size=1)
         rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
         if rs > r:
             X=np.append(X,xs)
