@@ -309,10 +309,10 @@ def hexer(a):
     plt.colorbar()
     
   
-filename='snapshot_000'
-a=reader(filename)
-filename='snapshot_001'
-m=reader(filename)
+#filename='snapshot_000'
+#a=reader(filename)
+#filename='snapshot_001'
+#m=reader(filename)
 filename='arepo_input.txt'
 b=reader(filename)
 

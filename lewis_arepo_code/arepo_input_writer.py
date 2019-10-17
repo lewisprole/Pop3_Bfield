@@ -185,13 +185,13 @@ def writer(sofar):
 
 #test
 sofar=[]
-npart=(10000,0,0,0,0,0)
+npart=(4000,0,0,0,0,0)
 massarr=(0,0,0,0,0,0)
 time=10
 redshift=0
 flag_sfr=0
 flag_feedback=0
-npartTotal=(10000,0,0,0,0,0)
+npartTotal=(4000,0,0,0,0,0)
 flag_cooling=0
 num_files=1
 boxsize=0
