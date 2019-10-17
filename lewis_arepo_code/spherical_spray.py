@@ -52,9 +52,9 @@ def bg_fill(n_bg,r,x_size,y_size,z_size):
     Z=[]
     N=0
     while int(N)<n_bg:
-        xs=np.random.uniform(low=(midx-r),high=(midx+r),size=1)
-        ys=np.random.uniform(low=(midy-r),high=(midy+r),size=1)
-        zs=np.random.uniform(low=(midz-r),high=(midz+r),size=1)
+        xs=np.random.uniform(low=(0),high=(x_size),size=1)
+        ys=np.random.uniform(low=(0),high=(y_size),size=1)
+        zs=np.random.uniform(low=(0),high=(z_size),size=1)
         rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
         if rs > r:
             X=np.append(X,xs)

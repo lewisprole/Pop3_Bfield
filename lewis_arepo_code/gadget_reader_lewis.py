@@ -18,12 +18,15 @@ from  matplotlib import colors
 
 
 
-filename='snapshot_3636'
-filename='snapshot_344'
-filename="arepo_input.txt"
+#filename='snapshot_3636'
+#filename='snapshot_344'
+#filename="arepo_input.txt"
 
-with open(filename, mode='rb') as file:
-    data = file.read()
+def load_snap(filename):
+    
+    with open(filename, mode='rb') as file:
+        data = file.read()
+    return data
 
 
 
@@ -83,8 +86,12 @@ def load_data(Data,length_real,block_start,name):
 
 
 
-def reader(Data):
+def reader(filename):
     '''function to loop through tag/block pairs and pass info into class 'a' '''
+    
+    Data=load_snap(filename)
+    
+    
     class a(): #empty class to give all the info to
         pass
     
@@ -301,9 +308,13 @@ def hexer(a):
 #    plt.ylim(2.1,2.6)
     plt.colorbar()
     
-    
-#a=reader(data)
-m=reader(data)
+  
+filename='snapshot_000'
+a=reader(filename)
+filename='snapshot_001'
+m=reader(filename)
+filename='arepo_input.txt'
+b=reader(filename)
 
 
 
