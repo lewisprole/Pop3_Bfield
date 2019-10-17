@@ -35,6 +35,25 @@ def rhos(xs,ys,zs,x_size,y_size,z_size,R_cloud,A,a,f,c):
     
     return rho, rs
 
+
+
+
+def tmass(r,A,a,f,c):
+    '''total mass of the cloud'''
+    R=np.linspace(0,r,100)
+    dR=R[1]-R[0]
+    n=0
+    M=0
+    R_current=R[1]
+    while R_current<r:
+        dm=rho_dist(R_current,A,a,f,c)*2*np.pi*dR
+        M+=dm
+        n+=1
+        R_current=R[n]
+        
+    return M
+        
+        
 #rho,rs=rhos(x[0],x[1],x[2],1000,1000,1000,100,100,100**2,-2,0)
     
 

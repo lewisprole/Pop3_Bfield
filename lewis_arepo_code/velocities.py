@@ -20,6 +20,38 @@ def zero_vel(n):
     return v
 
 
+def rot_sphere(size,x,M,r,B):
+    '''function to give sphere solid body rotation'''
+    x,y,z=x[0],x[1],x[2]
+    
+    #if KE_rotation = A * U_grav then w=root(BM/r^3)
+    
+    w=np.sqrt(B*M)/r**3 
+    mid=size/2
+    
+    distx=np.absolute(mid-x) #distances from z axis of rotation 
+    disty=np.absolute(mid-y)
+    dist=np.sqrt((mid-x)**2+(mid-y)**2)
+
+
+    v_rot=w*dist #rotational velocity perpendicular to r 
+    
+    theta=np.arctan(disty/distx) #rosolve x and y velocities 
+
+    vx=v_rot*np.cos(theta)
+    vy=v_rot*np.sin(theta)
+    vz=0
+    
+    
+    rs = np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)  #no rotation outside cloud 
+    mask=np.where(rs>r)
+    vx[mask]=0 
+    vy[mask]=0
+    vy[mask]=0
+    
+    return vx,vy,vz
+    
+    
 #v=zero_vel(10000)
 
 
