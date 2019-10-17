@@ -208,12 +208,12 @@ scalefactor=1
 
 
 
-x,y,z=spherical_spray.spherical_cloud(5000,5000,2,6,6,6)
+x,y,z=spherical_spray.spherical_cloud(2000, 2000,2,6,6,6)
 x=x,y,z
-ids =np.linspace(1,10000,10000).astype(int)
-v=velocities.zero_vel(10000)
+ids =np.linspace(1,4000,4000).astype(int)
+v=velocities.zero_vel(4000)
 rho,rs=radial_density.rhos(x[0],x[1],x[2],6,6,6,2,2,1,-2,0)
-U=internal_energy.int_en(10000,10)
+U=internal_energy.int_en(4000,10)
 
 sofar=header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
            npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
