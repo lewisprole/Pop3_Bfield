@@ -29,18 +29,37 @@ def rot_sphere(size,x,M,r,B):
     w=np.sqrt(B*M)/r**3 
     mid=size/2
     
-    distx=np.absolute(mid-x) #distances from z axis of rotation 
-    disty=np.absolute(mid-y)
+    distx=(mid-x) #distances from z axis of rotation 
+    disty=(mid-y)
     dist=np.sqrt((mid-x)**2+(mid-y)**2)
 
 
     v_rot=w*dist #rotational velocity perpendicular to r 
     
     theta=np.arctan(disty/distx) #rosolve x and y velocities 
+    
 
+    mask_ypos=np.where(disty>0)
+    
+    mask_xpos=np.where(distx>0)
+    mask_both_pos=np.intersect1d(mask_ypos,mask_xpos)
+    
+    mask_yneg=np.where(disty<0)
+    mask_xneg=np.where(distx<0)
+    mask_both_neg=np.intersect1d(mask_yneg,mask_xneg)
+    
+    ypos_xneg=np.intersect1d(mask_ypos,mask_xneg)
+    xpos_yneg=np.intersect1d(mask_xpos,mask_yneg)
+    
     vx=v_rot*np.cos(theta)
     vy=v_rot*np.sin(theta)
     vz=0
+    
+    
+    vx[mask_both_pos]=-vx[mask_both_pos]
+    vy[mask_both_neg]=-vy[mask_both_neg]
+    vy[ypos_xneg]=-vy[ypos_xneg]
+    vx[xpos_yneg]=-vx[xpos_yneg]
     
     
     rs = np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)  #no rotation outside cloud 

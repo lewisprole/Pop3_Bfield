@@ -308,14 +308,14 @@ def hexer(a):
 #    plt.ylim(2.1,2.6)
     plt.colorbar()
     
-path='/scratch/c.c1521474/rotation_collapse' 
-filename=path+'/snapshot_000'
+path=''#'/scratch/c.c1521474/rotation_collapse/' 
+filename=path+'snapshot_000'
 a=reader(filename)
-filename=path+'/snapshot_001'
+filename=path+'snapshot_001'
 b=reader(filename)
-#filename=path+'/snapshot_002'
-#c=reader(filename)
-plt.figure(),plt.hexbin(b.y,b.x,gridsize=100,Norm=colors.LogNorm())
+filename=path+'arepo_input.txt'
+c=reader(filename)
+#plt.figure(),plt.hexbin(a.y,a.x,gridsize=100,Norm=colors.LogNorm())
 
 
 
