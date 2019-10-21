@@ -70,7 +70,54 @@ def rot_sphere(size,x,M,r,B):
     
     return vx,vy,vz
     
+
+
+def vary_rotation(size,x,B,m):
+    '''different angular momentum depending on mass within your radius'''
+    x,y,z=x[0],x[1],x[2]
+    mid=size/2
+    distx=(mid-x) #distances from z axis of rotation 
+    disty=(mid-y)
+    dist=np.sqrt((mid-x)**2+(mid-y)**2)
+    inM=0
+    E=np.zeros_like(x)
+    v_rotation=np.zeros_like(x)
     
+    
+    
+    for i in range (len(x)):
+        inM+=m[i]
+        E[i]=inM*m[i]/dist[i]
+        w= np.sqrt(B*2*E[i]/(inM*dist[i]**2))
+        v_rotation[i]=w*dist[i]
+    
+    theta=np.arctan(disty/distx) #rosolve x and y velocities 
+    
+    mask_ypos=np.where(disty>0)  #different rules for different combinations of x/y
+    mask_xpos=np.where(distx>0)
+    mask_both_pos=np.intersect1d(mask_ypos,mask_xpos) #both positive 
+    
+    mask_yneg=np.where(disty<0)
+    mask_xneg=np.where(distx<0)
+    mask_both_neg=np.intersect1d(mask_yneg,mask_xneg) #both negative 
+    
+    ypos_xneg=np.intersect1d(mask_ypos,mask_xneg) #mix of pos/neg
+    xpos_yneg=np.intersect1d(mask_xpos,mask_yneg)        
+    vx=v_rotation*np.cos(theta) #resolve velocit
+    vy=v_rotation*np.sin(theta)
+    vz=0
+    
+    
+    vx[mask_both_pos]=-vx[mask_both_pos]
+    vy[mask_both_neg]=-vy[mask_both_neg]
+    vy[ypos_xneg]=-vy[ypos_xneg]
+    vx[xpos_yneg]=-vx[xpos_yneg]
+    
+    return vx,vy,vz,v_rotation
+        
+        
+
+
 #v=zero_vel(10000)
 
 
