@@ -177,8 +177,8 @@ def tag_block(sofar,data,name,dtype,no_axis):
     return sofar
 
 
-def writer(sofar):
-    f= open("arepo_input.txt","w+b")
+def writer(sofar,name):
+    f= open(name,"w+b")
     f.write(sofar)
     f.close
 
@@ -211,38 +211,40 @@ scalefactor=1
 
 
 #load initial conditions 
-x=spherical_spray.spherical_cloud(2000, 2000,2,6,6,6)
-
-ids =np.linspace(1,4000,4000).astype(int)
-
-rho,rs=radial_density.rhos(x[0],x[1],x[2],6,6,6,2,2,1,-2,0)
-Mtot=radial_density.tmass(2,2,1,-2,0)
-
-U=internal_energy.int_en(4000,10)
-
-v=velocities.zero_vel(4000) #0 velocities 
+#x=spherical_spray.spherical_cloud(2000, 2000,2,6,6,6)
+#
+#ids =np.linspace(1,4000,4000).astype(int)
+#
+#rho,rs=radial_density.rhos(x[0],x[1],x[2],6,6,6,2,2,1,-2,0)
+#Mtot=radial_density.tmass(2,2,1,-2,0)
+#
+#U=internal_energy.int_en(4000,10)
+#
+#v=velocities.zero_vel(4000) #0 velocities 
 
 #v_r=velocities.rot_sphere(6,x,Mtot,2,0.05) #adding solid rotation
 #v=(v[0]+v_r[0], v[1]+v_r[1], v[2]+v_r[2])
+
+
 
 #v_r=velocities.vary_rotation(6,x,0.5,a.m) #m given from result of remesh 
 
 
 
-
+'''writing'''
 
 #write ICs file 
-sofar=header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
-           npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
-           hubble_param,flag_stellarage,flag_metals,npartHighword,
-           flag_entropy,flag_dp,flag_1pt,scalefactor)
-
-sofar=tag_block(sofar,x,'POS ','d',3)
-sofar=tag_block(sofar,v,'VEL ','d',3)
-sofar=tag_block(sofar,ids,'ID  ','i',1)
-sofar=tag_block(sofar,rho,'MASS','d',1)
-sofar=tag_block(sofar,ids,'U   ','d',1)
-writer(sofar)
+#sofar=header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
+#           npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
+#           hubble_param,flag_stellarage,flag_metals,npartHighword,
+#           flag_entropy,flag_dp,flag_1pt,scalefactor)
+#
+#sofar=tag_block(sofar,x,'POS ','d',3)
+#sofar=tag_block(sofar,v,'VEL ','d',3)
+#sofar=tag_block(sofar,ids,'ID  ','i',1)
+#sofar=tag_block(sofar,rho,'MASS','d',1)
+#sofar=tag_block(sofar,U,'U   ','d',1)
+#writer(sofar,'arepo_input.dat')
 
 
 

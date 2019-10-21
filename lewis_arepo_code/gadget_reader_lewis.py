@@ -307,24 +307,20 @@ def hexer(a):
 #    plt.xlim(2.1,2.6)
 #    plt.ylim(2.1,2.6)
     plt.colorbar()
+   
     
-path=''#'/scratch/c.c1521474/rotation_collapse/' 
-filename=path+'snapshot_000'
-a=reader(filename)
-filename=path+'snapshot_001'
-b=reader(filename)
-filename=path+'snapshot_002'
-c=reader(filename)
-plt.figure(),plt.hexbin(c.y,c.x,gridsize=100,Norm=colors.LogNorm())
+    
 
-#mask=np.where(c.y<4)
-#mask1=np.where(c.y>2)
-#mask2=np.where(c.x>2)
-#mask3=np.where(c.x<4)
-#mask=np.intersect1d(mask,mask1)
-#mask=np.intersect1d(mask,mask2)
-#mask=np.intersect1d(mask,mask3)
-#plt.figure(),plt.hexbin(c.y[mask],c.x[mask],gridsize=100,Norm=colors.LogNorm())
+#path=''#'/scratch/c.c1521474/rotation_collapse/' 
+#filename=path+'snapshot_000'
+#a=reader(filename)
+#filename=path+'snapshot_001'
+#b=reader(filename)
+#filename=path+'snapshot_002'
+#c=reader(filename)
+#plt.figure(),plt.hexbin(c.y,c.x,gridsize=100,Norm=colors.LogNorm())
+
+
 
 
 
