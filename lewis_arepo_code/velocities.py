@@ -79,13 +79,16 @@ def vary_rotation(size,x,B,m):
     distx=(mid-x) #distances from z axis of rotation 
     disty=(mid-y)
     dist=np.sqrt((mid-x)**2+(mid-y)**2)
+    
     inM=0
     E=np.zeros_like(x)
     v_rotation=np.zeros_like(x)
+    args=dist.argsort()
     
     
     
-    for i in range (len(x)):
+    
+    for i in args:
         inM+=m[i]
         E[i]=inM*m[i]/dist[i]
         w= np.sqrt(B*2*E[i]/(inM*dist[i]**2))
