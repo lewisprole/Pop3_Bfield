@@ -221,8 +221,8 @@ Mtot=radial_density.tmass(2,2,1,-2,0)
 U=internal_energy.int_en(4000,10)
 
 v=velocities.zero_vel(4000)
-v_r=velocities.rot_sphere(6,x,Mtot,2,0.05)
-v=(v[0]+v_r[0], v[1]+v_r[1], v[2]+v_r[2])
+#v_r=velocities.rot_sphere(6,x,Mtot,2,0.05)
+#v=(v[0]+v_r[0], v[1]+v_r[1], v[2]+v_r[2])
 
 
 
