@@ -305,7 +305,7 @@ def aread(filename):
 
 #
 # The function for making quick images - based on the 2d histogram
-def arepoimage(x, y, weight):
+def arepoimage(x, y, weight,forcelog):
         import matplotlib.pyplot as plt
         import numpy as np
         #
@@ -330,6 +330,9 @@ def arepoimage(x, y, weight):
         if ( (max_image/min_image) > 50 ):
             hist_final = np.nan_to_num(np.log10(hist_final))
             print('The image range is > 50 so it will be logged')
+        if forcelog=='y':
+            hist_final = np.nan_to_num(np.log10(hist_final))
+            print('Forced log')
         #
         # make the plot
         plt.clf()
