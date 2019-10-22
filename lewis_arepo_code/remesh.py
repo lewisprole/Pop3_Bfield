@@ -24,15 +24,16 @@ import internal_energy
 filename='/scratch/c.c1521474/rotation_collapse/ics/input_remesh.dat'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
 
+n0,n1,n2,n3,n4,n5=a.npart
                                             #header data
 sofar=[]
-npart=(4000,0,0,0,0,0)
+npart=(n0,n1,n2,n3,n4,n5)
 massarr=(0,0,0,0,0,0)
 time=10
 redshift=0
 flag_sfr=0
 flag_feedback=0
-npartTotal=(4000,0,0,0,0,0)
+npartTotal=(n0,n1,n2,n3,n4,n5)
 flag_cooling=0
 num_files=1
 boxsize=0
@@ -49,7 +50,7 @@ scalefactor=1
 
 
 
-m=a.m
+m=a.mass
 v=(a.vx,a.vy,a.vz)
 v_r=v_r=velocities.vary_rotation(6,(a.x,a.y,a.z),0.5,m) #m given from result of remesh
 v=(v[0]+v_r[0], v[1]+v_r[1], v[2]+v_r[2])
@@ -70,4 +71,4 @@ sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/rotation_collapse/vary_collapse/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/rotation_collapse/vary_rotation/arepo_input.dat')
