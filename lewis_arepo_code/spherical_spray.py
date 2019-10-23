@@ -82,6 +82,57 @@ def spherical_cloud(n,n_bg,r,x_size,y_size,z_size):
 
 
 
+def uniform_sphere(n,n_bg,r,size):
+    
+    #fill in sphere
+    mid=int(size/2)
+    
+    vol=(4/3 * np.pi * r**3 )/ n
+    l=vol**(1/3)
+    N=int(np.absolute(size/l))
+    print(vol,l,N)
+    
+    x=np.linspace(0,size,N)
+    y=np.linspace(0,size,N)
+    z=np.linspace(0,size,N)
+    
+    rs=np.sqrt((mid-x)**2 + (mid-y)**2 + (mid-z)**2)
+    mask=np.where(rs<r)
+    x=x[mask]
+    y=y[mask]
+    z=z[mask]
+    
+    #now fill in background 
+    vol=size**3 - (4/3 * np.pi * r**3 )
+    l=vol**(1/3)
+    N=int(np.absolute(size/l))
+    xbg=np.linspace(0,size,N)
+    ybg=np.linspace(0,size,N)
+    zbg=np.linspace(0,size,N)
+    rs=np.sqrt(xbg**2 + ybg**2 + zbg**2)
+    mask=np.where(rs>r)
+    xbg=xbg[mask]
+    ybg=ybg[mask]
+    zbg=zbg[mask]   
+    
+    x=np.append(x,xbg)
+    y=np.append(y,ybg)
+    z=np.append(z,zbg)
+    
+    return x,y,z
+    
+    
+    
+    
+    
+    
+    
+
+
+
+
+
+
 #
 def plotter(n,n_bg,r,x_size,y_size,z_size):
 #    xs_c,ys_c,zs_c=sphere_fill(n,r,x_size,y_size,z_size)
