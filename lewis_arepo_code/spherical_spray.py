@@ -81,48 +81,94 @@ def spherical_cloud(n,n_bg,r,x_size,y_size,z_size):
 
 
 
-'''
+
 def uniform_sphere(n,n_bg,r,size):
     
     #fill in sphere
     mid=int(size/2)
     
-    vol=(4/3 * np.pi * r**3 )/ n
-    l=vol**(1/3)
-    N=int(np.absolute(size/l))
-    
+    vol_cell=(4/3 * np.pi * r**3)/ n
+    N=(size**3/vol_cell)
+    N=round(N**(1/3))
+   
     
     x=np.linspace(0,size,N)
     y=np.linspace(0,size,N)
     z=np.linspace(0,size,N)
+    x, y, z = np.meshgrid(x, y, z)
+    x, y, z = x.ravel(),y.ravel(),z.ravel()
+    
     
     rs=np.sqrt((mid-x)**2 + (mid-y)**2 + (mid-z)**2)
-    mask=np.where(rs<r)
+    
+    R=r+0.05*r #make sphere slightly bigger
+    mask=np.where(rs<=R)
     x=x[mask]
     y=y[mask]
     z=z[mask]
+    rs=rs[mask]
     
-    print(len(x))
+    if len(x)>n:
+        mask=[]
+        dif=len(x)-n
+        for i in range(dif):
+            mask=np.append(mask,rs.argmax())
+            rs[rs.argmax()]=0
     
-    #now fill in background 
-    vol=size**3 - (4/3 * np.pi * r**3 )
-    l=vol**(1/3)
-    N=int(np.absolute(size/l))
-    xbg=np.linspace(0,size,N**3)
-    ybg=np.linspace(0,size,N**3)
-    zbg=np.linspace(0,size,N**3)
-    rs=np.sqrt(xbg**2 + ybg**2 + zbg**2)
-    mask=np.where(rs>r)
+    mask=mask.astype(int)
+    x=np.delete(x,mask)
+    y=np.delete(y,mask)
+    z=np.delete(z,mask)
+
+    
+    
+    #now fill in background
+    vol_cell_bg=(size**3 - (4/3 * np.pi * r**3 ))/n_bg
+    N=round(size**3/vol_cell_bg)
+    
+    N=round(N**(1/3))
+    if N**3==n_bg:
+        N+=1
+   
+   
+    
+    xbg=np.linspace(0,size,N)
+    ybg=np.linspace(0,size,N)
+    zbg=np.linspace(0,size,N)
+    xbg, ybg, zbg = np.meshgrid(xbg, ybg, zbg)
+    xbg, ybg, zbg = xbg.ravel(),ybg.ravel(),zbg.ravel()
+    
+
+    rs=np.sqrt((mid-xbg)**2 + (mid-ybg)**2 + (mid-zbg)**2)
+    R=r #maske sphere slightly smaller 
+    mask=np.where(rs>R)
     xbg=xbg[mask]
     ybg=ybg[mask]
     zbg=zbg[mask]   
+    rs=rs[mask]
+    mask=np.array([])
+    if len(xbg)>n_bg:
+        
+        dif=len(xbg)-n
+        
+        for i in range(dif):
+            
+            mask=np.append(mask,rs.argmax())
+            rs[rs.argmax()]=0
     
+    mask=mask.astype(int)
+    xbg=np.delete(xbg,mask)
+    ybg=np.delete(ybg,mask)
+    zbg=np.delete(zbg,mask)
+    
+    #join sphere and background
     x=np.append(x,xbg)
     y=np.append(y,ybg)
     z=np.append(z,zbg)
-    
-    return x,y,z
-'''
+    rs=np.sqrt((mid-x)**2 + (mid-y)**2 + (mid-z)**2)
+    return x,y,z,vol_cell,vol_cell_bg,rs
+
+
     
 
 
