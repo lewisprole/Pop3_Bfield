@@ -21,7 +21,7 @@ def bonnor_ebert(size,x,v,v_out,T,r):
     mu=2.4
     k_b=1.38e-23
     m_H=1.67e-27
-    c_s=k_b*T/(mu*m_H)
+    c_s=np.sqrt(k_b*T/(mu*m_H))
     
     rho=c_s**2/(2*np.pi*rs**2)
     rho[np.isinf(rho)]=rho[~np.isinf(rho)].max()

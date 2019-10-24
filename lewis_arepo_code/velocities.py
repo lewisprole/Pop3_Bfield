@@ -108,7 +108,7 @@ def vary_rotation(size,x,B,m):
     xpos_yneg=np.intersect1d(mask_xpos,mask_yneg)        
     vx=v_rotation*np.cos(theta) #resolve velocit
     vy=v_rotation*np.sin(theta)
-    vz=0
+    vz=np.zeros_like(vx)
     
     
     vx[mask_both_pos]=-vx[mask_both_pos]
@@ -116,7 +116,7 @@ def vary_rotation(size,x,B,m):
     vy[ypos_xneg]=-vy[ypos_xneg]
     vx[xpos_yneg]=-vx[xpos_yneg]
     
-    return vx,vy,vz,v_rotation
+    return vx,vy,vz
         
         
 
