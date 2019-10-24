@@ -14,16 +14,17 @@ import radial_density
 import internal_energy
 import mass
 
-x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(10000,10000,1,6)
+#x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(10000,10000,1,6)
+x,y,z=spherical_spray.spherical_cloud(10000,10000,1,6,6,6)
 ids =np.linspace(1,len(x),len(x)).astype(int)
 U=internal_energy.int_en(len(x),10)
-m,rs,rho=mass.bonnor_ebert(6,(x,y,z),vol_cell,vol_cell_bg,10,1)
-#v=velocities.zero_vel(len(x)) #0 velocities
-v=velocities.vary_rotation(6,(x,y,z),0.5,m)
+#m,rs,rho=mass.bonnor_ebert(6,(x,y,z),vol_cell,vol_cell_bg,10,1)
+v=velocities.zero_vel(len(x)) #0 velocities
+#v=velocities.vary_rotation(6,(x,y,z),0.5,m)
 
 
 
-#rho,rs=radial_density.rhos(x[0],x[1],x[2],6,6,6,2,2,1,-2,0)
+rho,rs=radial_density.rhos(x,y,z,6,6,6,2,2,1,-2,0)
 #Mtot=radial_density.tmass(2,2,1,-2,0)
 
 
@@ -61,6 +62,6 @@ sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_
 sofar=arepo_input_writer.tag_block(sofar,(x,y,z),'POS ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
-sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
+sofar=arepo_input_writer.tag_block(sofar,rho,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
-arepo_input_writer.writer(sofar,'test.dat')#'/scratch/c.c1521474/rotation_collapse/ics/pre_remesh.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/bonnor_ebert/remeshing/pre_remesh.dat')
