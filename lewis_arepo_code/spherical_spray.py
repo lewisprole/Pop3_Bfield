@@ -95,7 +95,7 @@ def uniform_sphere(n,n_bg,r,size):
     N=round(N**(1/3))
     if N**3==n:
         N+=1  
-    print(N)
+    
     x=np.linspace(1e-5,size-1e-5,N)
     y=np.linspace(1e-5,size-1e-5,N)
     z=np.linspace(1e-5,size-1e-5,N)
