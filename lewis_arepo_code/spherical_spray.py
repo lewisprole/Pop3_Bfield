@@ -96,9 +96,9 @@ def uniform_sphere(n,n_bg,r,size):
     if N**3==n:
         N+=1  
     print(N)
-    x=np.linspace(0,size,N)
-    y=np.linspace(0,size,N)
-    z=np.linspace(0,size,N)
+    x=np.linspace(1e-5,size-1e-5,N)
+    y=np.linspace(1e-5,size-1e-5,N)
+    z=np.linspace(1e-5,size-1e-5,N)
     x, y, z = np.meshgrid(x, y, z)
     x, y, z = x.ravel(),y.ravel(),z.ravel()
     
@@ -138,9 +138,9 @@ def uniform_sphere(n,n_bg,r,size):
    
    
     
-    xbg=np.linspace(0,size,N)
-    ybg=np.linspace(0,size,N)
-    zbg=np.linspace(0,size,N)
+    xbg=np.linspace(1e-5,size-1e-5,N)
+    ybg=np.linspace(1e-5,size-1e-5,N)
+    zbg=np.linspace(1e-5,size-1e-5,N)
     xbg, ybg, zbg = np.meshgrid(xbg, ybg, zbg)
     xbg, ybg, zbg = xbg.ravel(),ybg.ravel(),zbg.ravel()
     
