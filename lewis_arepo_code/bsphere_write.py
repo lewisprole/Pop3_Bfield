@@ -17,8 +17,8 @@ import code_units
 import astropy.constants as ap 
 
 
-boxsize=ap.pc.cgs.value
-x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e6,1e6,0.2*boxsize,boxsize)
+boxsize=int(ap.pc.cgs.value)
+x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e4,1e4,0.2*boxsize,boxsize)
 #x,y,z=spherical_spray.spherical_cloud(10000,10000,1,6,6,6)
 ids =np.linspace(1,len(x),len(x)).astype(int)
 U=internal_energy.int_en(len(x),50)
@@ -76,4 +76,4 @@ sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,rho,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
-#arepo_input_writer.writer(sofar,'/scratch/c.c1521474/bonnor_ebert/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/bonnor_ebert/arepo_input.dat')
