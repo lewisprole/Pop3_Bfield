@@ -14,15 +14,19 @@ import radial_density
 import internal_energy
 import mass
 import code_units
+import calculate_radius
 import astropy.constants as ap 
 
 
-boxsize=int(ap.pc.cgs.value)
-x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e4,1e4,0.2*boxsize,boxsize)
+T=10
+r=int(calculate_radius.BE_radius(10*1.989e33,T))
+boxsize=4*r#ap.pc.cgs.value
+print('boxsize: '+np.format_float_scientific(np.float(boxsize)))
+x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e4,1e4,r,boxsize)
 #x,y,z=spherical_spray.spherical_cloud(10000,10000,1,6,6,6)
 ids =np.linspace(1,len(x),len(x)).astype(int)
-U=internal_energy.int_en(len(x),50)
-m,rs,rho=mass.bonnor_ebert(boxsize,(x,y,z),vol_cell,vol_cell_bg,50,0.2*boxsize)
+U=internal_energy.int_en(len(x),T)
+m,rs,rho=mass.bonnor_ebert(boxsize,(x,y,z),vol_cell,vol_cell_bg,T,r)
 #v=velocities.zero_vel(len(x)) #0 velocities
 v=velocities.vary_rotation(boxsize,(x,y,z),0.5,m)
 
