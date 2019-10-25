@@ -27,6 +27,7 @@ def bonnor_ebert(size,x,v,v_out,T,r):
     c_s=np.sqrt(kb*T/(mu*mp)) #in cgs 
     print(c_s)
     
+    
     rho=c_s**2/(2*np.pi*G*rs**2) #rs should already be in cm
     
     rho[np.isinf(rho)]=rho[~np.isinf(rho)].max()

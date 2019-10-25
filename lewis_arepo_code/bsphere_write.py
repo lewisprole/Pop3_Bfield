@@ -21,7 +21,7 @@ import astropy.constants as ap
 T=10
 r=int(calculate_radius.BE_radius(10*1.989e33,T))
 boxsize=4*r#ap.pc.cgs.value
-print('boxsize: '+np.format_float_scientific(np.float(boxsize)))
+print('boxsize: '+ str(boxsize))
 x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e4,1e4,r,boxsize)
 #x,y,z=spherical_spray.spherical_cloud(10000,10000,1,6,6,6)
 ids =np.linspace(1,len(x),len(x)).astype(int)
@@ -80,4 +80,4 @@ sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,rho,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/bonnor_ebert/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/realistic_sphere/bonnor_ebert2/arepo_input.dat')
