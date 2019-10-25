@@ -100,17 +100,17 @@ def vary_rotation(size,x,B,m):
     
     G=ap.G.cgs.value
     for i in args:
-	inM+=m[i]
-	
-	if rs[i]>0:
-        	E[i]=G*inM*m[i]/rs[i]
-	else:
-	    E[i]=0
-	if dist[i]>0:        
-		 w= np.sqrt(B*2*E[i]/(inM*dist[i]**2))
-	else:
-		w=0
+        inM+=m[i]
+        if rs[i]>0:
+            E[i]=G*inM*m[i]/rs[i]
+        else:
+            E[i]=0
+        if dist[i]>0:
+            w=np.sqrt(B*2*E[i]/(inM*dist[i]**2))
+        else:
+            w=0
         v_rotation[i]=w*dist[i]
+
     
     theta=np.arctan(disty/distx) #rosolve x and y velocities 
     theta[np.where(distx==0)]=np.pi/2
