@@ -19,16 +19,27 @@ import astropy.constants as ap
 
 
 T=10
-r=int(calculate_radius.BE_radius(10*1.989e33,T))
+r=calculate_radius.BE_radius(10*1.989e33,T)
 boxsize=4*r#ap.pc.cgs.value
-print('boxsize: '+ str(boxsize))
-x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e4,1e4,r,boxsize)
-#x,y,z=spherical_spray.spherical_cloud(10000,10000,1,6,6,6)
+Bsize_CU=round(boxsize/code_units.d_cu,3)
+boxsize=Bsize_CU*code_units.d_cu
+
+print('boxsize: '+ str(Bsize_CU))
+
+
+x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e6,1e6,r,boxsize)
+print('number of cells: ' +str(len(x)))
+print('cell volume in sphere: '+str(vol_cell))
+#x,y,z=spherical_spray.spherical_cloud(10000,10000,1,6,6,6i)
+
+
 ids =np.linspace(1,len(x),len(x)).astype(int)
 U=internal_energy.int_en(len(x),T)
 m,rs,rho=mass.bonnor_ebert(boxsize,(x,y,z),vol_cell,vol_cell_bg,T,r)
 #v=velocities.zero_vel(len(x)) #0 velocities
-v=velocities.vary_rotation(boxsize,(x,y,z),0.5,m)
+#v=velocities.vary_rotation(boxsize,(x,y,z),0.5,m)
+v=velocities.rot_sphere(boxsize,(x,y,z),sum(m),r,0.05)
+
 
 v1=v[0]/code_units.v_cu
 v2=v[1]/code_units.v_cu
@@ -78,6 +89,6 @@ sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_
 sofar=arepo_input_writer.tag_block(sofar,(x,y,z),'POS ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
-sofar=arepo_input_writer.tag_block(sofar,rho,'MASS','d',1)
+sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/realistic_sphere/bonnor_ebert2/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/realistic_sphere/bonnor_ebert/arepo_input.dat')

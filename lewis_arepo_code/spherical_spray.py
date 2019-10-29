@@ -9,7 +9,7 @@ Created on Thu Oct 10 17:10:43 2019
 import numpy as np
 import matplotlib.pyplot as plt
 #from mpl_toolkits import mplot3d
-
+import code_units
 '''script to set up initial positions'''
 
 def sphere_fill(n,r,x_size,y_size,z_size):
@@ -96,9 +96,10 @@ def uniform_sphere(n,n_bg,r,size):
     if N**3==n:
         N+=1  
     
-    x=np.linspace(1e-5,size-1e-5,N)
-    y=np.linspace(1e-5,size-1e-5,N)
-    z=np.linspace(1e-5,size-1e-5,N)
+    x=np.linspace(0,size,N)
+    y=np.linspace(0,size,N)
+    z=np.linspace(0,size,N)
+    dx=x[1]-x[0]
     x, y, z = np.meshgrid(x, y, z)
     x, y, z = x.ravel(),y.ravel(),z.ravel()
     
@@ -137,10 +138,10 @@ def uniform_sphere(n,n_bg,r,size):
         N+=1
    
    
-    
-    xbg=np.linspace(1e-5,size-1e-5,N)
-    ybg=np.linspace(1e-5,size-1e-5,N)
-    zbg=np.linspace(1e-5,size-1e-5,N)
+    buf=0.01*code_units.d_cu 
+    xbg=np.linspace(buf,size-buf,N)
+    ybg=np.linspace(buf,size-buf,N)
+    zbg=np.linspace(buf,size-buf,N)
     xbg, ybg, zbg = np.meshgrid(xbg, ybg, zbg)
     xbg, ybg, zbg = xbg.ravel(),ybg.ravel(),zbg.ravel()
     
@@ -177,6 +178,7 @@ def uniform_sphere(n,n_bg,r,size):
     x=np.append(x,xbg)
     y=np.append(y,ybg)
     z=np.append(z,zbg)
+    print(x.max()/code_units.d_cu)
     rs=np.sqrt((mid-x)**2 + (mid-y)**2 + (mid-z)**2)
     return x,y,z,vol_cell,vol_cell_bg
 

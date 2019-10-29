@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 #from mpl_toolkits import mplot3d
 from matplotlib import colors
+import astropy.constants as ap
 
 '''radial density distribution'''
 
@@ -35,6 +36,23 @@ def rhos(xs,ys,zs,x_size,y_size,z_size,R_cloud,A,a,f,c):
     
     return rho, rs
 
+def BE_profile(xs,ys,zs,size,T):
+    mid=size/2
+    kb=ap.k_B.cgs.value
+    mp=ap.m_p.to('g').value
+    G=ap.G.cgs.value
+    mu=2.4
+
+    c_s=np.sqrt(kb*T/(mu*mp)) #in cgs
+    
+    rs=np.sqrt((mid-xs)**2+(mid-ys)**2+(mid-zs)**2)
+    mask=np.where(rs>0)
+    rho=np.zeros_like(xs)
+    rho[mask]=c_s**2/(2*np.pi*G*rs[mask]**2)
+    mask=np.where(rs==0)
+    rho[mask]=rho.max()
+
+    return rho
 
 
 

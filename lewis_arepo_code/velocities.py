@@ -35,8 +35,8 @@ def rot_sphere(size,x,M,r,B):
     w=np.sqrt(B*2*G*M)/r**3 
     mid=size/2
     
-    distx=(mid-x) #distances from z axis of rotation 
-    disty=(mid-y)
+    distx=(x-mid) #distances from z axis of rotation 
+    disty=(y-mid)
     dist=np.sqrt((mid-x)**2+(mid-y)**2)
 
 
@@ -57,17 +57,32 @@ def rot_sphere(size,x,M,r,B):
     ypos_xneg=np.intersect1d(mask_ypos,mask_xneg)
     xpos_yneg=np.intersect1d(mask_xpos,mask_yneg)
     
-    vx=v_rot*np.cos(theta)
-    vy=v_rot*np.sin(theta)
-    vz=0
+
+
+    x0=np.where(distx==0)
+    x0ypos=np.intersect1d(mask_ypos,x0)
+    x0yneg=np.intersect1d(x0,mask_yneg)
+    y0=np.where(disty==0)
+    y0xpos=np.intersect1d(mask_xpos,y0)
+    y0xneg=np.intersect1d(mask_xneg,y0)
+
+
+    vx=v_rot*np.sin(theta)
+    vy=v_rot*np.cos(theta)
+    vz=np.zeros_like(vx)
     
     
     vx[mask_both_pos]=-vx[mask_both_pos]
     vy[mask_both_neg]=-vy[mask_both_neg]
     vy[ypos_xneg]=-vy[ypos_xneg]
     vx[xpos_yneg]=-vx[xpos_yneg]
+    vx[x0yneg]=v_rot[x0yneg]
+    vx[x0ypos]=-v_rot[x0ypos]
+    vy[y0xneg]=-v_rot[y0xneg]
     
-    
+
+
+
     rs = np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)  #no rotation outside cloud 
     mask=np.where(rs>r)
     vx[mask]=0 
@@ -93,7 +108,7 @@ def vary_rotation(size,x,B,m):
     
     inM=0
     E=np.zeros_like(x)
-    v_rotation=np.zeros_like(x)
+    v_rot=np.zeros_like(x)
     args=dist.argsort()
     
     
@@ -109,41 +124,46 @@ def vary_rotation(size,x,B,m):
             w=np.sqrt(B*2*E[i]/(inM*dist[i]**2))
         else:
             w=0
-        v_rotation[i]=w*dist[i]
+        v_rot[i]=w*dist[i]
 
     
-    theta=np.arctan(disty/distx) #rosolve x and y velocities 
-    theta[np.where(distx==0)]=np.pi/2
-        
-    
-    mask_ypos=np.where(disty>0)  #different rules for different combinations of x/y
+    theta=np.arctan(disty/distx) #rosolve x and y velocities
+
+
+    mask_ypos=np.where(disty>0)
+
     mask_xpos=np.where(distx>0)
-    mask_both_pos=np.intersect1d(mask_ypos,mask_xpos) #both positive 
-    
+    mask_both_pos=np.intersect1d(mask_ypos,mask_xpos)
+
     mask_yneg=np.where(disty<0)
     mask_xneg=np.where(distx<0)
-    mask_both_neg=np.intersect1d(mask_yneg,mask_xneg) #both negative 
-    
-    ypos_xneg=np.intersect1d(mask_ypos,mask_xneg) #mix of pos/neg
-    xpos_yneg=np.intersect1d(mask_xpos,mask_yneg)        
-    
+    mask_both_neg=np.intersect1d(mask_yneg,mask_xneg)
+
+    ypos_xneg=np.intersect1d(mask_ypos,mask_xneg)
+    xpos_yneg=np.intersect1d(mask_xpos,mask_yneg)
+
+
+
     x0=np.where(distx==0)
     x0ypos=np.intersect1d(mask_ypos,x0)
-    x0yneg=np.intersect1d(mask_yneg,x0)
-    
-    
-    vx=v_rotation*np.sin(theta) #resolve velocit
-    vy=v_rotation*np.cos(theta)
+    x0yneg=np.intersect1d(x0,mask_yneg)
+    y0=np.where(disty==0)
+    y0xpos=np.intersect1d(mask_xpos,y0)
+    y0xneg=np.intersect1d(mask_xneg,y0)
+
+
+    vx=v_rot*np.sin(theta)
+    vy=v_rot*np.cos(theta)
     vz=np.zeros_like(vx)
-    
-    
+
+
     vx[mask_both_pos]=-vx[mask_both_pos]
     vy[mask_both_neg]=-vy[mask_both_neg]
     vy[ypos_xneg]=-vy[ypos_xneg]
     vx[xpos_yneg]=-vx[xpos_yneg]
-    vx[x0ypos]=v_rotation[x0ypos]
-    vx[x0yneg]=-v_rotation[x0yneg]
-    vy[x0]=0
+    vx[x0yneg]=v_rot[x0yneg]
+    vx[x0ypos]=-v_rot[x0ypos]
+    vy[y0xneg]=-v_rot[y0xneg]
     
     return vx,vy,vz
         

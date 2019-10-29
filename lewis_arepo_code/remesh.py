@@ -19,9 +19,10 @@ import spherical_spray
 import velocities
 import radial_density
 import internal_energy
+import calculate_radius
+import code_units
 
-
-filename='/scratch/c.c1521474/rotation_collapse/ics/input_remesh.dat'                #read remesh data
+filename='/scratch/c.c1521474/realistic_sphere/ics/snapshot_000'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
 
 n0,n1,n2,n3,n4,n5=a.npart
@@ -51,8 +52,14 @@ scalefactor=1
 
 
 m=a.mass
+T=10
+r=round(calculate_radius.BE_radius(10*1.989e33,T),3)
+xsize=4*r#ap.pc.cgs.value
+Bsize_CU=round(xsize/code_units.d_cu,3)
+print('boxsize: '+str(Bsize_CU))
+
 v=(a.vx,a.vy,a.vz)
-v_r=v_r=velocities.vary_rotation(6,(a.x,a.y,a.z),0.5,m) #m given from result of remesh
+v_r=v_r=velocities.vary_rotation(r,(a.x,a.y,a.z),0.05,m) #m given from result of remesh
 v=(v[0]+v_r[0], v[1]+v_r[1], v[2]+v_r[2])
 
 x=(a.x,a.y,a.z)
@@ -71,4 +78,4 @@ sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/rotation_collapse/vary_rotation/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/realistic_sphere/random_x_BE/arepo_input.dat')
