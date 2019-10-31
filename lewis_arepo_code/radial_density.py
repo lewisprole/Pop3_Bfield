@@ -36,7 +36,8 @@ def rhos(xs,ys,zs,x_size,y_size,z_size,R_cloud,A,a,f,c):
     
     return rho, rs
 
-def BE_profile(xs,ys,zs,size,T):
+def BE_profile(xs,ys,zs,size,T,rho_bg):
+    '''Bonnor Ebert sphere density profile'''
     mid=size/2
     kb=ap.k_B.cgs.value
     mp=ap.m_p.to('g').value
@@ -49,8 +50,13 @@ def BE_profile(xs,ys,zs,size,T):
     mask=np.where(rs>0)
     rho=np.zeros_like(xs)
     rho[mask]=c_s**2/(2*np.pi*G*rs[mask]**2)
+    
     mask=np.where(rs==0)
     rho[mask]=rho.max()
+    
+    R=0.49 *c_s/(G**(1/2)*rho_bg**(1/2))
+    mask=np.where(rs>R)
+    rho[mask]=rho_bg
 
     return rho
 

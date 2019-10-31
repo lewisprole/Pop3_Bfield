@@ -32,7 +32,7 @@ def rot_sphere(size,x,M,r,B):
     #if KE_rotation = A * U_grav then w=root(BM/r^3)
     
     G=ap.G.cgs.value
-    w=np.sqrt(B*2*G*M)/r**3 
+    w=np.sqrt(B*2*G*M/r**3) 
     mid=size/2
     
     distx=(x-mid) #distances from z axis of rotation 
@@ -65,7 +65,7 @@ def rot_sphere(size,x,M,r,B):
     y0=np.where(disty==0)
     y0xpos=np.intersect1d(mask_xpos,y0)
     y0xneg=np.intersect1d(mask_xneg,y0)
-
+    x0y0=np.intersect1d(x0,y0)
 
     vx=v_rot*np.sin(theta)
     vy=v_rot*np.cos(theta)
@@ -79,7 +79,8 @@ def rot_sphere(size,x,M,r,B):
     vx[x0yneg]=v_rot[x0yneg]
     vx[x0ypos]=-v_rot[x0ypos]
     vy[y0xneg]=-v_rot[y0xneg]
-    
+    vx[x0y0]=0
+    vy[x0y0]=0
 
 
 
@@ -121,7 +122,7 @@ def vary_rotation(size,x,B,m):
         else:
             E[i]=0
         if dist[i]>0:
-            w=np.sqrt(B*2*E[i]/(inM*dist[i]**2))
+            w=np.sqrt(B*2*E[i]/(m[i]*dist[i]**2))
         else:
             w=0
         v_rot[i]=w*dist[i]

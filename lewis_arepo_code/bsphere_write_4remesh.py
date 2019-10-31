@@ -16,30 +16,38 @@ import mass
 import code_units
 import calculate_radius
 import astropy.constants as ap 
-
+import matplotlib.pyplot as plt
 
 T=10
-r=round(calculate_radius.BE_radius(10*1.989e33,T),3)
-boxsize=4*r#ap.pc.cgs.value
+M=3*1.989e33
+r,rho_outter=calculate_radius.BE_radius('mass',M,T)				#Bonnor Ebert radius estimation from provided mass 
+boxsize=4*r							
 Bsize_CU=round(boxsize/code_units.d_cu,3)
 boxsize=Bsize_CU*code_units.d_cu
-
 print('boxsize: '+ str(Bsize_CU))
 
 
-#x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e6,1e6,r,boxsize)
-#print('number of cells: ' +str(len(x)))
-#print('cell volume insphere: '+str(vol_cell))
-x,y,z=spherical_spray.spherical_cloud(1e5,1e5,r,boxsize,boxsize,boxsize)
-rho=radial_density.BE_profile(x,y,z,boxsize,T)
 
+x,y,z,vol_cell,vol_cell_bg=spherical_spray.uniform_sphere(1e5,1e5,r,boxsize)    #Uniform grid with +resolution sphere
+print('CODE UNITS')
+print('number of cells: ' +str(len(x)))
+print('radius of sphere: '+str(r/code_units.d_cu))
+print('cell volume insphere: '+str(vol_cell/code_units.d_cu**3))
+print('density at R: '+str(rho_outter/code_units.rho_cu))
+print('lowest mass in sphere: '+str(vol_cell*rho_outter/code_units.M_cu))
+#x,y,z=spherical_spray.spherical_cloud(1e5,1e5,r,boxsize,boxsize,boxsize)       #Random xyz particles +resolution sphere
+rho=radial_density.BE_profile(x,y,z,boxsize,T,rho_outter)			#Bonnor Ebert density profile
+mid=boxsize/2
+rs=np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)
+plt.figure(),plt.plot(rs,rho,'x')
+#m,rs,rho=mass.bonnor_ebert(boxsize,(x,y,z),vol_cell,vol_cell_bg,T,r)		#Or Bonnor Ebert mass profile (instead of density profile)
 ids =np.linspace(1,len(x),len(x)).astype(int)
 U=internal_energy.int_en(len(x),T)
-#m,rs,rho=mass.bonnor_ebert(boxsize,(x,y,z),vol_cell,vol_cell_bg,T,r)
-v=velocities.zero_vel(len(x)) #0 velocities
-#v=velocities.vary_rotation(boxsize,(x,y,z),0.05,m)
+v=velocities.zero_vel(len(x)) 							#0 velocities
+#v=velocities.vary_rotation(boxsize,(x,y,z),0.05,m)				#Or rotation about z axis (each cell balances current G-energy within its r)  
 
-v1=v[0]/code_units.v_cu
+
+v1=v[0]/code_units.v_cu								#convert to code units 
 v2=v[1]/code_units.v_cu
 v3=v[2]/code_units.v_cu
 v=v1,v2,v3
@@ -49,11 +57,8 @@ y=y/code_units.d_cu
 z=z/code_units.d_cu
 rho=rho/code_units.rho_cu
 
-#rho,rs=radial_density.rhos(x,y,z,6,6,6,2,2,1,-2,0)
-#Mtot=radial_density.tmass(2,2,1,-2,0)
 
 
-#
 
 
 sofar=[]

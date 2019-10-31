@@ -21,8 +21,8 @@ import radial_density
 import internal_energy
 import calculate_radius
 import code_units
-
-filename='/scratch/c.c1521474/realistic_sphere/ics/snapshot_000'                #read remesh data
+import calculate_freefall
+filename='/scratch/c.c1521474/realistic_sphere/ics/snapshot_023'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
 
 n0,n1,n2,n3,n4,n5=a.npart
@@ -51,21 +51,45 @@ scalefactor=1
 
 
 
-m=a.mass
+
 T=10
-r=round(calculate_radius.BE_radius(10*1.989e33,T),3)
+M=3*1.989e33
+r,rho_outter=calculate_radius.BE_radius('mass',M,T)
 xsize=4*r#ap.pc.cgs.value
 Bsize_CU=round(xsize/code_units.d_cu,3)
+xsize=Bsize_CU*code_units.d_cu
 print('boxsize: '+str(Bsize_CU))
 
-v=(a.vx,a.vy,a.vz)
-v_r=v_r=velocities.vary_rotation(r,(a.x,a.y,a.z),0.05,m) #m given from result of remesh
-v=(v[0]+v_r[0], v[1]+v_r[1], v[2]+v_r[2])
 
+
+v=(a.vx,a.vy,a.vz)
+#v_r=v_r=velocities.vary_rotation(r,(a.x,a.y,a.z),0.05,m) #m given from result of remesh
+
+#convert back to cgs
+m=a.mass
+m_cgs=np.asarray(m)*code_units.M_cu  
+x=np.asarray(a.x)*code_units.d_cu 
+y=np.asarray(a.y)*code_units.d_cu
+z=np.asarray(a.z)*code_units.d_cu
+
+#add bulk velocity 
+v=(a.vx,a.vy,a.vz)
+vx,vy,vz=velocities.rot_sphere(xsize,(x,y,z),M,r,0.05)
+
+#convert into code units
+vx=vx/code_units.v_cu
+vy=vy/code_units.v_cu
+vz=vz/code_units.v_cu 
+v=(v[0]+vx, v[1]+vy, v[2]+vz)
+
+#prepare for rewrite 
 x=(a.x,a.y,a.z)
 ids=a.ids
 u=a.u
 
+#estimate freefall time in code units 
+t_ff=calculate_freefall.ff(m,x,r/code_units.d_cu,Bsize_CU)
+print('free-fall time :' +str(t_ff))
 
 #write ICs file 
 sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
@@ -78,4 +102,4 @@ sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/realistic_sphere/random_x_BE/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/realistic_sphere/bonnor_ebert2/arepo_input.dat')
