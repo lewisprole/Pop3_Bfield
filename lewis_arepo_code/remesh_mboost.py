@@ -24,9 +24,9 @@ import code_units
 import calculate_freefall
 
 import os, shutil
-filename='/scratch/c.c1521474/realistic_sphere/ics/snapshot_030'                #read remesh data
+filename='/scratch/c.c1521474/realistic_sphere/ics/snapshot_040'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
-shutil.copyfile(filename,'/scratch/c.c1521474/realistic_sphere/random_x_BE/remeshed.dat')
+shutil.copyfile(filename,'/scratch/c.c1521474/realistic_sphere/sub_BE/remeshed.dat')
 
 n0,n1,n2,n3,n4,n5=a.npart
                                             #header data
@@ -63,13 +63,20 @@ Bsize_CU=round(xsize/code_units.d_cu,3)
 xsize=Bsize_CU*code_units.d_cu
 print('boxsize: '+str(Bsize_CU))
 
+#mass boost within sphere
+mid=Bsize_CU/2
+rs=np.sqrt((mid-a.x)**2+(mid-a.y)**2+(mid-a.z)**2)
+mask=np.where(rs<r/code_units.d_cu)[0]
+m=np.asarray(a.mass)
+m[mask]=m[mask]*1.2
+
 
 
 v=(a.vx,a.vy,a.vz)
 #v_r=v_r=velocities.vary_rotation(r,(a.x,a.y,a.z),0.05,m) #m given from result of remesh
 
 #convert back to cgs
-m=a.mass
+
 m_cgs=np.asarray(m)*code_units.M_cu  
 x=np.asarray(a.x)*code_units.d_cu 
 y=np.asarray(a.y)*code_units.d_cu
@@ -77,7 +84,7 @@ z=np.asarray(a.z)*code_units.d_cu
 
 #add bulk velocity 
 v=(a.vx,a.vy,a.vz)
-vx,vy,vz=velocities.rot_sphere(xsize,(x,y,z),M,r,0.05)
+vx,vy,vz=velocities.rot_sphere(xsize,(x,y,z),M,r,0.15)
 
 #convert into code units
 vx=vx/code_units.v_cu
@@ -105,4 +112,4 @@ sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/realistic_sphere/random_x_BE/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/realistic_sphere/sub_BE/arepo_input.dat')
