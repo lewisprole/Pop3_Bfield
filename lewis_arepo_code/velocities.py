@@ -110,7 +110,7 @@ def vary_rotation(size,x,B,m):
     inM=0
     E=np.zeros_like(x)
     v_rot=np.zeros_like(x)
-    args=dist.argsort()
+    args=rs.argsort()
     
     
     

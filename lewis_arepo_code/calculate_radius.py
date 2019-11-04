@@ -51,3 +51,5 @@ def checkR(R,T_ism):
     M=2.4*c_s**2*R/G
     rho=(0.49*c_s/(G**(1/2)*R))**2
     return M,rho    
+
+

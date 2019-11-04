@@ -10,6 +10,7 @@ def int_en(N,T):
 	udens = umass/(udist)**3
 	utime = np.sqrt((udist)**3/(gg*umass))
 	uergg=(udist)**2/(utime)**2
+    
 	mu=2.4
 	U = u*3.0/2.0*T*R/mu/uergg
 
