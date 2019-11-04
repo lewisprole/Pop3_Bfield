@@ -21,7 +21,7 @@ import calculate_freefall
 import os, shutil
 import astropy.constants as ap 
 
-filename='/scratch/c.c1521474/Hannebelle/ics/snapshot_'                #read remesh data
+filename='/scratch/c.c1521474/Hannebelle/ics/snapshot_200'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
 shutil.copyfile(filename,'/scratch/c.c1521474/Hannebelle/remeshed.dat')
 
@@ -84,12 +84,21 @@ ids=a.ids
 u=a.u
 
 #magnetic field
-crit_MtoF=0.53/(3*np.pi) * np.sqrt(5/G)
-mu=np.array([1000,20,5,2])
+Bx=np.zeros_like(vx) #only in z direction 
+By=np.zeros_like(vy)
+
+G_base=ap.G.value
+crit_MtoF=0.53/(3*np.pi) * np.sqrt(5/G_base) #critical mass-to-flux (base units)
+mu=np.array([1000,20,5,2]) #ratio of mass-to-flux over critical mass-to-flux
+
 for i in range(len(mu)):
-    MtoF=mu[i]*crit_MtoF
-
-
+    MtoF=mu[i]*crit_MtoF #mass-to-flux ratio (base units)
+    F=M/MtoF #flux (base_untis)
+    B=F/(np.pi*r**2) #flux density (T)
+    B_guass=B*1e4 #convert into guass
+    B=B/code_units.B_cu #into code units 
+    Bz=B*np.ones_like(vx) #only in z direction 
+    B=(Bx,By,Bz)
 
 
     #write ICs file 
@@ -103,5 +112,6 @@ for i in range(len(mu)):
     sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
     sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
     sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
+    sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
     arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Hannebelle/arepo_input_mu%.i.dat'%mu[i])
 

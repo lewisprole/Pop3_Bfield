@@ -296,7 +296,16 @@ def reader(filename):
             fmt='i'*n
             peak=struct.unpack(fmt,block)
             a.peak=peak
-
+        
+        elif name=='BFLD':
+            print("Reading magnetic field")
+            n=int(length_real/8)
+            fmt='d'*n
+            B=struct.unpack(fmt,block)
+            B=np.reshape(B,(-1,3))
+            a.Bx=vel[:,0]
+            a.By=vel[:,1]
+            a.Bz=vel[:,2]
                 
             
     return a
