@@ -55,7 +55,7 @@ v=velocities.zero_vel(len(x))
 ids =np.linspace(1,len(x),len(x)).astype(int)
 
 
-plt.plot(rs,rho,'x')
+
 
 #check the therm/grav energy ratio
 gravE=3/5  * (M/code_units.M_cu)**2 / (r/code_units.d_cu)  #*G

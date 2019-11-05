@@ -61,7 +61,7 @@ mid=boxsize/2
 G=ap.G.cgs.value	
 Bsize_CU=round(boxsize/code_units.d_cu,3)
 print('boxsize: '+ str(Bsize_CU))
-print('radius: '+str(r/code_units.d_du))
+print('radius: '+str(r/code_units.d_cu))
 boxsize=Bsize_CU*code_units.d_cu
 
 #convert back to cgs
