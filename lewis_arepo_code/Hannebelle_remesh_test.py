@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Nov  4 12:07:05 2019
+Created on Tue Nov 12 10:55:27 2019
 
 @author: lewisprole
 """
+
 import numpy as np
 import matplotlib.pyplot as plt 
 import struct
@@ -86,33 +87,27 @@ u=a.u
 #magnetic field
 Bx=np.zeros_like(vx) #only in z direction 
 By=np.zeros_like(vy)
-
-
 crit_MtoF=0.53/(3*np.pi) * np.sqrt(5/G) #critical mass-to-flux (cgs)
-mu=np.array([1000,20,5,2]) #ratio of mass-to-flux over critical mass-to-flux
+mu=2 #ratio of mass-to-flux over critical mass-to-flux
+MtoF=mu*crit_MtoF #mass-to-flux ratio (cgs)
+F=M/MtoF #flux (cgs)
+B=F/(np.pi*(r)**2) #flux densiity (G)
+Bcode=B/code_units.B_cu #into code units 
+Bz=Bcode*np.ones_like(vx)   *-1 #flip B field  
+B=(Bx,By,Bz)
 
 
-for i in range(len(mu)):
-    MtoF=mu[i]*crit_MtoF #mass-to-flux ratio (cgs)
-    F=M/MtoF #flux (cgs)
-    B=F/(np.pi*(r)**2) #flux densiity (G)
-    
-    Bcode=B/code_units.B_cu #into code units 
-    Bz=Bcode*np.ones_like(vx) #only in z direction 
-    B=(Bx,By,Bz)
+#write ICs file 
+sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
+           npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
+           hubble_param,flag_stellarage,flag_metals,npartHighword,
+           flag_entropy,flag_dp,flag_1pt,scalefactor)
 
-
-    #write ICs file 
-    sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
-               npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
-               hubble_param,flag_stellarage,flag_metals,npartHighword,
-               flag_entropy,flag_dp,flag_1pt,scalefactor)
-    
-    sofar=arepo_input_writer.tag_block(sofar,x,'POS ','d',3)
-    sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
-    sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
-    sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
-    sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
-    sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-    arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Hannebelle/mu%.i/arepo_input_mu%.i.dat'%(mu[i],mu[i]))
+sofar=arepo_input_writer.tag_block(sofar,x,'POS ','d',3)
+sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
+sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
+sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
+sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
+sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Hannebelle/mu2flip/arepo_input_mu2flip')
 
