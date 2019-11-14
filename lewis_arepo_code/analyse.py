@@ -187,13 +187,117 @@ def Bcheck(filename,size):
 		plt.scatter(np.log10(rs[mask]),np.log10(B[mask]),s=0.1)
 		plt.xlabel('log10(r)'),plt.ylabel('log10(B_z)')
 
+def centered(a,center,boxsize):
+	'''returns midpoint and 3d distance to center
+	center='mid' or 'rho', 'rho' gives density peak position'''
+	if center=='mid':
+		mid=boxsize/2
+		midx,midy,midz=mid,mid,mid
+	if center=='rho':
+		mid=np.where(a.rho==a.rho.max())
+		midx=a.x[mid]
+		midy=a.y[mid]
+		midz=a.z[mid]
+	rs=np.sqrt((midx-a.x)**2+(midy-a.y)**2+(midz-a.z)**2)
+	return midx,midy,midy,rs
+	
+def cylinder_velocity(a,center,boxsize):
+	'''returns radial and rotational velocities (cylindrical)
+	center='mid' or 'rho'''
+	midx,midy,midz,rs=centered(a,center,boxsize)
+	x,y=(a.x-midx),(a.y-midy)
+	r=np.sqrt(x**2+y**2)
+	vr=(x*a.vx+y*a.vy)/r
+	vr=vr*code_units.v_cu  /1e5
+	vtheta=(x*a.vy-y*a.vx)/(x**2+y**2)
+	vtheta=vtheta*code_units.v_cu /1e5
+	return vr,vtheta
 
-def histready(x,y,weight,weight_type):
+def slice(a,boxsize,center,thickness):
+	'''returns mask of elements within an x/y slice with z thickness,
+	alsoe returns 3d distances from centre.
+	centre=='mid' or 'rho', 'rho' makes centre where density peaks.'''
+	midx,midy,midz,rs=centered(a,center,boxsize)
+	h=np.sqrt((midz-a.z)**2)
+	mask=np.where(h<=thickness)
+	return mask,rs[mask]
+
+def radial_profile(a,boxsize,center,thickness,weight_type):
+	'''returns radius and radial profile within z slice,
+	centre=='mid' or 'rho', 'rho' gives peak density position
+	weight_type='rho'/'vr'/'vtheta' '''	
+	mask,rs=slice(a,boxsize,center,thickness)
+	x,y,z=a.x[mask],a.y[mask],a.z[mask]
+	
+	if weight_type=='rho':
+		weight=a.rho[mask]
+	if weight_type=='vr':
+		weight=cylinder_velocity(a,center,boxsize)[0][mask]
+	if weight_type=='vtheta':
+		weight=cylinder_velocity(a,center,boxsize)[1][mask]
+	return rs,weight
+
+def avline(r,w):
+	d=binned_statistic(r,w,bins=50)
+	return d
+	
+def timeplot(dirname,snaps,boxsize,weight_type,ax,log):
+	if weight_type=='rho':
+		unit=code_units.rho_cu
+		tag='log10(rho/gcm^-3)'
+	if weight_type=='vr':
+		unit=code_units.v_cu /1e5
+		tag='kms^-1'
+	if weight_type=='vtheta':
+		unit=code_units.v_cu /1e5
+		tag='kms^-1'
+	for i in range(len(snaps)):
+		a=arepo_utils.aread(dirname+snaps[i])
+		rs,w=radial_profile(a,boxsize,'mid',boxsize/4*1e-3,weight_type)
+		if log=='yes':
+			d=avline(np.log10(rs*code_units.d_cu/ap.pc.cgs.value),np.log10(w*unit))
+			ax.plot(d[1][:-1],d[0])
+			ax.set_ylabel('%s.'%tag)
+			ax.set_xlabel('log10(r/pc')
+		else:
+			d=avline(np.log10(rs*code_units.d_cu/ap.pc.cgs.value),w*unit)
+			ax.plot(d[1][:-1],d[0])
+			ax.set_ylabel('%s.'%tag)
+			ax.set_xlabel('log10(r/pc)')
+		
+def multiplot(dirname,snaps,boxsize):
+	fig,ax=plt.subplots(3,1)
+	timeplot(dirname,snaps,boxsize,'rho',ax[0],'yes')
+	timeplot(dirname,snaps,boxsize,'vr',ax[1],'no')
+	timeplot(dirname,snaps,boxsize,'vtheta',ax[2],'no')
+	return 	fig
+
+
+
+def ratioB(a,boxsize):
+	mid=boxsize/2
+	bx=a.bfield[:,0]
+	by=a.bfield[:,1]
+	bz=a.bfield[:,2]
+	B=np.sqrt(bx**2+by**2+bz**2)
+	x=a.x-mid
+	y=a.y-mid
+	z=a.z-mid
+	Btoroid=np.absolute(x*by-y*bx) #y*bz-z*by+z*bx-x*bz+xby-ybx
+	Bpoloid=np.sqrt(B**2-Btoroid**2)
+	ratio=Btoroid/Bpoloid
+	radial=x*bx+y*by+z*bz
+	print('max radial: '+str(radial.max()))
+	return ratio
+
+
+
+def histready(x,y,weight,force_lin):
 	x=x*code_units.d_cu
 	y=y*code_units.d_cu
-	if weight_type=='rho':
-		weight=weight*code_units.rho_cu
-		print(weight[0])
+	
+		
+	
 	hist_weighted, xb, yb = np.histogram2d(y, x, weights=weight, bins=(400, 400))
 	
 	hist_numbers, xb, yb = np.histogram2d(y, x, bins=(400, 400))
@@ -207,27 +311,20 @@ def histready(x,y,weight,weight_type):
 	ip = np.where(hist_numbers > 0)
 	max_image = np.max(hist_final[ip])
 	min_image = np.min(hist_final[ip])
-	if ( (max_image/min_image) > 50 ):
-		hist_final = np.nan_to_num(np.log10(hist_final))
+	if force_lin != 'yes':
+		if ( (max_image/min_image) > 50 ):
+			print('log scale')
+			hist_final = np.nan_to_num(np.log10(hist_final))
 	return hist_final,xb,yb
 
-def crop(a,zoomzone,provide_mid):
-	if isinstance(provide_mid,str):
-		mid=np.where(a.rho==a.rho.max())
-		mask1=np.where(np.absolute(a.x[mid]-a.x)<zoomzone)
-		mask2=np.where(np.absolute(a.y[mid]-a.y)<zoomzone)
-		mask3=np.where(np.absolute(a.z[mid]-a.z)<zoomzone)
-		MASK=np.intersect1d(mask1,mask2)
-		MASK=np.intersect1d(MASK,mask3)
-		return  MASK,(a.x[mid],a.y[mid],a.z[mid])
-	else:
-		mid=provide_mid
-		mask1=np.where(np.absolute(mid[0]-a.x)<zoomzone)
-		mask2=np.where(np.absolute(mid[1]-a.y)<zoomzone)
-		mask3=np.where(np.absolute(mid[2]-a.z)<zoomzone)
-		MASK=np.intersect1d(mask1,mask2)
-		MASK=np.intersect1d(MASK,mask3)
-		return MASK,mid	
+def crop(a,zoomzone,boxsize):
+	mid=boxsize/2
+	mask1=np.where(np.absolute(mid-a.x)<zoomzone)
+	mask2=np.where(np.absolute(mid-a.y)<zoomzone)
+	mask3=np.where(np.absolute(mid-a.z)<zoomzone)
+	MASK=np.intersect1d(mask1,mask2)
+	MASK=np.intersect1d(MASK,mask3)
+	return MASK	
 
 def ploter(a,x,y,weight,zoomzone):
 	mid=np.where(a.rho==a.rho.max())
@@ -239,59 +336,51 @@ def ploter(a,x,y,weight,zoomzone):
 	hist_final,xb,yb = histready(x[MASK],y[MASK],weight[MASK])		
 	plt.imshow(hist_final, aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])	
 
-def sixframes(dirname,snapshot,times,zoomzone):
-	a=arepo_utils.aread(dirname + snapshot[0])
-	b=arepo_utils.aread(dirname + snapshot[1])
-	c=arepo_utils.aread(dirname + snapshot[2])
-	d=arepo_utils.aread(dirname + snapshot[3])
-	e=arepo_utils.aread(dirname + snapshot[4])
-	f=arepo_utils.aread(dirname + snapshot[5])
-	fig,axs=plt.subplots(2,3,sharey=True,sharex=True)
-	
 
-	MASK,mid=crop(a,zoomzone,'no')
-	hist_final,xb,yb = histready(a.x[MASK],a.z[MASK],a.rho[MASK],'rho')
-	im=axs[0,0].imshow(hist_final, aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]],label=('%.f t_ff'%times[0]))
-	clim=im.properties()['clim']
-	axs[0,0].set_xticks([])
-	axs[0,0].set_yticks([])
-	axs[0,0].legend('%.f t_ff'%times[0])
 
-	MASK,mid=crop(b,zoomzone,mid)
-	hist_final,xb,yb = histready(b.x[MASK],b.z[MASK],b.rho[MASK],'rho')
-	axs[0,1].imshow(hist_final, clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]],label=times[1])
-	axs[0,1].set_xticks([])
-	axs[0,1].set_yticks([])	
-	axs[0,1].legend()
 
-	MASK,mid=crop(c,zoomzone,mid)
-	hist_final,xb,yb = histready(c.x[MASK],c.z[MASK],c.rho[MASK],'rho')
-	im=axs[0,2].imshow(hist_final, clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]],label=times[2])
-	axs[0,2].set_xticks([])
-	axs[0,2].set_yticks([])
-	axs[0,2].legend()
+def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
+	'''takes directory and array of 6 snapshot names, weight_type='rho' or 'bratio',zoomzone is maximum 
+	radius from center in code units, boxsize in code units, force_lin='yes' if you want to block the 
+	log scaling of plots.'''
+	fig,axs=plt.subplots(2,3,sharex=True,sharey=True)
+	for i in range (len(snaps)):
+		a=arepo_utils.aread(dirname+snaps[i])
+		if weight_type=='rho':
+			weight=a.rho
+			weightunit=code_units.rho_cu
+		if weight_type=='bratio':
+			weight=ratioB(a,boxsize)
+			weightunit=1
+		MASK=crop(a,zoomzone,boxsize)
+		hist_final,xb,yb=histready(a.x[MASK]*code_units.d_cu,a.z[MASK]*code_units.d_cu,weight[MASK]*weightunit,force_lin)
+		if i==0:
+			im=axs[0,0].imshow(hist_final,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
+			clim=im.properties()['clim']
+			axs[0,0].set_xticks([])
+			axs[0,0].set_yticks([])
+		if i==1:
+			axs[0,1].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
+			axs[0,1].set_xticks([])
+			axs[0,1].set_yticks([])
+		if i==2:
+			axs[0,2].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
+			axs[0,2].set_xticks([])
+			axs[0,2].set_yticks([])             
+		if i==3:
+			axs[1,0].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
+			axs[1,0].set_xticks([])
+			axs[1,0].set_yticks([])                
+		if i==4:
+			axs[1,1].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
+			axs[1,1].set_xticks([])
+			axs[1,1].set_yticks([])                
+		if i==5:
+			axs[1,2].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
+			axs[1,2].set_xticks([])
+			axs[1,2].set_yticks([])
+		fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
+		fig.colorbar(im,ax=axs.ravel().tolist(), shrink=1,pad=0)
 
-	MASK,mid=crop(d,zoomzone,mid)
-	hist_final,xb,yb = histready(d.x[MASK],d.z[MASK],d.rho[MASK],'rho')
-	im=axs[1,0].imshow(hist_final, clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]],label=times[3])
-	axs[1,0].set_xticks([])
-	axs[1,0].set_yticks([])
-	axs[1,0].legend()
 
-	MASK,mid=crop(e,zoomzone,mid)
-	hist_final,xb,yb = histready(e.x[MASK],e.z[MASK],e.rho[MASK],'rho')
-	im=axs[1,1].imshow(hist_final, clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]],label=times[4])
-	axs[1,1].set_xticks([])	
-	axs[1,1].set_yticks([])
-	axs[1,1].legend()
 
-	MASK,mid=crop(f,zoomzone,mid)
-	hist_final,xb,yb = histready(f.x[MASK],f.z[MASK],f.rho[MASK],'rho')
-	im=axs[1,2].imshow(hist_final, clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]],label=times[5])
-	axs[1,2].set_xticks([])
-	axs[1,2].set_yticks([])
-	axs[1,2].legend()	
-
-	fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
-	
-	fig.colorbar(im,ax=axs.ravel().tolist(), shrink=1,pad=0)
