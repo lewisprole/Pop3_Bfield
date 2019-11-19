@@ -22,7 +22,23 @@ def zero_vel(n):
     v=vx,vy,vz
     return v
 
+def angle(x,y,mid):
+	theta=np.arctan(np.absolute((y-mid)/(x-mid)))
+	xpos=np.where(x-mid>=0)
+	xneg=np.where(x-mid<0)
+	ypos=np.where(y-mid>=0)
+	yneg=np.where(y-mid<0)
+	xposypos=np.intersect1d(xpos,ypos)
+	xposyneg=np.intersect1d(xpos,yneg)
+	xnegypos=np.intersect1d(xneg,ypos)
+	xnegyneg=np.intersect1d(xneg,yneg)
+	theta[xposyneg]=2*np.pi-theta[xposyneg]
+	theta[xnegyneg]=np.pi+theta[xnegyneg]
+	theta[xnegypos]=np.pi-theta[xnegypos]
 
+	
+	return theta
+	
 def rot_sphere(size,x,M,r,B):
     '''function to give sphere solid body rotation,
     all parameters to be given in cgs'''
@@ -42,45 +58,49 @@ def rot_sphere(size,x,M,r,B):
 
     v_rot=w*dist #rotational velocity perpendicular to r 
     
-    theta=np.arctan(disty/distx) #rosolve x and y velocities 
+    theta=angle(x,y,mid) #rosolve x and y velocities 
+    vx=-np.absolute(dist)*np.sin(theta)*w
+    vy=np.absolute(dist)*np.cos(theta)*w
+    dist0=np.where(distx==0)
+    vx[dist0]=0
+    vy[dist0]=0
+
+    #mask_ypos=np.where(disty>0)
+    
+    #mask_xpos=np.where(distx>0)
+    #mask_both_pos=np.intersect1d(mask_ypos,mask_xpos)
+    
+    #mask_yneg=np.where(disty<0)
+    #mask_xneg=np.where(distx<0)
+    #mask_both_neg=np.intersect1d(mask_yneg,mask_xneg)
+    
+    #ypos_xneg=np.intersect1d(mask_ypos,mask_xneg)
+    #xpos_yneg=np.intersect1d(mask_xpos,mask_yneg)
     
 
-    mask_ypos=np.where(disty>0)
-    
-    mask_xpos=np.where(distx>0)
-    mask_both_pos=np.intersect1d(mask_ypos,mask_xpos)
-    
-    mask_yneg=np.where(disty<0)
-    mask_xneg=np.where(distx<0)
-    mask_both_neg=np.intersect1d(mask_yneg,mask_xneg)
-    
-    ypos_xneg=np.intersect1d(mask_ypos,mask_xneg)
-    xpos_yneg=np.intersect1d(mask_xpos,mask_yneg)
-    
 
+   # x0=np.where(distx==0)
+   # x0ypos=np.intersect1d(mask_ypos,x0)
+   # x0yneg=np.intersect1d(x0,mask_yneg)
+   # y0=np.where(disty==0)
+   # y0xpos=np.intersect1d(mask_xpos,y0)
+   # y0xneg=np.intersect1d(mask_xneg,y0)
+   # x0y0=np.intersect1d(x0,y0)
 
-    x0=np.where(distx==0)
-    x0ypos=np.intersect1d(mask_ypos,x0)
-    x0yneg=np.intersect1d(x0,mask_yneg)
-    y0=np.where(disty==0)
-    y0xpos=np.intersect1d(mask_xpos,y0)
-    y0xneg=np.intersect1d(mask_xneg,y0)
-    x0y0=np.intersect1d(x0,y0)
-
-    vx=v_rot*np.sin(theta)
-    vy=v_rot*np.cos(theta)
+    #vx=v_rot*np.sin(theta)
+    #vy=v_rot*np.cos(theta)
     vz=np.zeros_like(vx)
     
     
-    vx[mask_both_pos]=-vx[mask_both_pos]
-    vy[mask_both_neg]=-vy[mask_both_neg]
-    vy[ypos_xneg]=-vy[ypos_xneg]
-    vx[xpos_yneg]=-vx[xpos_yneg]
-    vx[x0yneg]=v_rot[x0yneg]
-    vx[x0ypos]=-v_rot[x0ypos]
-    vy[y0xneg]=-v_rot[y0xneg]
-    vx[x0y0]=0
-    vy[x0y0]=0
+    #vx[mask_both_pos]=-vx[mask_both_pos]
+    #vy[mask_both_neg]=-vy[mask_both_neg]
+    #vy[ypos_xneg]=-vy[ypos_xneg]
+    #vx[xpos_yneg]=-vx[xpos_yneg]
+    #vx[x0yneg]=v_rot[x0yneg]
+    #vx[x0ypos]=-v_rot[x0ypos]
+    #vy[y0xneg]=-v_rot[y0xneg]
+    #vx[x0y0]=0
+    #vy[x0y0]=0
 
 
 

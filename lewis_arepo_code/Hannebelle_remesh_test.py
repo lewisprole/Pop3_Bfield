@@ -74,9 +74,9 @@ z=np.asarray(a.z)*code_units.d_cu
 
 #add solid rotation
 vx,vy,vz=velocities.rot_sphere(boxsize,(x,y,z),M,r,0.045)
-vx=vx/code_units.v_cu	*-1#reverse spin
-vy=vy/code_units.v_cu	*-1
-vz=vz/code_units.v_cu 	*-1
+vx=vx/code_units.v_cu	
+vy=vy/code_units.v_cu	
+vz=vz/code_units.v_cu 	
 v=(vx,vy,vz)
 
 #prepare for rewrite 
@@ -88,7 +88,7 @@ u=a.u
 Bx=np.zeros_like(vx) #only in z direction 
 By=np.zeros_like(vy)
 crit_MtoF=0.53/(3*np.pi) * np.sqrt(5/G) #critical mass-to-flux (cgs)
-mu=2 #ratio of mass-to-flux over critical mass-to-flux
+mu=20 #ratio of mass-to-flux over critical mass-to-flux
 MtoF=mu*crit_MtoF #mass-to-flux ratio (cgs)
 F=M/MtoF #flux (cgs)
 B=F/(np.pi*(r)**2) #flux densiity (G)
@@ -109,5 +109,5 @@ sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
 sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Hannebelle/mu2flipV/arepo_input_mu2flipV.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Hannebelle/mu20_retry/arepo_input_mu20.dat')
 

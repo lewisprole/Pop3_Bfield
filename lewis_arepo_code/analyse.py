@@ -209,7 +209,7 @@ def cylinder_velocity(a,center,boxsize):
 	r=np.sqrt(x**2+y**2)
 	vr=(x*a.vx+y*a.vy)/r
 	vr=vr*code_units.v_cu  /1e5
-	vtheta=(x*a.vy-y*a.vx)/(x**2+y**2)
+	vtheta=((x*a.vy-y*a.vx)/(x**2+y**2))*np.sqrt(x**2+y**2)
 	vtheta=vtheta*code_units.v_cu /1e5
 	return vr,vtheta
 
@@ -238,19 +238,41 @@ def radial_profile(a,boxsize,center,thickness,weight_type):
 	return rs,weight
 
 def avline(r,w):
-	d=binned_statistic(r,w,bins=50)
+	d=binned_statistic(r,w,bins=45)
 	return d
+
+def ratioB(a,boxsize,slice_option):
+	if slice_option=='yes':
+		mask,rs=slice(a,boxsize,'rho',boxsize/4*1e-3)
+	else:
+		mask=np.where(a.x==a.x) #everywhere 
+	midx,midy,midz,rs=centered(a,'rho',boxsize)
+	bx=a.bfield[:,0][mask]
+	by=a.bfield[:,1][mask]
+	bz=a.bfield[:,2][mask]
+	B=np.sqrt(bx**2+by**2+bz**2)
+
+	x=a.x[mask]-midx
+	y=a.y[mask]-midy
+	z=a.z[mask]-midz
+	Btoroid=x*by-y*bx #y*bz-z*by+z*bx-x*bz+xby-ybx
+	Bpoloid=bz
+	ratio=np.absolute(Btoroid/Bpoloid)
+	return ratio
 	
 def timeplot(dirname,snaps,boxsize,weight_type,ax,log):
 	if weight_type=='rho':
 		unit=code_units.rho_cu
 		tag='log10(rho/gcm^-3)'
+		y1,y2=-18.5,-11.5
 	if weight_type=='vr':
 		unit=code_units.v_cu /1e5
-		tag='kms^-1'
+		tag='v_r/kms^-1'
+		y1,y2=-1.4,0
 	if weight_type=='vtheta':
 		unit=code_units.v_cu /1e5
-		tag='kms^-1'
+		tag='v_theta/kms^-1'
+		y1,y2=0,2
 	for i in range(len(snaps)):
 		a=arepo_utils.aread(dirname+snaps[i])
 		rs,w=radial_profile(a,boxsize,'mid',boxsize/4*1e-3,weight_type)
@@ -259,36 +281,24 @@ def timeplot(dirname,snaps,boxsize,weight_type,ax,log):
 			ax.plot(d[1][:-1],d[0])
 			ax.set_ylabel('%s.'%tag)
 			ax.set_xlabel('log10(r/pc')
+			ax.set_xlim(-4.5,-1.5)
+			ax.set_ylim(y1,y2)
 		else:
 			d=avline(np.log10(rs*code_units.d_cu/ap.pc.cgs.value),w*unit)
 			ax.plot(d[1][:-1],d[0])
 			ax.set_ylabel('%s.'%tag)
 			ax.set_xlabel('log10(r/pc)')
-		
-def multiplot(dirname,snaps,boxsize):
+			ax.set_xlim(-4.5,-1.5)
+			ax.set_ylim(y1,y2)
+
+def multiplot(dirname,snaps,boxsize,mu,B):
 	fig,ax=plt.subplots(3,1)
+	ax[0].set_title('mu=%i.,B=%f.'%(mu,B))
 	timeplot(dirname,snaps,boxsize,'rho',ax[0],'yes')
 	timeplot(dirname,snaps,boxsize,'vr',ax[1],'no')
 	timeplot(dirname,snaps,boxsize,'vtheta',ax[2],'no')
 	return 	fig
 
-
-
-def ratioB(a,boxsize):
-	mid=boxsize/2
-	bx=a.bfield[:,0]
-	by=a.bfield[:,1]
-	bz=a.bfield[:,2]
-	B=np.sqrt(bx**2+by**2+bz**2)
-	x=a.x-mid
-	y=a.y-mid
-	z=a.z-mid
-	Btoroid=np.absolute(x*by-y*bx) #y*bz-z*by+z*bx-x*bz+xby-ybx
-	Bpoloid=np.sqrt(B**2-Btoroid**2)
-	ratio=Btoroid/Bpoloid
-	radial=x*bx+y*by+z*bz
-	print('max radial: '+str(radial.max()))
-	return ratio
 
 
 
@@ -333,7 +343,7 @@ def ploter(a,x,y,weight,zoomzone):
 	mask2=np.where(np.absolute(a.z-a.z[mid])<zoomzone)
 	MASK=np.intersect1d(mask,mask1)
 	MASK=np.intersect1d(MASK,mask2)
-	hist_final,xb,yb = histready(x[MASK],y[MASK],weight[MASK])		
+	hist_final,xb,yb = histready(x[MASK],y[MASK],weight[MASK],'no')		
 	plt.imshow(hist_final, aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])	
 
 
@@ -383,4 +393,25 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 		fig.colorbar(im,ax=axs.ravel().tolist(), shrink=1,pad=0)
 
 
-
+def sliceplot(dirname,names):
+	fig,axs=plt.subplots(2,3,sharey=True,sharex=True)
+	axs=axs.ravel()
+	for i in range(len(axs)):
+		A=np.fromfile(dirname+names[i], dtype='int32', sep="")[2:].reshape([1000, 1000])
+		if i==0:
+			im=axs[i].imshow(np.log10(A.T),aspect='auto', cmap='plasma', origin='lower')
+			clim=im.properties()['clim']
+			axs[i].set_xticks([])
+			axs[i].set_yticks([])
+			axs[i].set_xlim(0,1000)
+			axs[i].set_ylim(0,1000)
+		else:
+			axs[i].imshow(np.log10(A.T),clim=clim,aspect='auto', cmap='plasma', origin='lower')
+			axs[i].set_xticks([])
+			axs[i].set_yticks([])
+			axs[i].set_xlim(0,1000)
+			axs[i].set_ylim(0,1000)
+	fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
+	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=1,pad=0)
+	cbar.ax.set_ylabel('log10(rho)', rotation=270,labelpad=25)
+	
