@@ -9,6 +9,12 @@ import io
 import sys
 from scipy.stats import binned_statistic_2d
 
+
+
+
+
+'''//////////////general snapshot query functions///////////////'''
+
 def sinkcheck(dirname):
 	names=np.asarray(glob.glob(dirname+'/snapshot_*'))
 	NAMES=[]
@@ -29,52 +35,6 @@ def sinkcheck(dirname):
 		i+=1
 	print('first sink in '+str(names[I]))
 
-def rhocheck(filename,boxsize):
-	a=arepo_utils.aread(filename)
-	rho=a.rho*code_units.rho_cu
-	try:
-		if len(a.sinkx)>1:
-			for i in range (len(a.sinkx)):
-				core_xyz=a.sinkx[i],a.sinky[i],a.sinkz[i]
-				midx=core_xyz[0]
-				midy=core_xyz[1]
-				midz=core_xyz[2]
-				rs=np.sqrt((midx-a.x)**2+(midy-a.y)**2+(midz-a.z)**2)
-				rs=rs*code_units.d_cu
-				rs=rs/ap.pc.cgs.value
-				R=boxsize/4
-				mask=np.where(np.absolute(midz-a.z)<0.1*R)
-				plt.figure(),plt.scatter(np.log10(rs[mask]),np.log10(rho[mask]),s=0.1)
-				plt.xlabel('log10(r)'),plt.ylabel('log10(rho)')
-		else:
-			core_xyz=a.sinkx,a.sinky,a.sinkz
-			midx=core_xyz[0]
-			midy=core_xyz[1]
-			midz=core_xyz[2]
-			rs=np.sqrt((midx-a.x)**2+(midy-a.y)**2+(midz-a.z)**2)
-			rs=rs*code_units.d_cu
-			rs=rs/ap.pc.cgs.value
-			R=boxsize/4
-			mask=np.where(np.absolute(midz-a.z)<0.1*R)
-			plt.figure(),plt.scatter(np.log10(rs[mask]),np.log10(rho[mask]),s=0.1)
-			plt.xlabel('log10(r)'),plt.ylabel('log10(rho)')
-			bin_means = binned_statistic(np.log10(rs[mask]), np.log10(rho[mask]), bins=200, range=(-4.5,1.5))
-			plt.plot(bin_means[1][:-1],bin_means[0],c='r')
-	except AttributeError:
-		
-		midx=boxsize/2
-		midy=boxsize/2
-		midz=boxsize/2
-		rs=np.sqrt((midx-a.x)**2+(midy-a.y)**2+(midz-a.z)**2)
-		rs=rs*code_units.d_cu
-		rs=rs/ap.pc.cgs.value
-		R=boxsize/4
-		mask=np.where(np.absolute(midz-a.z)<0.1*R)
-		plt.figure(),plt.scatter(np.log10(rs[mask]),np.log10(rho[mask]),s=0.1)
-		plt.xlabel('log10(r)'),plt.ylabel('log10(rho)')
-		bin_means = binned_statistic(np.log10(rs[mask]), np.log10(rho[mask]), bins=200, range=(-4.5,1.5))
-		plt.plot(bin_means[1][:-1],bin_means[0],c='r')
-		#plt.plot(bin_means[1][:-1],bin_means[0],'x')
 
 def timecheck(dirname,target):
 	names=np.asarray(glob.glob(dirname+'/snapshot_*'))
@@ -106,86 +66,12 @@ def timecheck(dirname,target):
 	return output,output1
 		
 
-def cylindrical_velocity(filename,boxsize):
-	'''radial and rotational velocity in the xy plane at z=0 (within 0.1*R)'''
-	a=arepo_utils.aread(filename)
-	R=boxsize/2
-	try:
-		if len(a.sinkx)>1:
-			for i in range (len(a.sinkx)):
-				midx,midy,midz=a.sinkx[i],a.sinky[i],a.sinkz[i]
-				x,y=(a.x-midx),(a.y-midy)
-				rs=np.sqrt(x**2+y**2)
-				vr=(x*a.vx+y*a.vy)/rs
-				vr=vr*code_units.v_cu / 1e5 #code units to cgs to km/s
-				vtheta=(x*a.vy-y*a.vx)/(x**2+y**2)
-				vtheta=vtheta*code_units.v_cu / 1e5
-				mask=np.where(np.absolute(midz-a.z)<0.1*R)
-				plt.figure(),plt.scatter(np.log10(rs[mask]),vr[mask],s=0.1)#,plt.ylim(-18.5,-11.5),plt.xlim(-4.5,-1.5)
-				plt.xlabel('log10(r)'),plt.ylabel('vr')
-				plt.figure(),plt.scatter(np.log10(rs[mask]),vtheta[mask],s=0.1)#,plt.ylim(-18.5,-11.5),plt.xlim(-4.5,-1.5)
-				plt.xlabel('log10(r)'),plt.ylabel('vtheta')
-		else:
-			midx,midy,midz=a.sinkx,a.sinky,a.sinkz
-			x,y=(a.x-midx),(a.y-midy)
-			rs=np.sqrt(x**2+y**2)
-			vr=(x*a.vx+y*a.vy)/rs
-			vr=vr*code_units.v_cu / 1e5 #code units to cgs to km/s
-			vtheta=(x*a.vy-y*a.vx)/(x**2+y**2)
-			vtheta=vtheta*code_units.v_cu / 1e5
-			mask=np.where(np.absolute(midz-a.z)<0.1*R)
-			plt.figure(),plt.scatter(np.log10(rs[mask]),vr[mask],s=0.1)#,plt.ylim(-18.5,-11.5),plt.xlim(-4.5,-1.5)
-			plt.xlabel('log10(r)'),plt.ylabel('vr')
-			plt.figure(),plt.scatter(np.log10(rs[mask]),vtheta[mask],s=0.1)#,plt.ylim(-18.5,-11.5),plt.xlim(-4.5,-1.5)
-			plt.xlabel('log10(r)'),plt.ylabel('vtheta')
 
-	except AttributeError:
-		mid=boxsize/2
-		x,y=(a.x-mid),(a.y-mid)
-		rs=np.sqrt(x**2+y**2)
-		vr=(x*a.vx+y*a.vy)/rs
-		vr=vr*code_units.v_cu / 1e5 #code units to cgs to km/s
-		vtheta=(x*a.vy-y*a.vx)/(x**2+y**2)
-		print((vr))
-		vtheta=vtheta*code_units.v_cu / 1e5
-		mask=np.where(np.absolute(mid-a.z)<0.1*R)
-		plt.figure(),plt.scatter(np.log10(rs[mask]),vr[mask],s=0.1)#,plt.ylim(-1.4,0),plt.xlim(-4.5,-1.5)
-		plt.xlabel('log10(r)'),plt.ylabel('vr')
-		plt.figure(),plt.scatter(np.log10(rs[mask]),vtheta[mask],s=0.1)#,plt.ylim(0,2),plt.xlim(-4.5,-1.5)
-		plt.xlabel('log10(r)'),plt.ylabel('vtheta')
-	
-def Bcheck(filename,size):
-	a=arepo_utils.aread(filename)
-	mid=size/2
-	R=size/4
-	try:
-		if len(a.sinkx)>1:
-			midx,midy,midz=a.sinkx[i],a.sinky[i],a.sinkz[i]
-			x,y=(a.x-midx),(a.y-midy)
-			rs=np.sqrt(x**2+y**2)
-			mask=np.where(np.absolute(midz-a.z)<0.1*R)
-			B=a.bfield[:,2] * code_units.B_cu *1e6
-			plt.figure()
-			plt.scatter(np.log10(rs[mask]),np.log10(B[mask]),s=0.1)
-			plt.xlabel('log10(r)'),plt.ylabel('log10(B_z)')
-		
-		else:
-			midx,midy,midz=a.sinkx,a.sinky,a.sinkz
-			x,y=(a.x-midx),(a.y-midy)
-			rs=np.sqrt(x**2+y**2)
-			mask=np.where(np.absolute(midz-a.z)<0.1*R)
-			B=a.bfield[:,2] * code_units.B_cu *1e6
-			plt.figure()
-			plt.scatter(np.log10(rs[mask]),np.log10(B[mask]),s=0.1)
-			plt.xlabel('log10(r)'),plt.ylabel('log10(B_z)')
-	except AttributeError:
-		x,y=(a.x-mid),(a.y-mid)
-		rs=np.sqrt(x**2+y**2)
-		mask=np.where(np.absolute(mid-a.z)<0.1*R)
-		B=a.bfield[:,2] * code_units.B_cu *1e6	
-		plt.figure()
-		plt.scatter(np.log10(rs[mask]),np.log10(B[mask]),s=0.1)
-		plt.xlabel('log10(r)'),plt.ylabel('log10(B_z)')
+
+
+
+'''//////////////functions for Hannebelle et al. 2008////////////////'''	
+
 
 def centered(a,center,boxsize):
 	'''returns midpoint and 3d distance to center
@@ -235,10 +121,13 @@ def radial_profile(a,boxsize,center,thickness,weight_type):
 		weight=cylinder_velocity(a,center,boxsize)[0][mask]
 	if weight_type=='vtheta':
 		weight=cylinder_velocity(a,center,boxsize)[1][mask]
+	if weight_type=='Bz':
+		weight=a.bfield[:,2][mask]
 	return rs,weight
 
-def avline(r,w):
-	d=binned_statistic(r,w,bins=45)
+def avline(r,w,bins):
+	mask=np.isnan(w)
+	d=binned_statistic(r[~mask],w[~mask],bins=bins)
 	return d
 
 def ratioB(a,boxsize,slice_option):
@@ -255,12 +144,13 @@ def ratioB(a,boxsize,slice_option):
 	x=a.x[mask]-midx
 	y=a.y[mask]-midy
 	z=a.z[mask]-midz
-	Btoroid=x*by-y*bx #y*bz-z*by+z*bx-x*bz+xby-ybx
-	Bpoloid=bz
-	ratio=np.absolute(Btoroid/Bpoloid)
-	return ratio
+	#Btoroid=x*by-y*bx #y*bz-z*by+z*bx-x*bz+xby-ybx
+	#Bpoloid=bz
+	#ratio=np.absolute(Btoroid/Bpoloid)
+	ratio=1/np.sqrt(1+(x/y)**2) *(bx-x/y*by) / bz
+	return np.absolute(ratio)
 	
-def timeplot(dirname,snaps,boxsize,weight_type,ax,log):
+def timeplot(dirname,snaps,boxsize,weight_type,ax,log,bins):
 	if weight_type=='rho':
 		unit=code_units.rho_cu
 		tag='log10(rho/gcm^-3)'
@@ -273,18 +163,22 @@ def timeplot(dirname,snaps,boxsize,weight_type,ax,log):
 		unit=code_units.v_cu /1e5
 		tag='v_theta/kms^-1'
 		y1,y2=0,2
+	if weight_type=='Bz':
+		unit=code_units.B_cu*1e6
+		tag='Bz/uG'
+		y1,y2=1,6
 	for i in range(len(snaps)):
 		a=arepo_utils.aread(dirname+snaps[i])
-		rs,w=radial_profile(a,boxsize,'mid',boxsize/4*1e-3,weight_type)
+		rs,w=radial_profile(a,boxsize,'rho',boxsize/4*1e-3,weight_type)
 		if log=='yes':
-			d=avline(np.log10(rs*code_units.d_cu/ap.pc.cgs.value),np.log10(w*unit))
+			d=avline(np.log10(rs[np.where(rs>0)]*code_units.d_cu/ap.pc.cgs.value),np.log10(w[np.where(rs>0)]*unit),bins)
 			ax.plot(d[1][:-1],d[0])
 			ax.set_ylabel('%s.'%tag)
-			ax.set_xlabel('log10(r/pc')
+			ax.set_xlabel('log10(r/pc)')
 			ax.set_xlim(-4.5,-1.5)
 			ax.set_ylim(y1,y2)
 		else:
-			d=avline(np.log10(rs*code_units.d_cu/ap.pc.cgs.value),w*unit)
+			d=avline(np.log10(rs*code_units.d_cu/ap.pc.cgs.value),w*unit,bins)
 			ax.plot(d[1][:-1],d[0])
 			ax.set_ylabel('%s.'%tag)
 			ax.set_xlabel('log10(r/pc)')
@@ -292,14 +186,23 @@ def timeplot(dirname,snaps,boxsize,weight_type,ax,log):
 			ax.set_ylim(y1,y2)
 
 def multiplot(dirname,snaps,boxsize,mu,B):
-	fig,ax=plt.subplots(3,1)
+	fig,ax=plt.subplots(4,1)
 	ax[0].set_title('mu=%i.,B=%f.'%(mu,B))
-	timeplot(dirname,snaps,boxsize,'rho',ax[0],'yes')
-	timeplot(dirname,snaps,boxsize,'vr',ax[1],'no')
-	timeplot(dirname,snaps,boxsize,'vtheta',ax[2],'no')
+	timeplot(dirname,snaps,boxsize,'rho',ax[0],'yes',45)
+	timeplot(dirname,snaps,boxsize,'vr',ax[1],'no',45)
+	timeplot(dirname,snaps,boxsize,'vtheta',ax[2],'no',45)
+	timeplot(dirname,snaps,boxsize,'Bz',ax[3],'yes',30)
 	return 	fig
 
 
+
+
+
+
+
+
+
+'''//////////functions for Florian et al. 2011//////////////'''
 
 
 def histready(x,y,weight,force_lin):
@@ -360,35 +263,26 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 			weight=a.rho
 			weightunit=code_units.rho_cu
 		if weight_type=='bratio':
-			weight=ratioB(a,boxsize)
+			weight=np.log10(ratioB(a,boxsize,'no'))
 			weightunit=1
+		if weight_type=='v':
+			weight=np.sqrt(a.vx**2+a.vy**2+a.vz**2)
+			weightunit=code_units.v_cu
 		MASK=crop(a,zoomzone,boxsize)
+		#mask=np.where(a.y<boxsize/2)
+		#MASK=np.intersect1d(MASK,mask)
 		hist_final,xb,yb=histready(a.x[MASK]*code_units.d_cu,a.z[MASK]*code_units.d_cu,weight[MASK]*weightunit,force_lin)
+		ax=axs.ravel()
 		if i==0:
-			im=axs[0,0].imshow(hist_final,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
+			im=ax[0].imshow(hist_final,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
 			clim=im.properties()['clim']
-			axs[0,0].set_xticks([])
-			axs[0,0].set_yticks([])
-		if i==1:
-			axs[0,1].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
-			axs[0,1].set_xticks([])
-			axs[0,1].set_yticks([])
-		if i==2:
-			axs[0,2].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
-			axs[0,2].set_xticks([])
-			axs[0,2].set_yticks([])             
-		if i==3:
-			axs[1,0].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
-			axs[1,0].set_xticks([])
-			axs[1,0].set_yticks([])                
-		if i==4:
-			axs[1,1].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
-			axs[1,1].set_xticks([])
-			axs[1,1].set_yticks([])                
-		if i==5:
-			axs[1,2].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
-			axs[1,2].set_xticks([])
-			axs[1,2].set_yticks([])
+			ax[0].set_xticks([])
+			ax[0].set_yticks([])
+		else:
+			ax[i].imshow(hist_final,clim=clim,aspect='auto', cmap='plasma', origin='lower', extent=[yb[0],yb[-1],xb[0],xb[-1]])
+			ax[i].set_xticks([])
+			ax[i].set_yticks([])
+		
 		fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
 		fig.colorbar(im,ax=axs.ravel().tolist(), shrink=1,pad=0)
 
@@ -414,4 +308,28 @@ def sliceplot(dirname,names):
 	fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
 	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=1,pad=0)
 	cbar.ax.set_ylabel('log10(rho)', rotation=270,labelpad=25)
+
+
+def spacial_average(snap,boxsize):
+	'''look down on xy plane and average the B_rot/B_pol ratio for each 2d R'''
+	a=arepo_utils.aread(snap)
+	midx,midy,midz,rs=centered(a,'rho',boxsize)	
+	bratio=ratioB(a,boxsize,'no')
+	rs=np.sqrt((a.x-midx)**2+(a.y-midy)**2)*code_units.d_cu*1e-17
+	#mask,junk=slice(a,boxsize,'rho',boxsize/4*1e-3)
+	rs,bratio=rs,bratio#rs[mask],bratio[mask]
+	mask=np.where(rs<0.05)
+	d=avline(rs[mask],bratio[mask],20)
+	return d[1][:-1],d[0]
 	
+def spacial_multiplot(dirname,snaps,boxsize):
+	fig,ax=plt.subplots(1)
+	fig.set_label('r/ 10^17 cm')
+	fig.set_label('B_rot/B_pol')
+	for i in range(len(snaps)):
+		x,y=spacial_average(dirname+snaps[i],boxsize)
+		ax.plot(x,y,label=snaps[i][-3:])
+	ax.set_xlim(0,0.05)
+	ax.legend()
+
+
