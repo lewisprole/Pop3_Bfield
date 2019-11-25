@@ -345,10 +345,19 @@ def ratioB_plot(dirname,names):
 		bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,1000)[:,400:600,:])
 		bratio=np.sum(bratio,1)
 		if i==0:
-			im=axs[5-i].imshow(bratio)
+			im=axs[5-i].imshow(np.log10(np.rot90(bratio)))
 			clim=im.properties()['clim']
 		else:	
-			axs[5-i].imshow(bratio,clim=clim)
+			axs[5-i].imshow(np.log10(np.rot90(bratio)),clim=clim)
+		axs[5-i].set_xticks([])
+		axs[5-i].set_yticks([])
+		axs[5-i].set_xlim(0,1000)
+		axs[5-i].set_ylim(0,1000)
+	fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
+	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=1,pad=0)
+	cbar.ax.set_ylabel('log10(Brot/Bz)', rotation=270,labelpad=25)
+	
+
 
 
 def spacial_average(snap,boxsize):
