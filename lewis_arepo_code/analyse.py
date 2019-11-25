@@ -287,27 +287,68 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 		fig.colorbar(im,ax=axs.ravel().tolist(), shrink=1,pad=0)
 
 
-def sliceplot(dirname,names):
+def sliceplot(dirname,names,weight_type):
+	if weight_type=='rho':
+		tag='log10(rho/gcm^-3)'
+		unit=code_units.rho_cu
+	if weight_type=='bratio':
+		unit=code_units.B_cu
+		tag='log10(Bz/G)'
 	fig,axs=plt.subplots(2,3,sharey=True,sharex=True)
 	axs=axs.ravel()
 	for i in range(len(axs)):
 		A=np.fromfile(dirname+names[i], dtype='int32', sep="")[2:].reshape([1000, 1000])
 		if i==0:
-			im=axs[i].imshow(np.log10(A.T),aspect='auto', cmap='plasma', origin='lower')
+			im=axs[i].imshow(np.log10(A.T*unit),aspect='auto', cmap='plasma', origin='lower')
 			clim=im.properties()['clim']
 			axs[i].set_xticks([])
 			axs[i].set_yticks([])
 			axs[i].set_xlim(0,1000)
 			axs[i].set_ylim(0,1000)
 		else:
-			axs[i].imshow(np.log10(A.T),clim=clim,aspect='auto', cmap='plasma', origin='lower')
+			axs[i].imshow(np.log10(A.T*unit),clim=clim,aspect='auto', cmap='plasma', origin='lower')
 			axs[i].set_xticks([])
 			axs[i].set_yticks([])
 			axs[i].set_xlim(0,1000)
 			axs[i].set_ylim(0,1000)
 	fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
 	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=1,pad=0)
-	cbar.ax.set_ylabel('log10(rho)', rotation=270,labelpad=25)
+	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
+
+def ratioB_cube(name,size_cu,pixels):
+	
+	x=np.linspace(0,size_cu,pixels) 
+	y,x=np.meshgrid(x,x)
+	x=x-size_cu/2
+	y=y-size_cu/2
+	
+	A=np.fromfile(name,dtype=np.int32)[3:]
+	Bx=A[0::3].reshape(pixels,pixels,pixels)
+	A=np.fromfile(name,dtype=np.int32)[3:]
+	By=A[1::3].reshape(pixels,pixels,pixels)
+	A=np.fromfile(name,dtype=np.int32)[3:]
+	Bz=A[2::3].reshape(pixels,pixels,pixels)
+	bratio=np.zeros((1000,1000,1000))
+	for i in range (pixels):
+		bx=Bx[:,:,i]
+		by=By[:,:,i]
+		bz=Bz[:,:,i]
+		bratio[:,:,i]=1/np.sqrt(1+(x/y)**2) * (bx-(x/y)*by) /bz
+	#Brot=1/np.sqrt(1+(x/y)**2) * (Bx-(x/y)*By)
+	#bratio=Brot/Bz
+	return bratio
+
+def ratioB_plot(dirname,names):
+	fig,axs=plt.subplots(2,3,sharey=True,sharex=True)
+	axs=axs.ravel()
+	for i in range (len(axs)):
+		bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,1000)[:,400:600,:])
+		bratio=np.sum(bratio,1)
+		if i==0:
+			im=axs[5-i].imshow(bratio)
+			clim=im.properties()['clim']
+		else:	
+			axs[5-i].imshow(bratio,clim=clim)
 
 
 def spacial_average(snap,boxsize):

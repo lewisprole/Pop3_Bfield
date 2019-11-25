@@ -17,9 +17,9 @@ import plot3D
 T=10
 M=1.989e33
 r=2.4e4*ap.au.cgs.value
-n0=6e5
+n0=6e5 * 2.4 * ap.m_p.cgs.value
 enhance=1.5
-n_bg=1.1e4
+n_bg=1.1e4 * 2.4 * ap.m_p.cgs.value
 boxsize=4*r
 mid=boxsize/2
 G=ap.G.cgs.value
@@ -36,7 +36,7 @@ x,y,z=spherical_spray.spherical_cloud(N_sphere,N_bg,r,boxsize,boxsize,boxsize)
 rs=np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)
 
 #density
-rho=radial_density.non_crit_BE(x,y,z,boxsize,T,n0,n_bg,r)
+rho,rs=radial_density.non_crit_BE(x,y,z,boxsize,T,n0,n_bg,r)
 
 #others
 ids =np.linspace(1,len(x),len(x)).astype(int)
