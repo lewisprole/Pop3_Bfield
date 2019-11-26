@@ -324,11 +324,9 @@ def ratioB_cube(name,size_cu,pixels):
 	
 	A=np.fromfile(name,dtype=np.int32)[3:]
 	Bx=A[0::3].reshape(pixels,pixels,pixels)
-	A=np.fromfile(name,dtype=np.int32)[3:]
 	By=A[1::3].reshape(pixels,pixels,pixels)
-	A=np.fromfile(name,dtype=np.int32)[3:]
 	Bz=A[2::3].reshape(pixels,pixels,pixels)
-	bratio=np.zeros((1000,1000,1000))
+	bratio=np.zeros((pixels,pixels,pixels))
 	for i in range (pixels):
 		bx=Bx[:,:,i]
 		by=By[:,:,i]
@@ -338,12 +336,17 @@ def ratioB_cube(name,size_cu,pixels):
 	#bratio=Brot/Bz
 	return bratio
 
-def ratioB_plot(dirname,names):
+def ratioB_plot(dirname,names,weight_type,pixels):
 	fig,axs=plt.subplots(2,3,sharey=True,sharex=True)
 	axs=axs.ravel()
 	for i in range (len(axs)):
-		bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,1000)[:,400:600,:])
-		bratio=np.sum(bratio,1)
+		if weight_type=='bratio':
+			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,350:650,:])
+			bratio=np.sum(bratio,1)
+		if weight_type=='rho':
+			print(i)
+			bratio=np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels)
+			bratio=np.sum(bratio[:,480:520,:],1)
 		if i==0:
 			im=axs[5-i].imshow(np.log10(np.rot90(bratio)))
 			clim=im.properties()['clim']
@@ -360,24 +363,35 @@ def ratioB_plot(dirname,names):
 
 
 
-def spacial_average(snap,boxsize):
+def spacial_average(name,size_cu,pixels):
 	'''look down on xy plane and average the B_rot/B_pol ratio for each 2d R'''
-	a=arepo_utils.aread(snap)
-	midx,midy,midz,rs=centered(a,'rho',boxsize)	
-	bratio=ratioB(a,boxsize,'no')
-	rs=np.sqrt((a.x-midx)**2+(a.y-midy)**2)*code_units.d_cu*1e-17
+	A=np.fromfile(name,dtype=np.int32)
+	bratio=np.absolute(ratioB_cube(name,0.12,pixels)[:,:,400:600])
+	bratio=np.sum(bratio,2).flatten()
+	x=np.linspace(-size_cu/2,size_cu/2,pixels)
+	y,x=np.meshgrid(x,x)
+	x=x.flatten()
+	y=y.flatten()
+	rs=np.sqrt(y**2+x**2)
+	
+
+
+	#a=arepo_utils.aread(snap)
+	#midx,midy,midz,rs=centered(a,'rho',boxsize)	
+	#bratio=ratioB(a,boxsize,'no')
+	#rs=np.sqrt((a.x-midx)**2+(a.y-midy)**2)*code_units.d_cu*1e-17
 	#mask,junk=slice(a,boxsize,'rho',boxsize/4*1e-3)
-	rs,bratio=rs,bratio#rs[mask],bratio[mask]
+	#rs,bratio=rs,bratio#rs[mask],bratio[mask]
 	mask=np.where(rs<0.05)
 	d=avline(rs[mask],bratio[mask],20)
 	return d[1][:-1],d[0]
 	
-def spacial_multiplot(dirname,snaps,boxsize):
+def spacial_multiplot(dirname,snaps,im_size_cu,pixels):
 	fig,ax=plt.subplots(1)
 	fig.set_label('r/ 10^17 cm')
 	fig.set_label('B_rot/B_pol')
 	for i in range(len(snaps)):
-		x,y=spacial_average(dirname+snaps[i],boxsize)
+		x,y=spacial_average(dirname+snaps[i],im_size_cu,pixels)
 		ax.plot(x,y,label=snaps[i][-3:])
 	ax.set_xlim(0,0.05)
 	ax.legend()
