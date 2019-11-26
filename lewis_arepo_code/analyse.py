@@ -341,22 +341,23 @@ def ratioB_plot(dirname,names,weight_type,pixels):
 	axs=axs.ravel()
 	for i in range (len(axs)):
 		if weight_type=='bratio':
-			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,350:650,:])
-			bratio=np.sum(bratio,1)
+			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,400:600,:])
+			bratio=np.sum(bratio,1)/200
 		if weight_type=='rho':
 			print(i)
 			bratio=np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels)
-			bratio=np.sum(bratio[:,480:520,:],1)
+			bratio=np.sum(bratio[:,400:600,:],1)/200
 		if i==0:
 			im=axs[5-i].imshow(np.log10(np.rot90(bratio)))
 			clim=im.properties()['clim']
+			axs[5-i].set_xlim(0,pixels)
+			axs[5-i].set_ylim(0,pixels)
 		else:	
 			axs[5-i].imshow(np.log10(np.rot90(bratio)),clim=clim)
+			axs[5-i].set_ylim(0,pixels)
+			axs[5-i].set_xlim(0,pixels)
+		axs[5-i].set_yticks([])	
 		axs[5-i].set_xticks([])
-		axs[5-i].set_yticks([])
-		axs[5-i].set_xlim(0,1000)
-		axs[5-i].set_ylim(0,1000)
-	fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
 	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=1,pad=0)
 	cbar.ax.set_ylabel('log10(Brot/Bz)', rotation=270,labelpad=25)
 	
@@ -365,14 +366,15 @@ def ratioB_plot(dirname,names,weight_type,pixels):
 
 def spacial_average(name,size_cu,pixels):
 	'''look down on xy plane and average the B_rot/B_pol ratio for each 2d R'''
-	A=np.fromfile(name,dtype=np.int32)
-	bratio=np.absolute(ratioB_cube(name,0.12,pixels)[:,:,400:600])
+	
+	bratio=np.absolute(ratioB_cube(name,0.12,pixels)[:,:,480:520])
 	bratio=np.sum(bratio,2).flatten()
+	bratio=bratio/40
 	x=np.linspace(-size_cu/2,size_cu/2,pixels)
 	y,x=np.meshgrid(x,x)
 	x=x.flatten()
 	y=y.flatten()
-	rs=np.sqrt(y**2+x**2)
+	rs=np.sqrt(y**2+x**2)*code_units.d_cu*1e-17
 	
 
 
@@ -382,8 +384,10 @@ def spacial_average(name,size_cu,pixels):
 	#rs=np.sqrt((a.x-midx)**2+(a.y-midy)**2)*code_units.d_cu*1e-17
 	#mask,junk=slice(a,boxsize,'rho',boxsize/4*1e-3)
 	#rs,bratio=rs,bratio#rs[mask],bratio[mask]
-	mask=np.where(rs<0.05)
-	d=avline(rs[mask],bratio[mask],20)
+	mask=np.where(rs<=0.05)
+	rs=rs[mask]
+	bratio=bratio[mask]
+	d=avline(rs,bratio,50)
 	return d[1][:-1],d[0]
 	
 def spacial_multiplot(dirname,snaps,im_size_cu,pixels):
