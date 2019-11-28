@@ -339,17 +339,18 @@ def ratioB_cube(name,size_cu,pixels):
 def ratioB_plot(dirname,names,weight_type,pixels):
 	fig,axs=plt.subplots(2,3)#sharey=True,sharex=True)
 	axs=axs.ravel()
-	width=int(pixels/5)
+	width_rho=int(pixels/40)
+	width_bratio=int(pixels/10)
 	mid=int(pixels/2)
 	for i in range (len(axs)):
 		if weight_type=='bratio':
-			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,mid-width:mid+width,:])
-			bratio=np.sum(bratio,1)/(2*width)
+			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,mid-width_bratio:mid+width_bratio,:])
+			bratio=np.sum(bratio,1)/(2*width_bratio)
 			tag='log10(Brot/Bz)'
 		if weight_type=='rho':
 			print(i)
 			bratio=np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels) *code_units.rho_cu
-			bratio=np.sum(bratio[:,mid-width:mid+width,:],1)/(2*width)
+			bratio=np.sum(bratio[:,mid-width_rho:mid+width_rho,:],1)/(2*width_rho)
 			tag='log10(rho/gcm^3)'
 		if i==0:
 			im=axs[5-i].imshow(np.log10(np.rot90(bratio)),cmap='plasma')
