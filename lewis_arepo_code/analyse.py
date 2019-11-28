@@ -287,7 +287,7 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 		fig.colorbar(im,ax=axs.ravel().tolist(), shrink=1,pad=0)
 
 
-def sliceplot(dirname,names,weight_type):
+def sliceplot(dirname,names,weight_type,pixels):
 	if weight_type=='rho':
 		tag='log10(rho/gcm^-3)'
 		unit=code_units.rho_cu
@@ -297,20 +297,20 @@ def sliceplot(dirname,names,weight_type):
 	fig,axs=plt.subplots(2,3,sharey=True,sharex=True)
 	axs=axs.ravel()
 	for i in range(len(axs)):
-		A=np.fromfile(dirname+names[i], dtype='int32', sep="")[2:].reshape([1000, 1000])
+		A=np.fromfile(dirname+names[i], dtype='int32', sep="")[2:].reshape([pixels,pixels])
 		if i==0:
 			im=axs[i].imshow(np.log10(A.T*unit),aspect='auto', cmap='plasma', origin='lower')
 			clim=im.properties()['clim']
 			axs[i].set_xticks([])
 			axs[i].set_yticks([])
-			axs[i].set_xlim(0,1000)
-			axs[i].set_ylim(0,1000)
+			axs[i].set_xlim(0,pixels)
+			axs[i].set_ylim(0,pixels)
 		else:
 			axs[i].imshow(np.log10(A.T*unit),clim=clim,aspect='auto', cmap='plasma', origin='lower')
 			axs[i].set_xticks([])
 			axs[i].set_yticks([])
-			axs[i].set_xlim(0,1000)
-			axs[i].set_ylim(0,1000)
+			axs[i].set_xlim(0,pixels)
+			axs[i].set_ylim(0,pixels)
 	fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
 	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=1,pad=0)
 	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
@@ -337,29 +337,32 @@ def ratioB_cube(name,size_cu,pixels):
 	return bratio
 
 def ratioB_plot(dirname,names,weight_type,pixels):
-	fig,axs=plt.subplots(2,3,sharey=True,sharex=True)
+	fig,axs=plt.subplots(2,3)#sharey=True,sharex=True)
 	axs=axs.ravel()
+	width=int(pixels/5)
+	mid=int(pixels/2)
 	for i in range (len(axs)):
 		if weight_type=='bratio':
-			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,400:600,:])
-			bratio=np.sum(bratio,1)/200
+			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,mid-width:mid+width,:])
+			bratio=np.sum(bratio,1)/(2*width)
+			tag='log10(Brot/Bz)'
 		if weight_type=='rho':
 			print(i)
-			bratio=np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels)
-			bratio=np.sum(bratio[:,400:600,:],1)/200
+			bratio=np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels) *code_units.rho_cu
+			bratio=np.sum(bratio[:,mid-width:mid+width,:],1)/(2*width)
+			tag='log10(rho/gcm^3)'
 		if i==0:
-			im=axs[5-i].imshow(np.log10(np.rot90(bratio)))
+			im=axs[5-i].imshow(np.log10(np.rot90(bratio)),cmap='plasma')
 			clim=im.properties()['clim']
-			axs[5-i].set_xlim(0,pixels)
-			axs[5-i].set_ylim(0,pixels)
 		else:	
-			axs[5-i].imshow(np.log10(np.rot90(bratio)),clim=clim)
-			axs[5-i].set_ylim(0,pixels)
-			axs[5-i].set_xlim(0,pixels)
+			im=axs[5-i].imshow(np.log10(np.rot90(bratio)),clim=clim,cmap='plasma')
+		#axs[5-i].set_ylim([0,pixels])
+		#axs[5-i].set_xlim([0,pixels])
 		axs[5-i].set_yticks([])	
 		axs[5-i].set_xticks([])
-	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=1,pad=0)
-	cbar.ax.set_ylabel('log10(Brot/Bz)', rotation=270,labelpad=25)
+	fig.subplots_adjust(left=0.1,right=0.9,bottom=0.1,top=0.9,wspace=0,hspace=-0.4)
+	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=0.755,pad=0)
+	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
 	
 
 
@@ -397,6 +400,7 @@ def spacial_multiplot(dirname,snaps,im_size_cu,pixels):
 	for i in range(len(snaps)):
 		x,y=spacial_average(dirname+snaps[i],im_size_cu,pixels)
 		ax.plot(x,y,label=snaps[i][-3:])
+	ax.semilogy()
 	ax.set_xlim(0,0.05)
 	ax.legend()
 
