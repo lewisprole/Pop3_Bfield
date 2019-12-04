@@ -8,8 +8,7 @@ from scipy.stats import binned_statistic
 import io
 import sys
 from scipy.stats import binned_statistic_2d
-
-
+from  mpl_toolkits.axes_grid1 import ImageGrid
 
 
 
@@ -204,6 +203,7 @@ def multiplot(dirname,snaps,boxsize,mu,B):
 
 '''//////////functions for Florian et al. 2011//////////////'''
 
+'''/////////plotting functions using 2d histogram methods from cell positions//////////''' 
 
 def histready(x,y,weight,force_lin):
 	x=x*code_units.d_cu
@@ -286,6 +286,88 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 		fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
 		fig.colorbar(im,ax=axs.ravel().tolist(), shrink=1,pad=0)
 
+'''//////////plotting functions for arepo grid projection files/////////////'''
+
+def read_cube(name):
+	'''returns 1 cube[x,y,z] for a scaler vaiable'''
+	A=np.fromfile(name,dtype=np.int32)
+	n=A[0]
+	N=n*n
+	A=A[2:]
+	cube=np.zeros((n,n,n))
+	for i in range(n):
+		for j in range(n):
+			line=A[i*N+j*n:i*N+j*n+n]
+			cube[i,j,:]=line
+	return cube
+
+
+def read_3cube(name):
+	'''returns 3 cubes giving x,y and z components, individual cubes have positional
+	axis cube[x,y,z]'''
+	A=np.fromfile(name,dtype=np.int32)
+	n=A[0]
+	N=n*n
+	A=A[3:]
+	Ax=A[0::3]
+	Ay=A[1::3]
+	Az=A[2::3]
+	cubex=np.zeros((n,n,n))
+	cubey=np.zeros((n,n,n))
+	cubez=np.zeros((n,n,n))
+	for i in range(n):
+		for j in range(n):
+			linex=Ax[i*N+j*n:i*N+j*n+n]
+			cubex[i,j,:]=linex
+			liney=Ay[i*N+j*n:i*N+j*n+n]
+			cubey[i,j,:]=liney
+			linez=Az[i*N+j*n:i*N+j*n+n]
+			cubez[i,j,:]=linez
+	return cubex,cubey,cubez
+
+
+def reduce_velocity_resolution(vx,vy,reduc):
+	'''takes 2 2D arrays for x and y velocities, and a reduction factor
+	returns 2 2D arrays with side length reduced by N/reduc by averaging velocities
+	used for quiver plots'''
+	
+	n=int(len(vx[:,0])/reduc)
+	velx,vely=np.zeros((n,n)),np.zeros((n,n))
+	for i in range(n):
+		for j in range(n):
+			valx=np.mean(vx[reduc*i:reduc*i+reduc,reduc*j:reduc*j+reduc])
+			velx[i,j]=valx
+			valy=np.mean(vy[reduc*i:reduc*i+reduc,reduc*j:reduc*j+reduc])
+			vely[i,j]=valy
+	return velx,vely
+
+
+def arrowplot(ax,vx,vz,reduc):
+	'''xz plane quiver plot, vx and vz should be 2D arrays''' 
+	
+	pixels=len(vx[0,:])
+	vx,vz=reduce_velocity_resolution(vx,vz,reduc)
+	x=np.linspace(0,pixels,int(pixels/reduc))
+	z,x=np.meshgrid(x,x)
+
+	z,x=np.rot90(z),np.rot90(x) #confusing rotation stuff 
+	temp=vx
+	vx=vz
+	vz=-temp	
+
+	ax.quiver(z,x,vz,vx,headwidth=10,minshaft=3,pivot='mid',color='w')
+	ax.set_ylim(0,pixels)
+	ax.set_xlim(0,pixels)
+
+def add_arrows(axs,dirname,names,width,reduc):
+	'''addition to ratioB_plot function'''
+	for i in range(len(axs)):
+		print(i)
+		vx,vy,vz=read_3cube(dirname+names[i])	
+		mid=int(len(vx[0,0,:])/2)
+		vx=np.sum(vx[mid-width:mid+width,:,:],0)
+		vz=np.sum(vz[mid-width:mid+width,:,:],0)	
+		arrowplot(axs[i],vx,vz,reduc)
 
 def sliceplot(dirname,names,weight_type,pixels):
 	if weight_type=='rho':
@@ -331,42 +413,49 @@ def ratioB_cube(name,size_cu,pixels):
 		bx=Bx[:,:,i]
 		by=By[:,:,i]
 		bz=Bz[:,:,i]
-		bratio[:,:,i]=1/np.sqrt(1+(x/y)**2) * (bx-(x/y)*by) /bz
+		bratio[:,:,i]=(x*by-y*bx)/np.sqrt(x**2+y**2) /bz   #1/np.sqrt(1+(x/y)**2) * (bx-(x/y)*by) /bz
 	#Brot=1/np.sqrt(1+(x/y)**2) * (Bx-(x/y)*By)
 	#bratio=Brot/Bz
 	return bratio
 
 def ratioB_plot(dirname,names,weight_type,pixels):
-	fig,axs=plt.subplots(2,3)#sharey=True,sharex=True)
-	axs=axs.ravel()
+	fig=plt.figure(figsize=(4,4))
+	grid=ImageGrid(fig,111,nrows_ncols=(2,3),axes_pad=0,cbar_mode='single')#,axs=plt.subplots(2,3)#sharey=True,sharex=True)
+	#axs=axs.ravel()
 	width_rho=int(pixels/40)
 	width_bratio=int(pixels/10)
 	mid=int(pixels/2)
-	for i in range (len(axs)):
+	for i in range(len(grid)):
+		print(i)
 		if weight_type=='bratio':
 			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,mid-width_bratio:mid+width_bratio,:])
 			bratio=np.sum(bratio,1)/(2*width_bratio)
 			tag='log10(Brot/Bz)'
 		if weight_type=='rho':
-			print(i)
-			bratio=np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels) *code_units.rho_cu
+			bratio=read_cube(dirname+names[5-i])#(np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels) *code_units.rho_cu
 			bratio=np.sum(bratio[:,mid-width_rho:mid+width_rho,:],1)/(2*width_rho)
 			tag='log10(rho/gcm^3)'
 		if i==0:
-			im=axs[5-i].imshow(np.log10(np.rot90(bratio)),cmap='plasma')
+			
+			im=grid[5-i].imshow(np.log10(np.rot90(bratio)),cmap='plasma')
 			clim=im.properties()['clim']
 		else:	
-			im=axs[5-i].imshow(np.log10(np.rot90(bratio)),clim=clim,cmap='plasma')
+			im=grid[5-i].imshow(np.log10(np.rot90(bratio)),clim=clim,cmap='plasma')
 		#axs[5-i].set_ylim([0,pixels])
 		#axs[5-i].set_xlim([0,pixels])
-		axs[5-i].set_yticks([])	
-		axs[5-i].set_xticks([])
-	fig.subplots_adjust(left=0.1,right=0.9,bottom=0.1,top=0.9,wspace=0,hspace=-0.4)
-	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=0.755,pad=0)
-	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
+		grid[5-i].set_yticks([])	
+		grid[5-i].set_xticks([])
+	#fig.subplots_adjust(left=0.1,right=0.9,bottom=0.1,top=0.9,wspace=0,hspace=-0.4)
+	Grid=list((grid[0],grid[1],grid[2],grid[3],grid[4],grid[5]))
+	cbar = grid.cbar_axes[0].colorbar(im)
 	
+	#cbar=fig.colorbar(im,ax=grid,shrink=1,pad=0)
+	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
+	return fig,grid,im
 
-
+def rho_arrow_plot(dirname,rho_names,vel_names,pixels):
+	fig,grid,im=ratioB_plot(dirname,rho_names,'rho',pixels)
+	add_arrows(grid,dirname,vel_names,int(pixels/40),35)	
 
 def spacial_average(name,size_cu,pixels):
 	'''look down on xy plane and average the B_rot/B_pol ratio for each 2d R'''

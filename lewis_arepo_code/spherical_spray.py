@@ -12,24 +12,34 @@ import matplotlib.pyplot as plt
 import code_units
 '''script to set up initial positions'''
 
-def sphere_fill(n,r,x_size,y_size,z_size):
+def sphere_fill(n,r,x_size,y_size,z_size,precise):
     '''spray in n particles within sphere radius r'''
     midx,midy,midz=int(x_size/2),int(y_size/2),int(z_size/2)
     X=[]
     Y=[]
     Z=[]
     N=0
-    while int(N)<n:
-        xs=np.random.uniform(low=(midx-r),high=(midx+r),size=1)
-        ys=np.random.uniform(low=(midy-r),high=(midy+r),size=1)
-        zs=np.random.uniform(low=(midz-r),high=(midz+r),size=1)
+    if precise=='yes':
+        while int(N)<n:
+            xs=np.random.uniform(low=(midx-r),high=(midx+r),size=1)
+            ys=np.random.uniform(low=(midy-r),high=(midy+r),size=1)
+            zs=np.random.uniform(low=(midz-r),high=(midz+r),size=1)
+            rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
+            if rs <= r:
+                X=np.append(X,xs)
+                Y=np.append(Y,ys)
+                Z=np.append(Z,zs)
+                N=len(X)
+    else:
+        xs=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)
+        ys=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)       
+        zs=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)
         rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
-        if rs < r:
-            X=np.append(X,xs)
-            Y=np.append(Y,ys)
-            Z=np.append(Z,zs)
-            N=len(X)
-        
+        mask=np.where(rs<=r)
+        X=xs[mask]
+        Y=ys[mask]
+        Z=zs[mask]
+    print('N_sphere: '+str(len(X)))
 #    xs,ys=np.random.randint(midx-r,midx+r,size=n),np.random.randint(midy-r,midy+r,size=n)
 #    zs=np.random.randint(midz-r,midz+r,size=n)
 #    rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
@@ -44,24 +54,34 @@ def sphere_fill(n,r,x_size,y_size,z_size):
     
 
 
-def bg_fill(n_bg,r,x_size,y_size,z_size):
+def bg_fill(n_bg,r,x_size,y_size,z_sizei,precise):
     '''sprays in background particles'''
     midx,midy,midz=int(x_size/2),int(y_size/2),int(z_size/2)
     X=[]
     Y=[]
     Z=[]
     N=0
-    while int(N)<n_bg:
-        xs=np.random.uniform(low=(0),high=(x_size),size=1)
-        ys=np.random.uniform(low=(0),high=(y_size),size=1)
-        zs=np.random.uniform(low=(0),high=(z_size),size=1)
+    if precise=='yes':
+        while int(N)<n_bg:
+            xs=np.random.uniform(low=(0),high=(x_size),size=1)
+            ys=np.random.uniform(low=(0),high=(y_size),size=1)
+            zs=np.random.uniform(low=(0),high=(z_size),size=1)
+            rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
+            if rs > r:
+                X=np.append(X,xs)
+                Y=np.append(Y,ys)
+                Z=np.append(Z,zs)
+                N=len(X)
+    else:
+        xs=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)     
+        ys=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)
+        zs=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)
         rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
-        if rs > r:
-            X=np.append(X,xs)
-            Y=np.append(Y,ys)
-            Z=np.append(Z,zs)
-            N=len(X)
-            
+        mask=np.where(rs>r)
+        X=xs[mask]
+        Y=ys[mask]
+        Z=zs[mask]
+    print('N_bg: '+str(len(X)))
 #    xs,ys, =np.random.randint(0,x_size,size=n_bg),np.random.randint(0,y_size,size=n_bg)
 #    zs=np.random.randint(0,z_size,size=n_bg)
 #    rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
@@ -73,10 +93,10 @@ def bg_fill(n_bg,r,x_size,y_size,z_size):
     return X,Y,Z
 
 
-def spherical_cloud(n,n_bg,r,x_size,y_size,z_size):
-    xs_c,ys_c,zs_c,=sphere_fill(n,r,x_size,y_size,z_size)
-    xs_bg,ys_bg,zs_bg,=bg_fill(n_bg,r,x_size,y_size,z_size)
-    
+def spherical_cloud(n,n_bg,r,x_size,y_size,z_size,precise):
+    xs_c,ys_c,zs_c,=sphere_fill(n,r,x_size,y_size,z_size,presice)
+    xs_bg,ys_bg,zs_bg,=bg_fill(n_bg,r,x_size,y_size,z_size,precise)
+    print('N_tot: '+str(len(xs_c)+len(xs_bg)))
     return np.append(xs_c,xs_bg),np.append(ys_c,ys_bg),np.append(zs_c,zs_bg)
 
 
