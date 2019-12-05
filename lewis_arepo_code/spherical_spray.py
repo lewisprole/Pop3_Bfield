@@ -31,9 +31,9 @@ def sphere_fill(n,r,x_size,y_size,z_size,precise):
                 Z=np.append(Z,zs)
                 N=len(X)
     else:
-        xs=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)
-        ys=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)       
-        zs=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)
+        xs=np.random.uniform(low=(midx-r),high=(midx+r),size=n)
+        ys=np.random.uniform(low=(midx-r),high=(midx+r),size=n)       
+        zs=np.random.uniform(low=(midx-r),high=(midx+r),size=n)
         rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
         mask=np.where(rs<=r)
         X=xs[mask]
@@ -54,7 +54,7 @@ def sphere_fill(n,r,x_size,y_size,z_size,precise):
     
 
 
-def bg_fill(n_bg,r,x_size,y_size,z_sizei,precise):
+def bg_fill(n_bg,r,x_size,y_size,z_size,precise):
     '''sprays in background particles'''
     midx,midy,midz=int(x_size/2),int(y_size/2),int(z_size/2)
     X=[]
@@ -73,9 +73,9 @@ def bg_fill(n_bg,r,x_size,y_size,z_sizei,precise):
                 Z=np.append(Z,zs)
                 N=len(X)
     else:
-        xs=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)     
-        ys=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)
-        zs=np.rand.uniform(low=(midx-r),high=(midx+r),size=n)
+        xs=np.random.uniform(low=(midx-r),high=(midx+r),size=n_bg)     
+        ys=np.random.uniform(low=(midx-r),high=(midx+r),size=n_bg)
+        zs=np.random.uniform(low=(midx-r),high=(midx+r),size=n_bg)
         rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
         mask=np.where(rs>r)
         X=xs[mask]
@@ -94,7 +94,7 @@ def bg_fill(n_bg,r,x_size,y_size,z_sizei,precise):
 
 
 def spherical_cloud(n,n_bg,r,x_size,y_size,z_size,precise):
-    xs_c,ys_c,zs_c,=sphere_fill(n,r,x_size,y_size,z_size,presice)
+    xs_c,ys_c,zs_c,=sphere_fill(n,r,x_size,y_size,z_size,precise)
     xs_bg,ys_bg,zs_bg,=bg_fill(n_bg,r,x_size,y_size,z_size,precise)
     print('N_tot: '+str(len(xs_c)+len(xs_bg)))
     return np.append(xs_c,xs_bg),np.append(ys_c,ys_bg),np.append(zs_c,zs_bg)

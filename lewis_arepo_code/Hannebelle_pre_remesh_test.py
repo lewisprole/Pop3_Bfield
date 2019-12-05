@@ -26,20 +26,26 @@ r=0.016*ap.pc.cgs.value
 rho_sphere=5e-18
 rho_bg=rho_sphere/100			
 boxsize=4*r	
-mid=boxsize/2	
+	
 G=ap.G.cgs.value
 					
 Bsize_CU=round(boxsize/code_units.d_cu,3)
 print('boxsize: '+ str(Bsize_CU))
 print('radius: '+str(r/code_units.d_cu))
 boxsize=Bsize_CU*code_units.d_cu
+mid=boxsize/2
 
 #positions
 N_sphere=int(2e6)
-N_bg=int(1e5)
-x,y,z=spherical_spray.spherical_cloud(N_sphere,N_bg,r,boxsize,boxsize,boxsize)    
+N_bg=int(1e6)
+x,y,z=spherical_spray.spherical_cloud(N_sphere,N_bg,r,boxsize,boxsize,boxsize,'no')    
 rs=np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)
-
+mask=np.where(rs<=Bsize_CU/4 * code_units.d_cu)
+N_sphere=len(mask[0])
+print(N_sphere)
+mask=np.where(rs>Bsize_CU/4 * code_units.d_cu)
+N_bg=len(mask[0])
+print(N_bg)
 #densities 
 rho1=rho_sphere*np.ones(N_sphere)
 rho2=rho_bg*np.ones(N_bg)

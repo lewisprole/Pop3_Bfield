@@ -365,8 +365,8 @@ def add_arrows(axs,dirname,names,width,reduc):
 		print(i)
 		vx,vy,vz=read_3cube(dirname+names[i])	
 		mid=int(len(vx[0,0,:])/2)
-		vx=np.sum(vx[mid-width:mid+width,:,:],0)
-		vz=np.sum(vz[mid-width:mid+width,:,:],0)	
+		vx=np.sum(vx[:,mid-width:mid+width,:],1)
+		vz=np.sum(vz[:,mid-width:mid+width,:],1)	
 		arrowplot(axs[i],vx,vz,reduc)
 
 def sliceplot(dirname,names,weight_type,pixels):
@@ -432,7 +432,7 @@ def ratioB_plot(dirname,names,weight_type,pixels):
 			bratio=np.sum(bratio,1)/(2*width_bratio)
 			tag='log10(Brot/Bz)'
 		if weight_type=='rho':
-			bratio=read_cube(dirname+names[5-i])#(np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels) *code_units.rho_cu
+			bratio=read_cube(dirname+names[5-i])*code_units.rho_cu#(np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels) *code_units.rho_cu
 			bratio=np.sum(bratio[:,mid-width_rho:mid+width_rho,:],1)/(2*width_rho)
 			tag='log10(rho/gcm^3)'
 		if i==0:
