@@ -342,7 +342,7 @@ def reduce_velocity_resolution(vx,vy,reduc):
 	return velx,vely
 
 
-def arrowplot(ax,vx,vz,reduc):
+def arrowplot(ax,vx,vz,reduc,color):
 	'''xz plane quiver plot, vx and vz should be 2D arrays''' 
 	
 	pixels=len(vx[0,:])
@@ -355,11 +355,11 @@ def arrowplot(ax,vx,vz,reduc):
 	vx=vz
 	vz=-temp	
 
-	ax.quiver(z,x,vz,vx,headwidth=10,minshaft=3,pivot='mid',color='w')
+	ax.quiver(z,x,vz,vx,headwidth=10,minshaft=3,pivot='mid',color=color)
 	ax.set_ylim(0,pixels)
 	ax.set_xlim(0,pixels)
 
-def add_arrows(axs,dirname,names,width,reduc):
+def add_arrows(axs,dirname,names,width,reduc,color):
 	'''addition to ratioB_plot function'''
 	for i in range(len(axs)):
 		print(i)
@@ -367,7 +367,7 @@ def add_arrows(axs,dirname,names,width,reduc):
 		mid=int(len(vx[0,0,:])/2)
 		vx=np.sum(vx[:,mid-width:mid+width,:],1)
 		vz=np.sum(vz[:,mid-width:mid+width,:],1)	
-		arrowplot(axs[i],vx,vz,reduc)
+		arrowplot(axs[i],vx,vz,reduc,color)
 
 def sliceplot(dirname,names,weight_type,pixels):
 	if weight_type=='rho':
@@ -453,9 +453,9 @@ def ratioB_plot(dirname,names,weight_type,pixels):
 	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
 	return fig,grid,im
 
-def rho_arrow_plot(dirname,rho_names,vel_names,pixels):
+def rho_arrow_plot(dirname,rho_names,vel_names,pixels,color):
 	fig,grid,im=ratioB_plot(dirname,rho_names,'rho',pixels)
-	add_arrows(grid,dirname,vel_names,int(pixels/40),35)	
+	add_arrows(grid,dirname,vel_names,int(pixels/40),35,color)	
 
 def spacial_average(name,size_cu,pixels):
 	'''look down on xy plane and average the B_rot/B_pol ratio for each 2d R'''

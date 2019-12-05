@@ -73,9 +73,9 @@ def bg_fill(n_bg,r,x_size,y_size,z_size,precise):
                 Z=np.append(Z,zs)
                 N=len(X)
     else:
-        xs=np.random.uniform(low=(midx-r),high=(midx+r),size=n_bg)     
-        ys=np.random.uniform(low=(midx-r),high=(midx+r),size=n_bg)
-        zs=np.random.uniform(low=(midx-r),high=(midx+r),size=n_bg)
+        xs=np.random.uniform(low=(0),high=(x_size),size=n_bg)     
+        ys=np.random.uniform(low=(0),high=(y_size),size=n_bg)
+        zs=np.random.uniform(low=(0),high=(z_size),size=n_bg)
         rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
         mask=np.where(rs>r)
         X=xs[mask]
