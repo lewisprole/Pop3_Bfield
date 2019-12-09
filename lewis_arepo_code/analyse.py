@@ -15,6 +15,7 @@ from  mpl_toolkits.axes_grid1 import ImageGrid
 '''//////////////general snapshot query functions///////////////'''
 
 def sinkcheck(dirname):
+	'''looks at all snapshots and tells you when the first sink particle is formed'''
 	names=np.asarray(glob.glob(dirname+'/snapshot_*'))
 	NAMES=[]
 	for i in range(len(names)):
@@ -36,6 +37,7 @@ def sinkcheck(dirname):
 
 
 def timecheck(dirname,target):
+	'''cycles through snapshots to find closest file to target time (seconds)'''
 	names=np.asarray(glob.glob(dirname+'/snapshot_*'))
 	NAMES=[]
 	for i in range(len(names)):
@@ -125,11 +127,14 @@ def radial_profile(a,boxsize,center,thickness,weight_type):
 	return rs,weight
 
 def avline(r,w,bins):
+	'''average line through data'''
 	mask=np.isnan(w)
 	d=binned_statistic(r[~mask],w[~mask],bins=bins)
 	return d
 
 def ratioB(a,boxsize,slice_option):
+	'''returns ratio of rotational Bfield in xy pane to z Bfield
+	slice_option=='yes' for a thin slice dz around z=mid'''
 	if slice_option=='yes':
 		mask,rs=slice(a,boxsize,'rho',boxsize/4*1e-3)
 	else:
@@ -150,19 +155,20 @@ def ratioB(a,boxsize,slice_option):
 	return np.absolute(ratio)
 	
 def timeplot(dirname,snaps,boxsize,weight_type,ax,log,bins):
-	if weight_type=='rho':
+	'''radial profile of variable within thin slice in z direction, e.g. 'rho' for density'''
+	if weight_type=='rho': #density 
 		unit=code_units.rho_cu
 		tag='log10(rho/gcm^-3)'
 		y1,y2=-18.5,-11.5
-	if weight_type=='vr':
+	if weight_type=='vr': #radial velocity 
 		unit=code_units.v_cu /1e5
 		tag='v_r/kms^-1'
 		y1,y2=-1.4,0
-	if weight_type=='vtheta':
+	if weight_type=='vtheta': #rotational velocity 
 		unit=code_units.v_cu /1e5
 		tag='v_theta/kms^-1'
 		y1,y2=0,2
-	if weight_type=='Bz':
+	if weight_type=='Bz': #z component of B field
 		unit=code_units.B_cu*1e6
 		tag='Bz/uG'
 		y1,y2=1,6
@@ -185,6 +191,7 @@ def timeplot(dirname,snaps,boxsize,weight_type,ax,log,bins):
 			ax.set_ylim(y1,y2)
 
 def multiplot(dirname,snaps,boxsize,mu,B):
+	'''6 pannel radial profile graphs'''
 	fig,ax=plt.subplots(4,1)
 	ax[0].set_title('mu=%i.,B=%f.'%(mu,B))
 	timeplot(dirname,snaps,boxsize,'rho',ax[0],'yes',45)
@@ -206,6 +213,7 @@ def multiplot(dirname,snaps,boxsize,mu,B):
 '''/////////plotting functions using 2d histogram methods from cell positions//////////''' 
 
 def histready(x,y,weight,force_lin):
+	'''2D histogram with weighting e.g. density ('rho')'''
 	x=x*code_units.d_cu
 	y=y*code_units.d_cu
 	
@@ -231,6 +239,7 @@ def histready(x,y,weight,force_lin):
 	return hist_final,xb,yb
 
 def crop(a,zoomzone,boxsize):
+	'''crops snapshot data to within a distance=zoomzone from the centre (in code units)'''
 	mid=boxsize/2
 	mask1=np.where(np.absolute(mid-a.x)<zoomzone)
 	mask2=np.where(np.absolute(mid-a.y)<zoomzone)
@@ -240,6 +249,7 @@ def crop(a,zoomzone,boxsize):
 	return MASK	
 
 def ploter(a,x,y,weight,zoomzone):
+	'''plots cropped 2D histogram'''
 	mid=np.where(a.rho==a.rho.max())
 	mask=np.where(np.absolute(a.x-a.x[mid])<zoomzone)
 	mask1=np.where(np.absolute(a.y-a.y[mid])<zoomzone)
@@ -494,4 +504,10 @@ def spacial_multiplot(dirname,snaps,im_size_cu,pixels):
 	ax.set_xlim(0,0.05)
 	ax.legend()
 
-
+def divB(name):
+	a=arepo_utils.aread(name)
+	div=np.absolute(a.divb)
+	scale=(a.mass/a.rho)**(1/3)
+	mag=np.sqrt(a.bfield[:,0]**2+a.bfield[:,1]**2+a.bfield[:,2]**2)
+	divb=div*scale/mag
+	return divb,mag
