@@ -34,7 +34,7 @@ def sphere_fill(n,r,x_size,y_size,z_size,precise):
         xs=np.random.uniform(low=(midx-r),high=(midx+r),size=n)
         ys=np.random.uniform(low=(midx-r),high=(midx+r),size=n)       
         zs=np.random.uniform(low=(midx-r),high=(midx+r),size=n)
-        rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
+        rs=np.sqrt(((midx-xs)**2+(midy-ys)**2+(midz-zs)**2).astype(float))
         mask=np.where(rs<=r)
         X=xs[mask]
         Y=ys[mask]
@@ -76,7 +76,7 @@ def bg_fill(n_bg,r,x_size,y_size,z_size,precise):
         xs=np.random.uniform(low=(0),high=(x_size),size=n_bg)     
         ys=np.random.uniform(low=(0),high=(y_size),size=n_bg)
         zs=np.random.uniform(low=(0),high=(z_size),size=n_bg)
-        rs=np.sqrt((midx-xs)**2+(midy-ys)**2+(midz-zs)**2)
+        rs=np.sqrt(((midx-xs)**2+(midy-ys)**2+(midz-zs)**2).astype(float))
         mask=np.where(rs>r)
         X=xs[mask]
         Y=ys[mask]

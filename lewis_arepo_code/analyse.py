@@ -507,7 +507,7 @@ def spacial_multiplot(dirname,snaps,im_size_cu,pixels):
 def divB(name):
 	a=arepo_utils.aread(name)
 	div=np.absolute(a.divb)
-	scale=(a.mass/a.rho)**(1/3)
+	scale=(a.mass/a.rho)**(1./3.)
 	mag=np.sqrt(a.bfield[:,0]**2+a.bfield[:,1]**2+a.bfield[:,2]**2)
 	divb=div*scale/mag
 	return divb,mag

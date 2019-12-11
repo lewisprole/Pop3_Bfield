@@ -78,8 +78,9 @@ def non_crit_BE(x,y,z,size,T,n0,n_bg,R):
 	
 	a=np.sqrt(c_s**2/(4*np.pi*G*n0))
 	rho=n0/(1+(RS**2/(3*a**2)))
-	mask=np.where(RS>R)
+	mask=np.where(rho<n_bg)#RS>R)
 	rho[mask]=n_bg
+	
 	return rho,RS
 	
 

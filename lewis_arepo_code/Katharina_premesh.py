@@ -14,13 +14,13 @@ import plot3D
 
 
 #box parameters - Bonnor Ebert sphere in diffuse ISM 
-T=10
-M=1.989e33
-r=2.4e4*ap.au.cgs.value
-n0=6e5 * 2.4 * ap.m_p.cgs.value
-enhance=1.5
-n_bg=1.1e4 * 2.4 * ap.m_p.cgs.value
-boxsize=4*r
+T=200
+#M=1.989e33
+r=1.87*ap.pc.cgs.value
+n0=3.7e-20/1.83
+enhance=1.83
+n_bg=2.7e-21
+boxsize=13*ap.pc.cgs.value
 mid=boxsize/2
 G=ap.G.cgs.value
 
@@ -30,8 +30,8 @@ print('radius: '+str(r/code_units.d_cu))
 boxsize=Bsize_CU*code_units.d_cu
 
 #positions
-N_sphere=int(1e5)
-N_bg=int(1e5)
+N_sphere=int(1.5e6)
+N_bg=int(1.5e6)
 x,y,z=spherical_spray.spherical_cloud(N_sphere,N_bg,r,boxsize,boxsize,boxsize,'no')
 rs=np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)
 
@@ -82,7 +82,7 @@ sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,rho,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Masahiro/ics/pre_remesh.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Katharina/ics/pre_remesh.dat')
 
 
 
