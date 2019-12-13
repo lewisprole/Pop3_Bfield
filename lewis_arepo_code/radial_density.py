@@ -61,14 +61,14 @@ def BE_profile(xs,ys,zs,size,T,rho_bg):
 
     return rho
 
-def non_crit_BE(x,y,z,size,T,n0,n_bg,R):
+def non_crit_BE(x,y,z,size,T,n0,n_bg,R,enhance):
 	mid=size/2
 	kb=ap.k_B.cgs.value
 	mp=ap.m_p.to('g').value
 	G=ap.G.cgs.value
 	mu=2.4
 	c_s=np.sqrt(kb*T/(mu*mp))
-	RS=np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)
+	RS=np.sqrt(((mid-x)**2+(mid-y)**2+(mid-z)**2).astype(float))
 	
 
 
@@ -77,8 +77,12 @@ def non_crit_BE(x,y,z,size,T,n0,n_bg,R):
 	rho_crit=3*c_s**2/(2*np.pi*G*r_crit**2)
 	
 	a=np.sqrt(c_s**2/(4*np.pi*G*n0))
-	rho=n0/(1+(RS**2/(3*a**2)))
+	rho=n0/(1+(RS**2/(3*a**2)))  *enhance
+	mask=np.where(RS==0)
+	rho[mask]=n0*enhance 
 	mask=np.where(rho<n_bg)#RS>R)
+	rho[mask]=n_bg
+	mask=np.where(RS>R)
 	rho[mask]=n_bg
 	
 	return rho,RS

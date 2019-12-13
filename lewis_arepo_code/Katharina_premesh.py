@@ -33,10 +33,11 @@ boxsize=Bsize_CU*code_units.d_cu
 N_sphere=int(1.5e6)
 N_bg=int(1.5e6)
 x,y,z=spherical_spray.spherical_cloud(N_sphere,N_bg,r,boxsize,boxsize,boxsize,'no')
-rs=np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)
+print(x)
+rs=np.sqrt(((mid-x)**2+(mid-y)**2+(mid-z)**2).astype(float))
 
 #density
-rho,rs=radial_density.non_crit_BE(x,y,z,boxsize,T,n0,n_bg,r)
+rho,rs=radial_density.non_crit_BE(x,y,z,boxsize,T,n0,n_bg,r,enhance)
 
 #others
 ids =np.linspace(1,len(x),len(x)).astype(int)

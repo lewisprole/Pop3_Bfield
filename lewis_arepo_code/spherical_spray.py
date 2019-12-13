@@ -15,10 +15,11 @@ import code_units
 def sphere_fill(n,r,x_size,y_size,z_size,precise):
     '''spray in n particles within sphere radius r'''
     midx,midy,midz=int(x_size/2),int(y_size/2),int(z_size/2)
-    X=[]
-    Y=[]
-    Z=[]
-    N=0
+    X=[midx] #want a central cell to define central density of BE spheres 
+    Y=[midy]
+    Z=[midz]
+    N=1
+    
     if precise=='yes':
         while int(N)<n:
             xs=np.random.uniform(low=(midx-r),high=(midx+r),size=1)
@@ -36,9 +37,9 @@ def sphere_fill(n,r,x_size,y_size,z_size,precise):
         zs=np.random.uniform(low=(midx-r),high=(midx+r),size=n)
         rs=np.sqrt(((midx-xs)**2+(midy-ys)**2+(midz-zs)**2).astype(float))
         mask=np.where(rs<=r)
-        X=xs[mask]
-        Y=ys[mask]
-        Z=zs[mask]
+        X=np.append(X,xs[mask])
+        Y=np.append(Y,ys[mask])
+        Z=np.append(Z,zs[mask])
     print('N_sphere: '+str(len(X)))
 #    xs,ys=np.random.randint(midx-r,midx+r,size=n),np.random.randint(midy-r,midy+r,size=n)
 #    zs=np.random.randint(midz-r,midz+r,size=n)
@@ -50,7 +51,7 @@ def sphere_fill(n,r,x_size,y_size,z_size,precise):
 #    zs=zs[mask]
 #
 #    l=len(xs)
-    return X,Y,Z
+    return np.asarray(X),np.asarray(Y),np.asarray(Z)
     
 
 
@@ -78,9 +79,9 @@ def bg_fill(n_bg,r,x_size,y_size,z_size,precise):
         zs=np.random.uniform(low=(0),high=(z_size),size=n_bg)
         rs=np.sqrt(((midx-xs)**2+(midy-ys)**2+(midz-zs)**2).astype(float))
         mask=np.where(rs>r)
-        X=xs[mask]
-        Y=ys[mask]
-        Z=zs[mask]
+        X=np.append(X,xs[mask])
+        Y=np.append(Y,ys[mask])
+        Z=np.append(Z,zs[mask])
     print('N_bg: '+str(len(X)))
 #    xs,ys, =np.random.randint(0,x_size,size=n_bg),np.random.randint(0,y_size,size=n_bg)
 #    zs=np.random.randint(0,z_size,size=n_bg)
@@ -90,14 +91,17 @@ def bg_fill(n_bg,r,x_size,y_size,z_size,precise):
 #    ys=ys[mask]
 #    zs=zs[mask]
 #    l=len(xs)
-    return X,Y,Z
+    return np.asarray(X),np.asarray(Y),np.asarray(Z)
 
 
 def spherical_cloud(n,n_bg,r,x_size,y_size,z_size,precise):
     xs_c,ys_c,zs_c,=sphere_fill(n,r,x_size,y_size,z_size,precise)
     xs_bg,ys_bg,zs_bg,=bg_fill(n_bg,r,x_size,y_size,z_size,precise)
     print('N_tot: '+str(len(xs_c)+len(xs_bg)))
-    return np.append(xs_c,xs_bg),np.append(ys_c,ys_bg),np.append(zs_c,zs_bg)
+    x=np.asarray(np.append(xs_c,xs_bg))
+    y=np.asarray(np.append(ys_c,ys_bg))
+    z=np.asarray(np.append(zs_c,zs_bg))
+    return x,y,z
 
 
 

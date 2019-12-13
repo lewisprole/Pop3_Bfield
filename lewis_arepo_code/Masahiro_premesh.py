@@ -36,7 +36,7 @@ x,y,z=spherical_spray.spherical_cloud(N_sphere,N_bg,r,boxsize,boxsize,boxsize,'n
 rs=np.sqrt((mid-x)**2+(mid-y)**2+(mid-z)**2)
 
 #density
-rho,rs=radial_density.non_crit_BE(x,y,z,boxsize,T,n0,n_bg,r)
+rho,rs=radial_density.non_crit_BE(x,y,z,boxsize,T,n0,n_bg,r,enhance)
 
 #others
 ids =np.linspace(1,len(x),len(x)).astype(int)
