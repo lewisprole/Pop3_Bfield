@@ -20,6 +20,7 @@ import code_units
 import calculate_freefall
 import os, shutil
 import astropy.constants as ap 
+import turbulence
 
 filename='/scratch/c.c1521474/Katharina/ics/snapshot_024'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
@@ -80,32 +81,43 @@ z=np.asarray(a.z)*code_units.d_cu
 
 
 Beta=np.array([0,0.1,0.01])
-Alpha=0
+Alpha=np.array([0,0.05,0.25])
 for i in range (len(Beta)):
-	#add solid rotation
-	if i==0:
-		v=velocities.zero_vel(len(x))
-		vx,vy,vz=v[0],v[1],v[2]
-	else:
-		vx,vy,vz=velocities.rot_sphere(boxsize,(x,y,z),M,r,Beta[i])
-		vx=vx/code_units.v_cu
-		vy=vy/code_units.v_cu
-		vz=vz/code_units.v_cu 
-		v=(vx,vy,vz)
+	for j in range (len(Alpha)):
+		#add solid rotation
+		if i==0:
+			v=velocities.zero_vel(len(x))
+			vx,vy,vz=v[0],v[1],v[2]
+		else:
+			vx,vy,vz=velocities.rot_sphere(boxsize,(x,y,z),M,r,Beta[i])
+			vx=vx/code_units.v_cu
+			vy=vy/code_units.v_cu
+			vz=vz/code_units.v_cu 
+			v=(vx,vy,vz)
 
-	#turbulence
+		#turbulence
+		if j>0:
+			tname='/home/c.c1521474/turbulent_box/256_cube/nat_seed_25/vel3D.bin'
+			v1,v2,v3=turbulence.turbulence(tname,x,y,z,boxsize)
+			GpotE=3/5 * G*M**2/r
+			v1,v2,v3=turbulence.rescale(v1,v2,v3,GpotE,Alpha[j])
+			v1=v1/code_units.v_cu
+			v2=v2/code_units.v_cu
+			v3=v3/code_units.v_cu
+			v=(vx+v1,vy+v2,vx+v3)
 
-	#magnetic field
-	Bx=np.zeros_like(vx) #only in z direction 
-	By=np.zeros_like(vy)
-	Bz=np.zeros_like(vz)
-	B=(Bx,By,Bz)	
+
+		#magnetic field
+		Bx=np.zeros_like(vx) #only in z direction 
+		By=np.zeros_like(vy)
+		Bz=np.zeros_like(vz)
+		B=(Bx,By,Bz)	
 	
 
-	#prepare for rewrite
-	X=(a.x,a.y,a.z)
-	ids=a.ids
-	u=a.u
+		#prepare for rewrite
+		X=(a.x,a.y,a.z)
+		ids=a.ids
+		u=a.u
 
 
 #crit_MtoF=0.53/(3*np.pi) * np.sqrt(5/G) #critical mass-to-flux (cgs)
@@ -118,16 +130,16 @@ for i in range (len(Beta)):
 #B=(Bx,By,Bz)
 
 
-	#write ICs file 
-	sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
-           npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
-           hubble_param,flag_stellarage,flag_metals,npartHighword,
-           flag_entropy,flag_dp,flag_1pt,scalefactor)    
-	sofar=arepo_input_writer.tag_block(sofar,X,'POS ','d',3)
-	sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
-	sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
-	sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
-	sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
-	sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-	arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Katharina/arepo_input_B%.2f_A%.2f.dat'%(Beta[i],0))
+		#write ICs file 
+		sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
+           	npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
+           	hubble_param,flag_stellarage,flag_metals,npartHighword,
+           	flag_entropy,flag_dp,flag_1pt,scalefactor)    
+		sofar=arepo_input_writer.tag_block(sofar,X,'POS ','d',3)
+		sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
+		sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
+		sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
+		sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
+		sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
+		arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Katharina/arepo_input_B%.2f_A%.2f.dat'%(Beta[i],Alpha[j]))
 

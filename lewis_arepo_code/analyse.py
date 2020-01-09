@@ -300,11 +300,13 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 
 def read_cube(name):
 	'''returns 1 cube[x,y,z] for a scaler vaiable'''
-	A=np.fromfile(name,dtype=np.int32)
-	n=A[0]
-	N=n*n
-	A=A[2:]
-	cube=np.zeros((n,n,n))
+	A=np.fromfile(name,dtype=np.float32)
+	a=np.fromfile(name,dtype=np.int32)
+	n=a[0] #length of cube side #
+	N=n*n #size of 2d face #
+	A=A[2:] #cube data #
+	cube=np.zeros((n,n,n)) #create cube space 
+
 	for i in range(n):
 		for j in range(n):
 			line=A[i*N+j*n:i*N+j*n+n]
@@ -315,8 +317,9 @@ def read_cube(name):
 def read_3cube(name):
 	'''returns 3 cubes giving x,y and z components, individual cubes have positional
 	axis cube[x,y,z]'''
-	A=np.fromfile(name,dtype=np.int32)
-	n=A[0]
+	A=np.fromfile(name,dtype=np.float32)
+	a=np.fromfile(name,dtype=np.int32)
+	n=a[0]
 	N=n*n
 	A=A[3:]
 	Ax=A[0::3]
