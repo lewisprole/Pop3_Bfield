@@ -22,9 +22,9 @@ import os, shutil
 import astropy.constants as ap 
 import turbulence
 
-filename='/scratch/c.c1521474/popIII/Katharina/ics/snapshot_024'                #read remesh data
+filename='/scratch/c.c1521474/popIII/Prole/low_res/ics/snapshot_100'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
-shutil.copyfile(filename,'/scratch/c.c1521474/popIII/Katharina/remeshed.dat')
+shutil.copyfile(filename,'/scratch/c.c1521474/popIII/Prole/low_res/remeshed.dat')
 
 n0,n1,n2,n3,n4,n5=a.npart
                                             #header data
@@ -56,8 +56,8 @@ T=200
 r=1.87*ap.pc.cgs.value
 n0=3.7e-20/1.83
 enhance=1.83
-n_bg=2.7e-21
-boxsize=13*ap.pc.cgs.value
+n_bg=n0*enhance/100
+boxsize=4*r
 mid=boxsize/2
 G=ap.G.cgs.value
 
@@ -71,7 +71,6 @@ mid=Bsize_CU/2
 rs=np.sqrt((mid-a.x)**2+(mid-a.y)**2+(mid-a.z)**2)
 mask=np.where(rs<r/code_units.d_cu)
 M=sum(np.array(a.mass)[mask])*code_units.M_cu
-print('mass of cloud: '+str(M))
 
 #convert back to cgs
 m=a.mass
@@ -81,13 +80,10 @@ y=np.asarray(a.y)*code_units.d_cu
 z=np.asarray(a.z)*code_units.d_cu
 
 
-Beta=np.array([0,0.1,0.01])
-Alpha=np.array([0,0.05,0.25])
-Anames='000','005','025'
-Bnames='000','001','010'
+Beta=np.array([0,0.01])
+Alpha=np.array([0,0.05])
 for i in range (len(Beta)):
 	for j in range (len(Alpha)):
-		folder='B'+str(Bnames[i])+'A'+str(Anames[j])
 		#add solid rotation
 		if i==0:
 			v=velocities.zero_vel(len(x))
@@ -144,5 +140,5 @@ for i in range (len(Beta)):
 		sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 		sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
 		sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-		arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Katharina/%s/arepo_input_B%.2f_A%.2f.dat'%(folder,Beta[i],Alpha[j]))
+		arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/low_res/arepo_input_B%.2f_A%.2f.dat'%(Beta[i],Alpha[j]))
 

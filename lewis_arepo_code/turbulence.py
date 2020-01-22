@@ -96,14 +96,12 @@ def turbulence(turbulence_name,x,y,z,boxsize):
 
 
 
-def rescale(vx,vy,vz,GpotE,alpha):
+def rescale(vx,vy,vz,alpha,M,r):
 	'''uses root mean square of velocity to normalise and rescale field 
 	to give desired ratio alpha=turbE/gravE'''
-	
 	v=np.sqrt(vx**2+vy**2+vz**2)
-	vmean=np.mean(v)	
-	required_energy=alpha*GpotE
-	required_velocity=np.sqrt(required_energy*2/ap.m_p.cgs.value) #from 1/2mv^2
-	factor = required_velocity/vmean
-	v1,v2,v3=vx*factor,vy*factor,vz*factor
+	vmean=np.mean(v)
+	required_velocity=np.sqrt(2*alpha*ap.G.cgs.value*M/r)	
+	factor=required_velocity/vmean #centre on 0
+	v1,v2,v3=vx*factor,vy*factor,vz*factor #mean(|v|)=required velocity
 	return v1,v2,v3

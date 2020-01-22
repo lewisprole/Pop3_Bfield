@@ -9,7 +9,7 @@ import io
 import sys
 from scipy.stats import binned_statistic_2d
 from  mpl_toolkits.axes_grid1 import ImageGrid
-
+from scipy.interpolate import interp1d
 
 
 '''//////////////general snapshot query functions///////////////'''
@@ -222,10 +222,8 @@ def histready(x,y,weight,force_lin):
 	hist_weighted, xb, yb = np.histogram2d(y, x, weights=weight, bins=(400, 400))
 	
 	hist_numbers, xb, yb = np.histogram2d(y, x, bins=(400, 400))
-	
-	#hist_mean=binned_statistic_2d(y,x,weight,bins=(400,400))[0]
-	#hist_mean=hist_weighted/hist_numbers
-	#MEAN=np.mean(weight)
+	#hist_weighted,xb,yb=plt.hist2d(x,y,weights=weight,bins=[400,400])
+	#hist_numbers,xb,yb=plt.hist2d(x,y,bins=[400,400])
 	
 	hist_final = hist_weighted / hist_numbers
 	hist_final = np.ma.masked_where(hist_numbers < 1, hist_final)
@@ -240,10 +238,10 @@ def histready(x,y,weight,force_lin):
 
 def crop(a,zoomzone,boxsize):
 	'''crops snapshot data to within a distance=zoomzone from the centre (in code units)'''
-	mid=boxsize/2
-	mask1=np.where(np.absolute(mid-a.x)<zoomzone)
-	mask2=np.where(np.absolute(mid-a.y)<zoomzone)
-	mask3=np.where(np.absolute(mid-a.z)<zoomzone)
+	mid=np.where(a.rho==a.rho.max())
+	mask1=np.where(np.absolute(a.x[mid]-a.x)<zoomzone)
+	mask2=np.where(np.absolute(a.y[mid]-a.y)<zoomzone)
+	mask3=np.where(np.absolute(a.z[mid]-a.z)<zoomzone)
 	MASK=np.intersect1d(mask1,mask2)
 	MASK=np.intersect1d(MASK,mask3)
 	return MASK	
@@ -514,3 +512,72 @@ def divB(name):
 	mag=np.sqrt(a.bfield[:,0]**2+a.bfield[:,1]**2+a.bfield[:,2]**2)
 	divb=div*scale/mag
 	return divb,mag
+
+def track_max_rho(dirname):
+	'''plots the maximum denity of snapshots within a directory as a function of time'''
+	
+	names=np.asarray(glob.glob(dirname+'/snapshot_*'))
+	NAMES=[]
+	for i in range(len(names)): #extract snap numbers from the snap names 
+		N=names[i].rfind('_')
+		number=names[i][N+1:]
+		NAMES=np.append(NAMES,number)
+
+	args=np.asarray(NAMES.argsort()).astype(int) #sort names in order of snap number 
+	rho=np.array([])
+	t=np.array([])
+
+	text_trap = io.StringIO() #prevent massive text output from snapshot reads
+	sys.stdout = text_trap
+	for i in range (len(args)):
+		name=names[args[i]]
+		a=arepo_utils.aread(name)
+		rho=np.append(rho,a.rho.max())
+		t=np.append(t,a.time)
+	sys.stdout = sys.__stdout__
+	plt.plot(t,rho)
+	plt.plot(t,rho,'x')
+	return t,rho
+
+def output_times(dirname,detailed_interval):
+	'''takes the maximum desnity time evolution from track_max_rho()
+	and fits a spline to it in log space, creates a TIMES.txt file with
+	snapshot creation times that undersamples the early (boring) stages of 
+	the simulation, and linearly samples the later stages of collapse'''
+	t,rho=track_max_rho(dirname)
+	spline=interp1d((t),(rho),bounds_error=False,fill_value='extrapolate')
+	tnew=np.linspace(t[0],t[-1],1000)
+	rhonew=spline(tnew)
+	
+	grads=np.array([0])
+	for i in range (len(t)-2):
+		dy=np.log10(rho[i+2])-np.log10(rho[i+1])
+		dx=np.log10(t[i+2])-np.log10(t[i+1])
+		grads=np.append(grads,dy/dx)
+
+
+	mask_sink=np.where(rhonew<2.0e8)
+	if len(mask_sink)==len(rhonew):
+		print('sink found')
+		t_sink=tnew[mask_sink].max()
+		tmax=t_sink+detailed_interval*20
+	else:
+		print('no sink, using gradients')
+		mask=np.where(grads<20)
+		t_sink=t[mask].max()
+		tmax=t.max()
+
+	TIMES=np.log(np.linspace(np.exp(t[0]),np.exp(t_sink-10*detailed_interval),10))#np.linspace(0,t_linmax,10)
+	TIMES=np.append(TIMES,np.arange(t_sink-9*detailed_interval,tmax,detailed_interval))#np.append(TIMES,np.arange(t_linmax+detailed_interval,tmax,detailed_interval))
+	plt.figure(),plt.plot(t,rho),plt.plot((TIMES),(spline(TIMES)),'x')
+	plt.ylabel('rho'),plt.xlabel('t')	
+	f= open(dirname+"TIMES.txt","w+")
+	for i in range (len(TIMES)):
+		f.write('%s\r\n'%TIMES[i])
+	return TIMES
+
+
+
+
+
+
