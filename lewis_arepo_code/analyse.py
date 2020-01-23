@@ -614,13 +614,13 @@ def output_times(dirname,detailed_interval):
 	plt.legend()
 
 	#tmax=tnew.max()
-	mask_sink=np.where(rhonew<2.0e8)
-	if len(mask_sink[0])==len(rhonew):
+	mask_sink=np.where(rhonew>2.0e8)
+	if len(mask_sink[0])==0:
 		print('no sink found, using latest snapshot')
 		t_sink=tnew.max()
-		tmax=tnew.max()
+		tmax=tnew.max()+20*detailed_interval
 	else:
-		t_sink=tnew[mask_sink].max()
+		t_sink=tnew[mask_sink].min()
 		tmax=t_sink+20*detailed_interval
 		print('sink found at t=%.3f'%t_sink)
 
@@ -631,14 +631,15 @@ def output_times(dirname,detailed_interval):
 	plt.figure()
 	for i in range(len(TIMES)):	
 		if i==0:
-			plt.axvline(x=TIMES[i]*code_units.t_cu,linewidth=1,label='output times')
+			plt.axvline(x=TIMES[i]*code_units.t_cu/(60*60*24*365),linewidth=1,label='output times')
 		else:
-			plt.axvline(x=TIMES[i]*code_units.t_cu,linewidth=1)	
+			plt.axvline(x=TIMES[i]*code_units.t_cu/(60*60*24*365),linewidth=1)	
 	#plt.scatter(((TIMES)*code_units.t_cu),((spline(TIMES))*code_units.rho_cu),s=0.1,c='r',label='selected outputs')
-	plt.plot((t*code_units.t_cu),(rho*code_units.rho_cu),label='low resolution run',color='r')
+	plt.plot((tnew*code_units.t_cu/(60*60*24*365)),(rhonew*code_units.rho_cu),label='low resolution run',color='r')
+	plt.axhline(2e8*code_units.rho_cu,label='Sink particle creation',color='g')
 	plt.yscale('log')
 	
-	plt.ylabel('log10(rho/gcm^-3)'),plt.xlabel('t/s')	
+	plt.ylabel('log10(rho/gcm^-3)'),plt.xlabel('t/yrs')	
 	plt.legend()
 	
 	f= open(dirname+"TIMES.txt","w+")
