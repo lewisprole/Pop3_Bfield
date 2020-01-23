@@ -101,8 +101,8 @@ def cylinder_velocity(a,center,boxsize):
 	return vr,vtheta
 
 def slice(a,boxsize,center,thickness):
-	'''returns mask of elements within an x/y slice with z thickness,
-	alsoe returns 3d distances from centre.
+	'''returns mask of elements within an xy slice of dz thickness,
+	also returns 3d distances from centre.
 	centre=='mid' or 'rho', 'rho' makes centre where density peaks.'''
 	midx,midy,midz,rs=centered(a,center,boxsize)
 	h=np.sqrt((midz-a.z)**2)
@@ -139,6 +139,7 @@ def ratioB(a,boxsize,slice_option):
 		mask,rs=slice(a,boxsize,'rho',boxsize/4*1e-3)
 	else:
 		mask=np.where(a.x==a.x) #everywhere 
+
 	midx,midy,midz,rs=centered(a,'rho',boxsize)
 	bx=a.bfield[:,0][mask]
 	by=a.bfield[:,1][mask]
@@ -148,14 +149,14 @@ def ratioB(a,boxsize,slice_option):
 	x=a.x[mask]-midx
 	y=a.y[mask]-midy
 	z=a.z[mask]-midz
-	#Btoroid=x*by-y*bx #y*bz-z*by+z*bx-x*bz+xby-ybx
-	#Bpoloid=bz
-	#ratio=np.absolute(Btoroid/Bpoloid)
 	ratio=1/np.sqrt(1+(x/y)**2) *(bx-x/y*by) / bz
-	return np.absolute(ratio)
+	RS=np.sqrt(x**2+y**2)
+
+	return np.absolute(ratio),RS
 	
 def timeplot(dirname,snaps,boxsize,weight_type,ax,log,bins):
 	'''radial profile of variable within thin slice in z direction, e.g. 'rho' for density'''
+	t_ff=3e4
 	if weight_type=='rho': #density 
 		unit=code_units.rho_cu
 		tag='log10(rho/gcm^-3)'
@@ -174,34 +175,48 @@ def timeplot(dirname,snaps,boxsize,weight_type,ax,log,bins):
 		y1,y2=1,6
 	for i in range(len(snaps)):
 		a=arepo_utils.aread(dirname+snaps[i])
+		t=a.time*code_units.t_cu/(60*60*24*365) / t_ff
 		rs,w=radial_profile(a,boxsize,'rho',boxsize/4*1e-3,weight_type)
 		if log=='yes':
 			d=avline(np.log10(rs[np.where(rs>0)]*code_units.d_cu/ap.pc.cgs.value),np.log10(w[np.where(rs>0)]*unit),bins)
-			ax.plot(d[1][:-1],d[0])
+			ax.plot(d[1][:-1],d[0],label='%.3f t/t_ff'%t)
 			ax.set_ylabel('%s.'%tag)
 			ax.set_xlabel('log10(r/pc)')
 			ax.set_xlim(-4.5,-1.5)
 			ax.set_ylim(y1,y2)
 		else:
 			d=avline(np.log10(rs*code_units.d_cu/ap.pc.cgs.value),w*unit,bins)
-			ax.plot(d[1][:-1],d[0])
+			ax.plot(d[1][:-1],d[0],label='%.3f t/t_ff'%t)
 			ax.set_ylabel('%s.'%tag)
 			ax.set_xlabel('log10(r/pc)')
 			ax.set_xlim(-4.5,-1.5)
 			ax.set_ylim(y1,y2)
+	return ax	
+
 
 def multiplot(dirname,snaps,boxsize,mu,B):
 	'''6 pannel radial profile graphs'''
 	fig,ax=plt.subplots(4,1)
 	ax[0].set_title('mu=%i.,B=%f.'%(mu,B))
-	timeplot(dirname,snaps,boxsize,'rho',ax[0],'yes',45)
+	ax[0]=timeplot(dirname,snaps,boxsize,'rho',ax[0],'yes',45)
+	ax[0].legend(loc='upper right')
 	timeplot(dirname,snaps,boxsize,'vr',ax[1],'no',45)
 	timeplot(dirname,snaps,boxsize,'vtheta',ax[2],'no',45)
 	timeplot(dirname,snaps,boxsize,'Bz',ax[3],'yes',30)
+	
 	return 	fig
 
 
-
+def xy_Bratio(dirname,names):
+	for i in range(len(names)):
+		a=arepo_utils.aread(dirname+names[i])
+		t=a.time*code_units.t_cu/(60*60*24*265)/1e4
+		bratio,rs=ratioB(a,1.975,'yes')
+		d=avline(rs,bratio,20)
+		plt.plot(d[1][:-1]*code_units.d_cu/1e17,d[0],label=('%.3f t_ff'%t))
+		plt.xlim(0,0.05)
+	plt.legend(loc='upper right')
+			
 
 
 
@@ -271,7 +286,7 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 			weight=a.rho
 			weightunit=code_units.rho_cu
 		if weight_type=='bratio':
-			weight=np.log10(ratioB(a,boxsize,'no'))
+			weight,j=np.log10(ratioB(a,boxsize,'no'))
 			weightunit=1
 		if weight_type=='v':
 			weight=np.sqrt(a.vx**2+a.vy**2+a.vz**2)
@@ -294,7 +309,11 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 		fig.subplots_adjust(0.1,0.1,0.9,0.9,0,0)
 		fig.colorbar(im,ax=axs.ravel().tolist(), shrink=1,pad=0)
 
-'''//////////plotting functions for arepo grid projection files/////////////'''
+
+
+
+
+'''//////////Reading grid projection files/////////////'''
 
 def read_cube(name):
 	'''returns 1 cube[x,y,z] for a scaler vaiable'''
@@ -336,6 +355,9 @@ def read_3cube(name):
 			cubez[i,j,:]=linez
 	return cubex,cubey,cubez
 
+
+
+'''//////////Velocity arrow plots/////////////'''
 
 def reduce_velocity_resolution(vx,vy,reduc):
 	'''takes 2 2D arrays for x and y velocities, and a reduction factor
@@ -380,11 +402,17 @@ def add_arrows(axs,dirname,names,width,reduc,color):
 		vz=np.sum(vz[:,mid-width:mid+width,:],1)	
 		arrowplot(axs[i],vx,vz,reduc,color)
 
+
+
+
+
+'''//////////Plotting slice AREPO files/////////////'''
+
 def sliceplot(dirname,names,weight_type,pixels):
 	if weight_type=='rho':
 		tag='log10(rho/gcm^-3)'
 		unit=code_units.rho_cu
-	if weight_type=='bratio':
+	if weight_type=='B':
 		unit=code_units.B_cu
 		tag='log10(Bz/G)'
 	fig,axs=plt.subplots(2,3,sharey=True,sharex=True)
@@ -408,102 +436,109 @@ def sliceplot(dirname,names,weight_type,pixels):
 	cbar=fig.colorbar(im,ax=axs.tolist(), shrink=1,pad=0)
 	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
 
-def ratioB_cube(name,size_cu,pixels):
+
+
+
+
+'''//////////B_tor/B_pol ratio from  grid projection files/////////////'''
+
+def ratioB_cube(name,zoomzone,pixels):
 	
-	x=np.linspace(0,size_cu,pixels) 
+	x=np.linspace(-zoomzone,zoomzone,pixels) 
 	y,x=np.meshgrid(x,x)
-	x=x-size_cu/2
-	y=y-size_cu/2
-	
-	A=np.fromfile(name,dtype=np.int32)[3:]
-	Bx=A[0::3].reshape(pixels,pixels,pixels)
-	By=A[1::3].reshape(pixels,pixels,pixels)
-	Bz=A[2::3].reshape(pixels,pixels,pixels)
+	Bx,By,Bz=read_3cube(name)	
 	bratio=np.zeros((pixels,pixels,pixels))
 	for i in range (pixels):
 		bx=Bx[:,:,i]
 		by=By[:,:,i]
 		bz=Bz[:,:,i]
-		bratio[:,:,i]=(x*by-y*bx)/np.sqrt(x**2+y**2) /bz   #1/np.sqrt(1+(x/y)**2) * (bx-(x/y)*by) /bz
-	#Brot=1/np.sqrt(1+(x/y)**2) * (Bx-(x/y)*By)
-	#bratio=Brot/Bz
+		bratio[:,:,i]=(x*by-y*bx)/np.sqrt(x**2+y**2) /bz   
+
 	return bratio
 
-def ratioB_plot(dirname,names,weight_type,pixels):
+
+
+
+
+'''//////////Plotting flattened grid projection files/////////////'''
+
+def cube_plot(dirname,names,weight_type,pixels):
+	'''set of 6 subplots from snapshot names, can choose weight_type as 'bratio' for 
+	B_tor/B_pol ratio or 'rho' for a simple density display. Pixels is the grid projection
+	side dimension. '''
+
 	fig=plt.figure(figsize=(4,4))
-	grid=ImageGrid(fig,111,nrows_ncols=(2,3),axes_pad=0,cbar_mode='single')#,axs=plt.subplots(2,3)#sharey=True,sharex=True)
-	#axs=axs.ravel()
+	grid=ImageGrid(fig,111,nrows_ncols=(2,3),axes_pad=0,cbar_mode='single')
 	width_rho=int(pixels/40)
 	width_bratio=int(pixels/10)
 	mid=int(pixels/2)
 	for i in range(len(grid)):
 		print(i)
+
 		if weight_type=='bratio':
-			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.12,pixels)[:,mid-width_bratio:mid+width_bratio,:])
+			bratio=np.absolute(ratioB_cube(dirname+names[5-i],0.06,pixels)[:,mid-width_bratio:mid+width_bratio,:])
 			bratio=np.sum(bratio,1)/(2*width_bratio)
 			tag='log10(Brot/Bz)'
+
 		if weight_type=='rho':
-			bratio=read_cube(dirname+names[5-i])*code_units.rho_cu#(np.fromfile(dirname+names[5-i],dtype=np.int32)[3:].reshape(pixels,pixels,pixels) *code_units.rho_cu
+			bratio=read_cube(dirname+names[5-i])*code_units.rho_cu
 			bratio=np.sum(bratio[:,mid-width_rho:mid+width_rho,:],1)/(2*width_rho)
 			tag='log10(rho/gcm^3)'
-		if i==0:
-			
+		
+		if i==0:	
 			im=grid[5-i].imshow(np.log10(np.rot90(bratio)),cmap='plasma')
 			clim=im.properties()['clim']
 		else:	
 			im=grid[5-i].imshow(np.log10(np.rot90(bratio)),clim=clim,cmap='plasma')
-		#axs[5-i].set_ylim([0,pixels])
-		#axs[5-i].set_xlim([0,pixels])
+		
 		grid[5-i].set_yticks([])	
 		grid[5-i].set_xticks([])
-	#fig.subplots_adjust(left=0.1,right=0.9,bottom=0.1,top=0.9,wspace=0,hspace=-0.4)
+
 	Grid=list((grid[0],grid[1],grid[2],grid[3],grid[4],grid[5]))
-	cbar = grid.cbar_axes[0].colorbar(im)
-	
-	#cbar=fig.colorbar(im,ax=grid,shrink=1,pad=0)
+	cbar = grid.cbar_axes[0].colorbar(im)	
 	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
 	return fig,grid,im
 
 def rho_arrow_plot(dirname,rho_names,vel_names,pixels,color):
-	fig,grid,im=ratioB_plot(dirname,rho_names,'rho',pixels)
+	fig,grid,im=cube_plot(dirname,rho_names,'rho',pixels)
 	add_arrows(grid,dirname,vel_names,int(pixels/40),35,color)	
 
-def spacial_average(name,size_cu,pixels):
-	'''look down on xy plane and average the B_rot/B_pol ratio for each 2d R'''
+
+'''//////////Slicing through grid projections/////////////'''
+
+def spacial_average(name,zoomzone,pixels):
+	'''slice through central z axis gives xy plane, average the B_rot/B_pol ratio for each R(x,y)'''
 	
-	bratio=np.absolute(ratioB_cube(name,0.12,pixels)[:,:,480:520])
+	bratio=np.absolute(ratioB_cube(name,zoomzone,pixels)[:,:,480:520])
 	bratio=np.sum(bratio,2).flatten()
 	bratio=bratio/40
-	x=np.linspace(-size_cu/2,size_cu/2,pixels)
+	x=np.linspace(-zoomzone,zoomzone,pixels)
 	y,x=np.meshgrid(x,x)
 	x=x.flatten()
 	y=y.flatten()
-	rs=np.sqrt(y**2+x**2)*code_units.d_cu*1e-17
 	
-
-
-	#a=arepo_utils.aread(snap)
-	#midx,midy,midz,rs=centered(a,'rho',boxsize)	
-	#bratio=ratioB(a,boxsize,'no')
-	#rs=np.sqrt((a.x-midx)**2+(a.y-midy)**2)*code_units.d_cu*1e-17
-	#mask,junk=slice(a,boxsize,'rho',boxsize/4*1e-3)
-	#rs,bratio=rs,bratio#rs[mask],bratio[mask]
+	rs=np.sqrt(y**2+x**2)*code_units.d_cu*1e-17 #graph wants weird units
 	mask=np.where(rs<=0.05)
 	rs=rs[mask]
 	bratio=bratio[mask]
+
 	d=avline(rs,bratio,50)
+
 	return d[1][:-1],d[0]
 	
-def spacial_multiplot(dirname,snaps,im_size_cu,pixels):
+def spacial_multiplot(dirname,snaps,zoomzone,pixels):
 	fig,ax=plt.subplots(1)
 	fig.set_label('r/ 10^17 cm')
 	fig.set_label('B_rot/B_pol')
 	for i in range(len(snaps)):
-		x,y=spacial_average(dirname+snaps[i],im_size_cu,pixels)
+		x,y=spacial_average(dirname+snaps[i],zoomzone,pixels)
 		ax.plot(x,y,label=snaps[i][-3:])
 	ax.semilogy()
 	ax.set_xlim(0,0.05)
 	ax.legend()
+
+
+'''//////////Checking the divergence of the B field/////////////'''
 
 def divB(name):
 	a=arepo_utils.aread(name)
@@ -512,6 +547,12 @@ def divB(name):
 	mag=np.sqrt(a.bfield[:,0]**2+a.bfield[:,1]**2+a.bfield[:,2]**2)
 	divb=div*scale/mag
 	return divb,mag
+
+
+
+
+
+'''//////////Finding best output snapshots times for higher resolution repeats/////////////'''
 
 def track_max_rho(dirname):
 	'''plots the maximum denity of snapshots within a directory as a function of time'''
@@ -535,8 +576,8 @@ def track_max_rho(dirname):
 		rho=np.append(rho,a.rho.max())
 		t=np.append(t,a.time)
 	sys.stdout = sys.__stdout__
-	plt.plot(t,rho)
-	plt.plot(t,rho,'x')
+	#plt.plot(t,rho)
+	#plt.plot(t,rho,'x')
 	return t,rho
 
 def output_times(dirname,detailed_interval):
@@ -549,32 +590,61 @@ def output_times(dirname,detailed_interval):
 	tnew=np.linspace(t[0],t[-1],1000)
 	rhonew=spline(tnew)
 	
+	plt.figure(),plt.plot(tnew,rhonew,label='low resolution run',color='r')
+
 	grads=np.array([0])
-	for i in range (len(t)-2):
-		dy=np.log10(rho[i+2])-np.log10(rho[i+1])
-		dx=np.log10(t[i+2])-np.log10(t[i+1])
+	steepening=np.array([])
+	for i in range (len(tnew)-2):
+		dy=np.log10(rhonew[i+2])-np.log10(rhonew[i+1])
+		dx=np.log10(tnew[i+2])-np.log10(tnew[i+1])
 		grads=np.append(grads,dy/dx)
+		if dy/np.log10(rhonew[i+1])>=100:
+			steepening=np.append(steepening,tnew[i+1])
 
-
-	mask_sink=np.where(rhonew<2.0e8)
-	if len(mask_sink)==len(rhonew):
-		print('sink found')
-		t_sink=tnew[mask_sink].max()
-		tmax=t_sink+detailed_interval*20
+	mask=np.where(grads<100)
+	if len(mask[0])==len(grads):
+		print('no density steepening detected')
+		time_interesting=tnew.max()*2/3
 	else:
-		print('no sink, using gradients')
-		mask=np.where(grads<20)
-		t_sink=t[mask].max()
-		tmax=t.max()
+		time_interesting=tnew[mask].max()
+		#time_interesting=steepening.min()
+		print('density steepending detected at t= %.3f'%time_interesting)
 
-	TIMES=np.log(np.linspace(np.exp(t[0]),np.exp(t_sink-10*detailed_interval),10))#np.linspace(0,t_linmax,10)
-	TIMES=np.append(TIMES,np.arange(t_sink-9*detailed_interval,tmax,detailed_interval))#np.append(TIMES,np.arange(t_linmax+detailed_interval,tmax,detailed_interval))
-	plt.figure(),plt.plot(t,rho),plt.plot((TIMES),(spline(TIMES)),'x')
-	plt.ylabel('rho'),plt.xlabel('t')	
+	plt.axvline(x=time_interesting,label='begin linear regime')
+	plt.legend()
+
+	#tmax=tnew.max()
+	mask_sink=np.where(rhonew<2.0e8)
+	if len(mask_sink[0])==len(rhonew):
+		print('no sink found, using latest snapshot')
+		t_sink=tnew.max()
+		tmax=tnew.max()
+	else:
+		t_sink=tnew[mask_sink].max()
+		tmax=t_sink+20*detailed_interval
+		print('sink found at t=%.3f'%t_sink)
+
+	#TIMES=np.log(np.linspace(np.exp(t[0]),np.exp(time_interesting),10))
+	TIMES=np.log(np.linspace(np.exp(t[0]),np.exp(time_interesting),10))
+	TIMES=np.append(TIMES,np.arange(time_interesting,tmax,detailed_interval))
+
+	plt.figure()
+	for i in range(len(TIMES)):	
+		if i==0:
+			plt.axvline(x=TIMES[i]*code_units.t_cu,linewidth=1,label='output times')
+		else:
+			plt.axvline(x=TIMES[i]*code_units.t_cu,linewidth=1)	
+	#plt.scatter(((TIMES)*code_units.t_cu),((spline(TIMES))*code_units.rho_cu),s=0.1,c='r',label='selected outputs')
+	plt.plot((t*code_units.t_cu),(rho*code_units.rho_cu),label='low resolution run',color='r')
+	plt.yscale('log')
+	
+	plt.ylabel('log10(rho/gcm^-3)'),plt.xlabel('t/s')	
+	plt.legend()
+	
 	f= open(dirname+"TIMES.txt","w+")
 	for i in range (len(TIMES)):
 		f.write('%s\r\n'%TIMES[i])
-	return TIMES
+	return TIMES,spline(TIMES)
 
 
 
