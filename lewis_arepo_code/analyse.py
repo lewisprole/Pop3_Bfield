@@ -132,11 +132,11 @@ def avline(r,w,bins):
 	d=binned_statistic(r[~mask],w[~mask],bins=bins)
 	return d
 
-def ratioB(a,boxsize,slice_option):
+def ratioB(a,boxsize,slice_option,dz):
 	'''returns ratio of rotational Bfield in xy pane to z Bfield
 	slice_option=='yes' for a thin slice dz around z=mid'''
 	if slice_option=='yes':
-		mask,rs=slice(a,boxsize,'rho',boxsize/4*1e-3)
+		mask,rs=slice(a,boxsize,'rho',dz)
 	else:
 		mask=np.where(a.x==a.x) #everywhere 
 
@@ -207,14 +207,27 @@ def multiplot(dirname,snaps,boxsize,mu,B):
 	return 	fig
 
 
-def xy_Bratio(dirname,names):
+def xy_Bratio(dirname,names,bins):
 	for i in range(len(names)):
-		a=arepo_utils.aread(dirname+names[i])
-		t=a.time*code_units.t_cu/(60*60*24*265)/1e4
-		bratio,rs=ratioB(a,1.975,'yes')
-		d=avline(rs,bratio,20)
-		plt.plot(d[1][:-1]*code_units.d_cu/1e17,d[0],label=('%.3f t_ff'%t))
+		print(i)
+		bratio=np.absolute(ratioB_cube(dirname+names[i],0.06,600)[:,:,290:310])
+		bratio=np.sum(bratio,2)/20
+		x=np.linspace(-0.06,0.06,600)
+		y,x=np.meshgrid(x,x)
+		rs=np.sqrt(x**2+y**2)
+		
+		
+		
+
+
+		#a=arepo_utils.aread(dirname+names[i])
+		#t=a.time*code_units.t_cu/(60*60*24*265)/1e4
+		#bratio,rs=ratioB(a,1.975,'yes',dz)
+		mask=np.where(rs*code_units.d_cu/1e17<=0.054)
+		d=avline(rs[mask],bratio[mask],bins)
+		plt.plot(d[1][:-1]*code_units.d_cu/1e17,d[0])#,label='%.3f t_ff'%t)
 		plt.xlim(0,0.05)
+		plt.yscale('log')
 	plt.legend(loc='upper right')
 			
 
@@ -286,7 +299,7 @@ def plot6(dirname,snaps,weight_type,zoomzone,boxsize,force_lin):
 			weight=a.rho
 			weightunit=code_units.rho_cu
 		if weight_type=='bratio':
-			weight,j=np.log10(ratioB(a,boxsize,'no'))
+			weight,j=np.log10(ratioB(a,boxsize,'no',0))
 			weightunit=1
 		if weight_type=='v':
 			weight=np.sqrt(a.vx**2+a.vy**2+a.vz**2)

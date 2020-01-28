@@ -30,8 +30,8 @@ print('radius: '+str(r/code_units.d_cu))
 boxsize=Bsize_CU*code_units.d_cu
 
 #positions
-N_sphere=int(1.5e4)
-N_bg=int(1.5e4)
+N_sphere=int(2e6)
+N_bg=int(2e6)
 x,y,z=spherical_spray.spherical_cloud(N_sphere,N_bg,r,boxsize,boxsize,boxsize,'no')
 print(x)
 rs=np.sqrt(((mid-x)**2+(mid-y)**2+(mid-z)**2).astype(float))
