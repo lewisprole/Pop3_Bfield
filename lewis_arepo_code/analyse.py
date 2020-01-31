@@ -385,10 +385,15 @@ def reduce_velocity_resolution(vx,vy,reduc):
 			velx[i,j]=valx
 			valy=np.mean(vy[reduc*i:reduc*i+reduc,reduc*j:reduc*j+reduc])
 			vely[i,j]=valy
+
+#	n=vx.shape[0]
+#	N=int(n/reduc)
+#	velx,vely=vx[0::N,0::N],vy[0::N,0::N]
+	
 	return velx,vely
 
 
-def arrowplot(ax,vx,vz,reduc,color):
+def arrowplot(ax,vx,vz,reduc,crop):
 	'''xz plane quiver plot, vx and vz should be 2D arrays''' 
 	
 	pixels=len(vx[0,:])
@@ -401,21 +406,49 @@ def arrowplot(ax,vx,vz,reduc,color):
 	vx=vz
 	vz=-temp	
 
-	ax.quiver(z,x,vz,vx,headwidth=10,minshaft=3,pivot='mid',color=color)
+	
+	ax.quiver(z,x,vz,vx,headwidth=10,minshaft=3,pivot='mid',color='w')
 	ax.set_ylim(0,pixels)
 	ax.set_xlim(0,pixels)
 
-def add_arrows(axs,dirname,names,width,reduc,color):
+def add_arrows(axs,dirname,names,width,reduc,color,crop):
 	'''addition to ratioB_plot function'''
 	for i in range(len(axs)):
 		print(i)
 		vx,vy,vz=read_3cube(dirname+names[i])	
 		mid=int(len(vx[0,0,:])/2)
-		vx=np.sum(vx[:,mid-width:mid+width,:],1)
-		vz=np.sum(vz[:,mid-width:mid+width,:],1)	
-		arrowplot(axs[i],vx,vz,reduc,color)
+		vx=vx[:,300,:]#np.sum(vx[:,mid-width:mid+width,:],1)/(2*width)
+		vz=vz[:,300,:]#np.sum(vz[:,mid-width:mid+width,:],1)/(2*width)	
+		arrowplot(axs[i],vx,vz,reduc,crop)
 
+def arrows_version2(ax,dirname,vel_name,spacing,crop):
+	vx,vy,vz=read_3cube(dirname+vel_name)
+	pixels=len(vx[0,0,:])
+	mid=int(pixels/2)
+	width=int(pixels/40)
+	vx=np.sum(vx[:,mid-width:mid+width,:],1)/(2*width)#[:,300,:]
+	vz=np.sum(vz[:,mid-width:mid+width,:],1)/(2*width)#300,:]
+	
 
+	v=np.sqrt(vx**2+vz**2) #normalise to unit vector 
+	vx,vz=vx/v,vz/v
+
+	x=np.linspace(0,pixels,pixels)
+	z,x=np.meshgrid(x,x)
+
+	vx=vx[mid-crop:mid+crop,mid-crop:mid+crop] #crop the image for better arrow sizes
+	vz=vz[mid-crop:mid+crop,mid-crop:mid+crop]
+	x=x[mid-crop:mid+crop,mid-crop:mid+crop]
+	z=z[mid-crop:mid+crop,mid-crop:mid+crop]
+
+	x=x[0::spacing,0::spacing] #reduce number of arrows 
+	z=z[0::spacing,0::spacing]
+	vx=vx[0::spacing,0::spacing]
+	vz=vz[0::spacing,0::spacing]
+
+	ax.quiver(x[1:,1:],z[1:,1:],vx[1:,1:],vz[1:,1:],headwidth=5,minshaft=3,pivot='mid')#,scale=100)
+	ax.set_ylim(mid-crop,mid+crop)
+	ax.set_xlim(mid-crop,mid+crop)
 
 
 
@@ -497,7 +530,11 @@ def cube_plot(dirname,names,weight_type,pixels):
 			bratio=read_cube(dirname+names[5-i])*code_units.rho_cu
 			bratio=np.sum(bratio[:,mid-width_rho:mid+width_rho,:],1)/(2*width_rho)
 			tag='log10(rho/gcm^3)'
-		
+		if weight_type=='v':
+			vx,vy,vz=read_3cube(dirname+names[5-i])
+			bratio=np.sqrt(vx**2+vy**2+vz**2)*code_units.v_cu/1e5
+			bratio=np.sum(bratio[:,mid-width_rho:mid+width_rho,:],1)/(2*width_rho)
+			tag='log10(v/kms^-1)'
 		if i==0:	
 			im=grid[5-i].imshow(np.log10(np.rot90(bratio)),cmap='plasma')
 			clim=im.properties()['clim']
@@ -512,9 +549,33 @@ def cube_plot(dirname,names,weight_type,pixels):
 	cbar.ax.set_ylabel(tag, rotation=270,labelpad=25)
 	return fig,grid,im
 
+
+
+
+
 def rho_arrow_plot(dirname,rho_names,vel_names,pixels,color):
+	'''probably going to delete this function'''
 	fig,grid,im=cube_plot(dirname,rho_names,'rho',pixels)
-	add_arrows(grid,dirname,vel_names,int(pixels/40),35,color)	
+	add_arrows(grid,dirname,vel_names,int(pixels/40),25,color) #35 for mu=5, 25 for mu=20	
+
+def rho_quiver_plot(dirname,rho_names,vel_names,pixels,spacing,crop):
+	'''density imshow with velocity arrows on top'''
+	fig,grid,im=cube_plot(dirname,rho_names,'rho',pixels)
+	print('Arrows:')
+	for i in range(len(rho_names)):
+		print(i)
+		arrows_version2(grid[i],dirname,vel_names[i],spacing,crop)
+
+
+def velocity_quiver_plot(dirname,vel_names,pixels,spacing,crop):
+	'''velocity magnitude imshow with directional quiver over the top'''
+	fig,grid,im=cube_plot(dirname,vel_names,'v',pixels)
+	print('Arrows:')
+	for i in range(len(vel_names)):
+		print(i)
+		arrows_version2(grid[i],dirname,vel_names[i],spacing,crop)
+		
+
 
 
 '''//////////Slicing through grid projections/////////////'''
@@ -522,9 +583,12 @@ def rho_arrow_plot(dirname,rho_names,vel_names,pixels,color):
 def spacial_average(name,zoomzone,pixels):
 	'''slice through central z axis gives xy plane, average the B_rot/B_pol ratio for each R(x,y)'''
 	
-	bratio=np.absolute(ratioB_cube(name,zoomzone,pixels)[:,:,480:520])
+	bratio=np.absolute(ratioB_cube(name,zoomzone,pixels))
+	mid=int(pixels/2)
+	width=int(pixels/40)
+	bratio=bratio[:,:,mid-width:mid+width]
 	bratio=np.sum(bratio,2).flatten()
-	bratio=bratio/40
+	bratio=bratio/(2*width)
 	x=np.linspace(-zoomzone,zoomzone,pixels)
 	y,x=np.meshgrid(x,x)
 	x=x.flatten()
@@ -534,8 +598,7 @@ def spacial_average(name,zoomzone,pixels):
 	mask=np.where(rs<=0.05)
 	rs=rs[mask]
 	bratio=bratio[mask]
-
-	d=avline(rs,bratio,50)
+	d=avline(rs,bratio,20)
 
 	return d[1][:-1],d[0]
 	
@@ -544,6 +607,7 @@ def spacial_multiplot(dirname,snaps,zoomzone,pixels):
 	fig.set_label('r/ 10^17 cm')
 	fig.set_label('B_rot/B_pol')
 	for i in range(len(snaps)):
+		print(i)
 		x,y=spacial_average(dirname+snaps[i],zoomzone,pixels)
 		ax.plot(x,y,label=snaps[i][-3:])
 	ax.semilogy()
