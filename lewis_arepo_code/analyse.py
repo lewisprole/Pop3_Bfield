@@ -534,7 +534,8 @@ def cube_plot(dirname,names,weight_type,pixels):
 			vx,vy,vz=read_3cube(dirname+names[5-i])
 			bratio=np.sqrt(vx**2+vy**2+vz**2)*code_units.v_cu/1e5
 			bratio=np.sum(bratio[:,mid-width_rho:mid+width_rho,:],1)/(2*width_rho)
-			tag='log10(v/kms^-1)'
+			bratio=10**(bratio)
+			tag='v/kms^-1'
 		if i==0:	
 			im=grid[5-i].imshow(np.log10(np.rot90(bratio)),cmap='plasma')
 			clim=im.properties()['clim']
