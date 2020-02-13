@@ -526,7 +526,7 @@ def B_vs_z(name,r,imradius_CU,pixels):
 			z=i*pixel_size-(pixels/2*pixel_size) #want the middle to be z=0
 			Bs=np.append(Bs,B_value*code_units.B_cu*1e3) #B in mG 
 			zs=np.append(zs,z*code_units.d_cu/ap.au.cgs.value) #z in AU
-		plt.plot(Bs,zs,label='r=%.0f pc'%(r[j]*code_units.d_cu/ap.au.cgs.value)),plt.ylabel('z / AU'),plt.xlabel('B / mG')
+		plt.plot(Bs,zs,label='r=%.0f AU'%(r[j]*code_units.d_cu/ap.au.cgs.value)),plt.ylabel('z / AU'),plt.xlabel('B / mG')
 	plt.legend()
 	
 
