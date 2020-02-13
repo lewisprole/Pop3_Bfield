@@ -486,10 +486,10 @@ def sliceplot(dirname,names,weight_type,pixels):
 
 
 
-'''//////////B_tor/B_pol ratio from  grid projection files/////////////'''
+'''//////////working with magnetic grid projection files/////////////'''
 
 def ratioB_cube(name,zoomzone,pixels):
-	
+	'''ratio of toridal over poloidal B field'''	
 	x=np.linspace(-zoomzone,zoomzone,pixels) 
 	y,x=np.meshgrid(x,x)
 	Bx,By,Bz=read_3cube(name)	
@@ -502,7 +502,33 @@ def ratioB_cube(name,zoomzone,pixels):
 
 	return bratio
 
-
+def B_vs_z(name,r,imradius_CU,pixels):
+	'''plots arrays of average |B| vs z for a given r
+	r is given in code units, if r is an array, each r is
+	 plotted as a different line'''
+	x=np.linspace(-imradius_CU,imradius_CU,pixels)
+	y,x=np.meshgrid(x,x)
+	rs=np.sqrt(y**2+x**2)
+	pixel_size=2*imradius_CU/pixels
+	dr=pixel_size*5
+	Bx,By,Bz=read_3cube(name)
+	B=np.sqrt(Bx**2+By**2+Bz**2)
+	plt.figure()
+	for j in range(len(r)):
+		Bs=np.array([])
+		zs=np.array([])
+		for i in range(pixels):
+			B_face=B[:,:,i]
+			r_mask=np.where((rs<r[j]+dr) & (rs>r[j]-dr))
+			B_value=(B_face[r_mask])
+			N=len(B_value)
+			B_value=sum(B_value)/N #average value in dr range 
+			z=i*pixel_size-(pixels/2*pixel_size) #want the middle to be z=0
+			Bs=np.append(Bs,B_value*code_units.B_cu*1e3) #B in mG 
+			zs=np.append(zs,z*code_units.d_cu/ap.au.cgs.value) #z in AU
+		plt.plot(Bs,zs,label='r=%.0f pc'%(r[j]*code_units.d_cu/ap.au.cgs.value)),plt.ylabel('z / AU'),plt.xlabel('B / mG')
+	plt.legend()
+	
 
 
 
@@ -729,4 +755,44 @@ def output_times(dirname,detailed_interval):
 
 
 
+'''//////////tracking the mass of sink particles/////////////'''
+
+def sink_track(dirname):
+	names=np.asarray(glob.glob(dirname+'/snapshot_*'))
+	NAMES=[]
+	for i in range(len(names)): #extract snap numbers from the snap names
+		N=names[i].rfind('_')
+		number=names[i][N+1:]
+		NAMES=np.append(NAMES,number)
+	args=np.asarray(NAMES.argsort()).astype(int) #sort names in order of snap number
+	M=np.array([])
+	t=np.array([])
+	N=0
+
+	a=arepo_utils.aread(names[args[-1]]) #check end number of sinks 
+	N_sink_end=a.npart[5]
+	M=np.zeros((N_sink_end,len(args)))
+
+	text_trap = io.StringIO() #prevent massive text output from snapshot reads
+	sys.stdout = text_trap
+	for i in range(len(args)):
+		a=arepo_utils.aread(names[args[i]])
+		Nsink=a.npart[5]
+		t=np.append(t,a.time*code_units.t_cu/(60*60*24*365))
+		if Nsink>0:
+			M[0:Nsink,i]=a.sinkmass
+				
+			
+	sys.stdout = sys.__stdout__
+	
+	mask=np.where(M[0,:]>0)
+	t=t[mask]
+	M=M[:,mask]
+	plt.figure(),plt.title('first sink at %.0f yrs'%t[0])
+	
+	for i in range(N_sink_end):
+		plt.plot(t,M[i,:][0]),plt.xlabel('time/yrs'),plt.ylabel('number of sinks')
+		
+	
+	return t,M
 
