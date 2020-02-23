@@ -296,6 +296,7 @@ def aread(filename):
         #
         #
         if(igot_bmag > 0):
+           a.l = (a.mass / a.rho)**(1./3.)
            a.bmag = np.sqrt(a.bfield[:,0]**2 + a.bfield[:,1]**2 + a.bfield[:,2]**2)   
  
         print("Finished reading file:", filename,"\n")

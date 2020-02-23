@@ -92,11 +92,10 @@ mu=2 #ratio of mass-to-flux over critical mass-to-flux
 MtoF=mu*crit_MtoF #mass-to-flux ratio (cgs)
 F=M/MtoF #flux (cgs)
 B=F/(np.pi*(r)**2) #flux densiity (G)
+
+B=30.7e-6 #	COPYING THE BURZLE PAPER
 Bcode=B/code_units.B_cu #into code units 
 Bz=Bcode*np.ones_like(vx)   
-
-
-Bz=np.zeros_like(vz) #no b field
 B=(Bx,By,Bz)
 
 
@@ -112,5 +111,5 @@ sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
 sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Hannebelle_dedneroff/arepo_input_mu0.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Hannebelle_dedneroff/mu20_new/arepo_input_mu20.dat')
 

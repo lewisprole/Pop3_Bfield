@@ -577,6 +577,58 @@ def cube_plot(dirname,names,weight_type,pixels):
 	return fig,grid,im
 
 
+def plot3x3(dirname,snapnumbers,zoomzone,pixels):
+	'''3 rho plots, 3 velocity plots, 3 bratio plots'''
+	fig=plt.figure(figsize=(4,4))
+	grid=ImageGrid(fig,111,nrows_ncols=(3,3),axes_pad=0,cbar_mode='edge')
+	for i in range (len(snapnumbers)):
+		rho=read_cube(dirname+'im'+snapnumbers[2-i]+'/density_grid_'+snapnumbers[2-i])[150:450,285:315,150:450] *code_units.rho_cu
+		print('rho' + snapnumbers[2-i] + 'read')
+		vx,vy,vz=read_3cube(dirname+'im'+snapnumbers[2-i]+'/velocity_grid_'+snapnumbers[2-i])
+		v=np.sqrt(vx**2+vy**2+vz**2)
+		v_xz=np.sqrt(vx**2+vz**2)
+		vx,vz=(vx/v_xz)[150:450,300,150:450],(vz/v_xz)[150:450,300,150:450]
+		v=v[150:450,285:315,150:450]*code_units.v_cu/1e5
+		x=np.linspace(0,int(pixels/2)-1,int(pixels/2))
+		z,x=np.meshgrid(x,x)
+
+		print('v' + snapnumbers[2-i] + 'read')
+		bratio=np.absolute(ratioB_cube(dirname+'im'+snapnumbers[2-i]+'/magnetic_grid_'+snapnumbers[2-i],zoomzone,pixels))[150:450,285:315,150:450]
+		print('B' + snapnumbers[2-i] + 'read')
+
+		if i==0: #setting up the colour scales 
+			im_rho=grid[2-i].imshow(np.log10(np.rot90(np.sum(rho,1)/30)),cmap='plasma')
+			clim_rho=im_rho.properties()['clim']
+			cbar = grid.cbar_axes[0].colorbar(im_rho)
+			cbar.ax.set_ylabel('rho/gcm^-3', rotation=270,labelpad=25)
+
+			im_vel=grid[5-i].imshow(np.rot90(np.sum(v,1)/30),cmap='plasma')
+			clim_vel=im_vel.properties()['clim']
+			cbar = grid.cbar_axes[1].colorbar(im_vel)
+			cbar.ax.set_ylabel('v/kms^-1', rotation=270,labelpad=25)
+			grid[5-i].quiver(x[0::18,0::18],z[0::18,0::18],vx[0::18,0::18],vz[0::18,0::18],headwidth=5,minshaft=3,pivot='mid')
+			grid[5-i].set_ylim(0,300)
+
+
+			im_b=grid[8-i].imshow(np.log10(np.rot90(np.sum(bratio,1)/30)),cmap='plasma')
+			clim_b=im_b.properties()['clim']
+			cbar = grid.cbar_axes[2].colorbar(im_b)
+			cbar.ax.set_ylabel('B_tor/B_pol', rotation=270,labelpad=25)
+		else:
+			grid[2-i].imshow(np.log10(np.rot90(np.sum(rho,1)/30)),clim=clim_rho,cmap='plasma')
+			grid[5-i].imshow(np.rot90(np.sum(v,1)/30),clim=clim_vel,cmap='plasma')
+			grid[5-i].quiver(x[0::18,0::18],z[0::18,0::18],vx[0::18,0::18],vz[0::18,0::18],headwidth=5,minshaft=3,pivot='mid')
+			grid[5-i].set_ylim(0,300)
+			grid[8-i].imshow(np.log10(np.rot90(np.sum(bratio,1)/30)),clim=clim_b,cmap='plasma')
+
+		grid[2-i].set_yticks([])
+		grid[2-i].set_xticks([])
+		grid[5-i].set_yticks([])
+		grid[5-i].set_xticks([])
+		grid[8-i].set_yticks([])
+		grid[8-i].set_xticks([])		
+
+
 
 
 
