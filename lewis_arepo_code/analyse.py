@@ -606,7 +606,7 @@ def plot3x3(dirname,snapnumbers,zoomzone,pixels):
 			clim_vel=im_vel.properties()['clim']
 			cbar = grid.cbar_axes[1].colorbar(im_vel)
 			cbar.ax.set_ylabel('v/kms^-1', rotation=270,labelpad=25)
-			grid[5-i].quiver(x[0::18,0::18],z[0::18,0::18],vx[0::18,0::18],vz[0::18,0::18],headwidth=5,minshaft=3,pivot='mid')
+			grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',headwidth=4,pivot='mid')
 			grid[5-i].set_ylim(0,300)
 
 
@@ -617,7 +617,7 @@ def plot3x3(dirname,snapnumbers,zoomzone,pixels):
 		else:
 			grid[2-i].imshow(np.log10(np.rot90(np.sum(rho,1)/30)),clim=clim_rho,cmap='plasma')
 			grid[5-i].imshow(np.rot90(np.sum(v,1)/30),clim=clim_vel,cmap='plasma')
-			grid[5-i].quiver(x[0::18,0::18],z[0::18,0::18],vx[0::18,0::18],vz[0::18,0::18],headwidth=5,minshaft=3,pivot='mid')
+			grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',headwidth=4,pivot='mid')
 			grid[5-i].set_ylim(0,300)
 			grid[8-i].imshow(np.log10(np.rot90(np.sum(bratio,1)/30)),clim=clim_b,cmap='plasma')
 
