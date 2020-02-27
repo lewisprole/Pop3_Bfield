@@ -606,7 +606,7 @@ def plot3x3(dirname,snapnumbers,zoomzone,pixels):
 			clim_vel=im_vel.properties()['clim']
 			cbar = grid.cbar_axes[1].colorbar(im_vel)
 			cbar.ax.set_ylabel('v/kms^-1', rotation=270,labelpad=25)
-			grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',headwidth=4,pivot='mid')
+			grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',width=1e-2,pivot='mid')
 			grid[5-i].set_ylim(0,300)
 
 
@@ -617,7 +617,7 @@ def plot3x3(dirname,snapnumbers,zoomzone,pixels):
 		else:
 			grid[2-i].imshow(np.log10(np.rot90(np.sum(rho,1)/30)),clim=clim_rho,cmap='plasma')
 			grid[5-i].imshow(np.rot90(np.sum(v,1)/30),clim=clim_vel,cmap='plasma')
-			grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',headwidth=4,pivot='mid')
+			grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',width=1e-2,pivot='mid')
 			grid[5-i].set_ylim(0,300)
 			grid[8-i].imshow(np.log10(np.rot90(np.sum(bratio,1)/30)),clim=clim_b,cmap='plasma')
 
@@ -823,28 +823,35 @@ def sink_track(dirname):
 
 	a=arepo_utils.aread(names[args[-1]]) #check end number of sinks 
 	N_sink_end=a.npart[5]
+	IDs=a.sinkid
+	N=np.zeros(len(args)) #create space for sink info
 	M=np.zeros((N_sink_end,len(args)))
-
+	X=np.zeros((N_sink_end,len(args)))
+	Y=np.zeros((N_sink_end,len(args)))
 	text_trap = io.StringIO() #prevent massive text output from snapshot reads
 	sys.stdout = text_trap
 	for i in range(len(args)):
+	
 		a=arepo_utils.aread(names[args[i]])
 		Nsink=a.npart[5]
+		N=np.append(N,Nsink)
 		t=np.append(t,a.time*code_units.t_cu/(60*60*24*365))
+
 		if Nsink>0:
-			M[0:Nsink,i]=a.sinkmass
-				
-			
+			for j in range(len(IDs)):
+				maskid=np.where(a.sinkid==IDs[j])
+				if len(maskid[0])>0:
+					M[j,i]=a.sinkmass[maskid]
+					X[j,i]=a.sinkx[maskid]
+					Y[j,i]=a.sinky[maskid]
 	sys.stdout = sys.__stdout__
+			
+	return M,N,X,Y,t
 	
-	mask=np.where(M[0,:]>0)
-	t=t[mask]
-	M=M[:,mask]
-	plt.figure(),plt.title('first sink at %.0f yrs'%t[0])
-	
-	for i in range(N_sink_end):
-		plt.plot(t,M[i,:][0]),plt.xlabel('time/yrs'),plt.ylabel('number of sinks')
 		
 	
-	return t,M
+
+
+
+
 
