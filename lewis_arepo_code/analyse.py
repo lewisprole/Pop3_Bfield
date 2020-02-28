@@ -704,9 +704,50 @@ def divB(name):
 	divb=div*scale/mag
 	return divb,mag
 
+def track_divB(dirname):
+	a=arepo_utils.aread(dirname+'snapshot_000')
+	div,m=divB(dirname+'snapshot_000')
+	maxs=max(div)
+	avs=np.mean(div)
+	t=a.time
+	for i in range(15):
+		if i<9:
+			num='0'+str(10*(i+1))
+		else:
+			num=str(10*(i+1))
+		a=arepo_utils.aread(dirname+'snapshot_'+num)
+		div,m=divB(dirname+'snapshot_'+num)
+		maxs=np.append(maxs,max(div))
+		avs=np.append(avs,np.mean(div))
+		t=np.append(t,a.time)
+	return maxs,avs,t
 
+def divB_plot(ax1,ax2,dirname,label):
+	ax1.set_title('maximum divB')
+	ax2.set_title('average divB')	
+	maxs,avs,t=track_divB(dirname)
+	ax1.plot(t,maxs,label=label)
+	ax2.plot(t,avs,label=label)
+	ax1.legend(loc='upper right')
+	ax2.legend(loc='upper right')
+	return ax1,ax2
 
-
+def divB_figuremaker(dirnames,labels):
+	f, (ax1, ax2) = plt.subplots(1, 2, sharey=False)
+	div,m=divB(dirnames[0]+'snapshot_000')
+	imax=max(div)
+	iav=np.mean(div)
+	for i in range(len(dirnames)):
+		ax1,ax2=divB_plot(ax1,ax2,dirnames[i],labels[i])
+	ax1.axhline(imax,color='k',label='control')
+	ax2.axhline(iav,color='k',label='control')
+	ax1.legend(loc='upper right')
+	ax2.legend(loc='upper right')
+	ax1.set_xlabel('t/s')
+	ax2.set_xlabel('t/s')
+	ax1.set_ylabel('divB')
+	ax2.set_ylabel('divB')
+	
 
 '''//////////Finding best output snapshots times for higher resolution repeats/////////////'''
 

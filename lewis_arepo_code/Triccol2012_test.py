@@ -33,12 +33,19 @@ vx=np.ones_like(rho)
 vy=np.ones_like(rho)
 vz=np.zeros_like(rho)
 
+
+vx=np.zeros_like(rho) #for static test
+vy=np.zeros_like(rho)
 #add shock
 #c_s=np.sqrt(P/rho)
 #c_s_alfven=Bz[0]/np.sqrt(rho[0])
-#shock_mask=np.where(y<0.5)
+#shock_mask=np.where(y<1)
 #vy[shock_mask]=2*c_s
 
+
+#density jump
+mask=np.where(y<1)
+M[mask]=2*M[mask]
 
 v=(vx,vy,vz)
 x=(x,y,z)
@@ -82,7 +89,7 @@ sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,M,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
 sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Tricco/noshock/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/Tricco/shock/arepo_input.dat')
 
 
 
