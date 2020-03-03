@@ -21,6 +21,8 @@ import calculate_freefall
 import os, shutil
 import astropy.constants as ap 
 import turbulence
+import Bfield
+
 
 filename='/scratch/c.c1521474/popIII/Prole/high_res/ics/snapshot_066'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
@@ -54,6 +56,7 @@ scalefactor=1
 #box parameters - Bonnor Ebert sphere in diffuse ISM
 T=200
 r=1.87*ap.pc.cgs.value
+print('Radius: '+str(r))
 n0=3.7e-20/1.83
 enhance=1.83
 n_bg=n0*enhance/100
@@ -71,6 +74,7 @@ mid=Bsize_CU/2
 rs=np.sqrt((mid-a.x)**2+(mid-a.y)**2+(mid-a.z)**2)
 mask=np.where(rs<r/code_units.d_cu)
 M=sum(np.array(a.mass)[mask])*code_units.M_cu
+print('Mass: '+str(M))
 
 #convert back to cgs
 m=a.mass
@@ -80,36 +84,39 @@ y=np.asarray(a.y)*code_units.d_cu
 z=np.asarray(a.z)*code_units.d_cu
 
 
-Beta=np.array([0])
-Alpha=np.array([0,0.05])
-for i in range (len(Beta)):
-	for j in range (len(Alpha)):
+Beta=np.array([1e-5,1e-4])
+Gamma=np.array([1e-2,1e-8])
+for i in range (1):
+	for j in range (len(Beta)):
 		#add solid rotation
-		if Beta[i]==0:
+		if Beta[j]==0:
 			v=velocities.zero_vel(len(x))
 			vx,vy,vz=v[0],v[1],v[2]
 		else:
-			vx,vy,vz=velocities.rot_sphere(boxsize,(x,y,z),M,r,Beta[i])
+			vx,vy,vz=velocities.rot_sphere(boxsize,(x,y,z),M,r,Beta[j])
 			vx=vx/code_units.v_cu
 			vy=vy/code_units.v_cu
 			vz=vz/code_units.v_cu 
 			v=(vx,vy,vz)
 
 		#turbulence
-		if Alpha[j]>0:
-			tname='/home/c.c1521474/turbulent_box/256_cube/nat_seed_25/vel3D.bin'
-			v1,v2,v3=turbulence.turbulence(tname,x,y,z,boxsize)
-			v1,v2,v3=turbulence.rescale(v1,v2,v3,Alpha[j],M,r)
-			v1=v1/code_units.v_cu
-			v2=v2/code_units.v_cu
-			v3=v3/code_units.v_cu
-			v=(vx+v1,vy+v2,vx+v3)
+#		if Alpha[j]>0:
+#			tname='/home/c.c1521474/turbulent_box/256_cube/nat_seed_25/vel3D.bin'
+#			v1,v2,v3=turbulence.turbulence(tname,x,y,z,boxsize)
+#			v1,v2,v3=turbulence.rescale(v1,v2,v3,Alpha[j],M,r)
+#			v1=v1/code_units.v_cu
+#			v2=v2/code_units.v_cu
+#			v3=v3/code_units.v_cu
+#			v=(vx+v1,vy+v2,vx+v3)
 
 
 		#magnetic field
 		Bx=np.zeros_like(vx) #only in z direction 
 		By=np.zeros_like(vy)
-		Bz=np.zeros_like(vz)
+		strength=Bfield.B_strength(M,r,Gamma[j])
+		Bz=np.ones_like(vz)*strength/code_units.B_cu
+		
+
 		B=(Bx,By,Bz)	
 	
 
@@ -140,5 +147,5 @@ for i in range (len(Beta)):
 		sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 		sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
 		sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-		arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/high_res/arepo_input_B%.2f_A%.2f.dat'%(Beta[i],Alpha[j]))
+		arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/high_res/32/Y1e%.0f_B1e%.0f/arepo_input_Y1e%.0f_B1e%.0f.dat'%(np.log10(Gamma[j]),np.log10(Beta[j]),np.log10(Gamma[j]),np.log10(Beta[j])))
 

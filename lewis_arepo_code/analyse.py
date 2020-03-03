@@ -723,8 +723,8 @@ def track_divB(dirname):
 	return maxs,avs,t
 
 def divB_plot(ax1,ax2,dirname,label):
-	ax1.set_title('maximum divB')
-	ax2.set_title('average divB')	
+	#ax1.set_title('maximum divB')
+	#ax2.set_title('average divB')	
 	maxs,avs,t=track_divB(dirname)
 	ax1.plot(t,maxs,label=label)
 	ax2.plot(t,avs,label=label)
@@ -745,8 +745,8 @@ def divB_figuremaker(dirnames,labels):
 	ax2.legend(loc='upper right')
 	ax1.set_xlabel('t/s')
 	ax2.set_xlabel('t/s')
-	ax1.set_ylabel('divB')
-	ax2.set_ylabel('divB')
+	ax1.set_ylabel(r'$h|\bigtriangledown \cdot B| \; / \; |B|$  (maximum)')
+	ax2.set_ylabel(r'$h|\bigtriangledown \cdot B| \; / \; |B|$  (average)')
 	
 
 '''//////////Finding best output snapshots times for higher resolution repeats/////////////'''
