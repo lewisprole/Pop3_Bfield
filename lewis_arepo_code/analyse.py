@@ -582,18 +582,19 @@ def plot3x3(dirname,snapnumbers,zoomzone,pixels):
 	fig=plt.figure(figsize=(4,4))
 	grid=ImageGrid(fig,111,nrows_ncols=(3,3),axes_pad=0,cbar_mode='edge')
 	for i in range (len(snapnumbers)):
-		rho=read_cube(dirname+'im'+snapnumbers[2-i]+'/density_grid_'+snapnumbers[2-i])[150:450,285:315,150:450] *code_units.rho_cu
+		rho=(read_cube(dirname+'im'+snapnumbers[2-i]+'/density_grid_'+snapnumbers[2-i])*code_units.rho_cu)[:,285:315,:]#[150:450,285:315,150:450] 
 		print('rho' + snapnumbers[2-i] + 'read')
 		vx,vy,vz=read_3cube(dirname+'im'+snapnumbers[2-i]+'/velocity_grid_'+snapnumbers[2-i])
 		v=np.sqrt(vx**2+vy**2+vz**2)
 		v_xz=np.sqrt(vx**2+vz**2)
-		vx,vz=(vx/v_xz)[150:450,300,150:450],(vz/v_xz)[150:450,300,150:450]
-		v=v[150:450,285:315,150:450]*code_units.v_cu/1e5
-		x=np.linspace(0,int(pixels/2)-1,int(pixels/2))
+		vx=(vx/v_xz)[:,300,:]#[150:450,300,150:450]
+		vz=(vz/v_xz)[:,300,:]#[150:450,300,150:450]
+		v=(v*code_units.v_cu/1e5)[:,285:315,:]#[150:450,285:315,150:450]
+		x=np.linspace(0,pixels-1,pixels)#int(pixels/2)-1,int(pixels/2))
 		z,x=np.meshgrid(x,x)
 
 		print('v' + snapnumbers[2-i] + 'read')
-		bratio=np.absolute(ratioB_cube(dirname+'im'+snapnumbers[2-i]+'/magnetic_grid_'+snapnumbers[2-i],zoomzone,pixels))[150:450,285:315,150:450]
+		bratio=np.absolute(ratioB_cube(dirname+'im'+snapnumbers[2-i]+'/magnetic_grid_'+snapnumbers[2-i],zoomzone,pixels))#[150:450,285:315,150:450]
 		print('B' + snapnumbers[2-i] + 'read')
 
 		if i==0: #setting up the colour scales 
@@ -606,8 +607,9 @@ def plot3x3(dirname,snapnumbers,zoomzone,pixels):
 			clim_vel=im_vel.properties()['clim']
 			cbar = grid.cbar_axes[1].colorbar(im_vel)
 			cbar.ax.set_ylabel('v/kms^-1', rotation=270,labelpad=25)
-			grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',width=1e-2,pivot='mid')
-			grid[5-i].set_ylim(0,300)
+			#grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',width=1e-2,pivot='mid')
+			grid[5-i].quiver(x[0::40,0::40][1:,1:],z[0::40,0::40][1:,1:],vx[0::40,0::40][1:,1:],vz[0::40,0::40][1:,1:],color='c',width=1e-2,pivot='mid')
+			grid[5-i].set_ylim(0,600)#300)
 
 
 			im_b=grid[8-i].imshow(np.log10(np.rot90(np.sum(bratio,1)/30)),cmap='plasma')
@@ -617,8 +619,9 @@ def plot3x3(dirname,snapnumbers,zoomzone,pixels):
 		else:
 			grid[2-i].imshow(np.log10(np.rot90(np.sum(rho,1)/30)),clim=clim_rho,cmap='plasma')
 			grid[5-i].imshow(np.rot90(np.sum(v,1)/30),clim=clim_vel,cmap='plasma')
-			grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',width=1e-2,pivot='mid')
-			grid[5-i].set_ylim(0,300)
+			#grid[5-i].quiver(x[0::19,0::19][1:,1:],z[0::19,0::19][1:,1:],vx[0::19,0::19][1:,1:],vz[0::19,0::19][1:,1:],color='c',width=1e-2,pivot='mid')
+			grid[5-i].quiver(x[0::40,0::40][1:,1:],z[0::40,0::40][1:,1:],vx[0::40,0::40][1:,1:],vz[0::40,0::40][1:,1:],color='c',width=1e-2,pivot='mid')
+			grid[5-i].set_ylim(0,600)#300)
 			grid[8-i].imshow(np.log10(np.rot90(np.sum(bratio,1)/30)),clim=clim_b,cmap='plasma')
 
 		grid[2-i].set_yticks([])
@@ -710,7 +713,7 @@ def track_divB(dirname):
 	maxs=max(div)
 	avs=np.mean(div)
 	t=a.time
-	for i in range(15):
+	for i in range(20):
 		if i<9:
 			num='0'+str(10*(i+1))
 		else:
