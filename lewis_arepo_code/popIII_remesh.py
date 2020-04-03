@@ -84,46 +84,47 @@ y=np.asarray(a.y)*code_units.d_cu
 z=np.asarray(a.z)*code_units.d_cu
 
 
-Beta=np.array([1e-5,1e-4])
-Gamma=np.array([1e-2,1e-8])
-for i in range (1):
+#Beta=np.array([1e-5,1e-4])
+Beta=np.array([0])
+#Gamma=np.array([1e-2,1e-8])
+Gamma=np.array([0])
+Alpha=np.array([0.05])
+for i in range (len(Gamma)):
 	for j in range (len(Beta)):
-		#add solid rotation
-		if Beta[j]==0:
-			v=velocities.zero_vel(len(x))
-			vx,vy,vz=v[0],v[1],v[2]
-		else:
-			vx,vy,vz=velocities.rot_sphere(boxsize,(x,y,z),M,r,Beta[j])
-			vx=vx/code_units.v_cu
-			vy=vy/code_units.v_cu
-			vz=vz/code_units.v_cu 
-			v=(vx,vy,vz)
+		for k in range(len(Alpha)):
+			#add solid rotation
+			if Beta[j]==0:
+				v=velocities.zero_vel(len(x))
+				vx,vy,vz=v[0],v[1],v[2]
+			else:
+				vx,vy,vz=velocities.rot_sphere(boxsize,(x,y,z),M,r,Beta[j])
+				vx=vx/code_units.v_cu
+				vy=vy/code_units.v_cu
+				vz=vz/code_units.v_cu 
+				v=(vx,vy,vz)
 
-		#turbulence
-#		if Alpha[j]>0:
-#			tname='/home/c.c1521474/turbulent_box/256_cube/nat_seed_25/vel3D.bin'
-#			v1,v2,v3=turbulence.turbulence(tname,x,y,z,boxsize)
-#			v1,v2,v3=turbulence.rescale(v1,v2,v3,Alpha[j],M,r)
-#			v1=v1/code_units.v_cu
-#			v2=v2/code_units.v_cu
-#			v3=v3/code_units.v_cu
-#			v=(vx+v1,vy+v2,vx+v3)
+			#turbulence
+			if Alpha[k]>0:
+				tname='/home/c.c1521474/turbulent_box/256_cube/nat_seed_25/vel3D.bin'
+				v1,v2,v3=turbulence.turbulence(tname,x,y,z,boxsize)
+				v1,v2,v3=turbulence.rescale(v1,v2,v3,Alpha[k],M,r)
+				v1=v1/code_units.v_cu
+				v2=v2/code_units.v_cu
+				v3=v3/code_units.v_cu
+				v=(vx+v1,vy+v2,vx+v3)
 
-
-		#magnetic field
-		Bx=np.zeros_like(vx) #only in z direction 
-		By=np.zeros_like(vy)
-		strength=Bfield.B_strength(M,r,Gamma[j])
-		Bz=np.ones_like(vz)*strength/code_units.B_cu
-		
-
-		B=(Bx,By,Bz)	
+			#magnetic field
+			Bx=np.zeros_like(vx) #only in z direction 
+			By=np.zeros_like(vy)
+			strength=Bfield.B_strength(M,r,Gamma[i])
+			Bz=np.ones_like(vz)*strength/code_units.B_cu
+			B=(Bx,By,Bz)	
 	
 
-		#prepare for rewrite
-		X=(a.x,a.y,a.z)
-		ids=a.ids
-		u=a.u
+			#prepare for rewrite
+			X=(a.x,a.y,a.z)
+			ids=a.ids
+			u=a.u
 
 
 #crit_MtoF=0.53/(3*np.pi) * np.sqrt(5/G) #critical mass-to-flux (cgs)
@@ -136,16 +137,17 @@ for i in range (1):
 #B=(Bx,By,Bz)
 
 
-		#write ICs file 
-		sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
-           	npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
-           	hubble_param,flag_stellarage,flag_metals,npartHighword,
-           	flag_entropy,flag_dp,flag_1pt,scalefactor)    
-		sofar=arepo_input_writer.tag_block(sofar,X,'POS ','d',3)
-		sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
-		sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
-		sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
-		sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
-		sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-		arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/high_res/32/Y1e%.0f_B1e%.0f/arepo_input_Y1e%.0f_B1e%.0f.dat'%(np.log10(Gamma[j]),np.log10(Beta[j]),np.log10(Gamma[j]),np.log10(Beta[j])))
+			#write ICs file 
+			sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
+           		npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
+           		hubble_param,flag_stellarage,flag_metals,npartHighword,
+           		flag_entropy,flag_dp,flag_1pt,scalefactor)    
+			sofar=arepo_input_writer.tag_block(sofar,X,'POS ','d',3)
+			sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
+			sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
+			sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
+			sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
+			sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
+			arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/resolution_test/2e8_new/arepo_input.dat')
+#Y1e%.0f_B1e%.0f/arepo_input_Y1e%.0f_B1e%.0f.dat'%(np.log10(Gamma[j]),np.log10(Beta[j]),np.log10(Gamma[j]),np.log10(Beta[j])))
 

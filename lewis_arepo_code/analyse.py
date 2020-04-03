@@ -860,7 +860,7 @@ def sink_track(dirname):
 		N=names[i].rfind('_')
 		number=names[i][N+1:]
 		NAMES=np.append(NAMES,number)
-	args=np.asarray(NAMES.argsort()).astype(int) #sort names in order of snap number
+	args=np.asarray(NAMES.astype(int).argsort()).astype(int) #sort names in order of snap number
 	M=np.array([])
 	t=np.array([])
 	N=0

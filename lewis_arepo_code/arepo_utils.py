@@ -224,6 +224,11 @@ def aread(filename):
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
                                 a.peak = np.fromfile(file,dtype=np.int32,count=ngas)
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
+                        elif(tag=='FACA'):
+                                print('Reading face angles')
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                                a.angle=np.fromfile(file,dtype=np.double,count=ngas)
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
                         else:
                                 print("Skipping through property",tag," with record length", nextblock-8)
                                 dummy = np.fromfile(file,dtype=np.int32,count=(nextblock//4))
