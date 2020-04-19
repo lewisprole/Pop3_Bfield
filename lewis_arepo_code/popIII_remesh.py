@@ -105,7 +105,7 @@ for i in range (len(Gamma)):
 
 			#turbulence
 			if Alpha[k]>0:
-				tname='/home/c.c1521474/turbulent_box/256_cube/nat_seed_25/vel3D.bin'
+				tname='/home/c.c1521474/turbulent_box/64_cube/nat_seed_43/vel3D.bin'
 				v1,v2,v3=turbulence.turbulence(tname,x,y,z,boxsize)
 				v1,v2,v3=turbulence.rescale(v1,v2,v3,Alpha[k],M,r)
 				v1=v1/code_units.v_cu

@@ -21,7 +21,7 @@ import calculate_freefall
 import os, shutil
 import astropy.constants as ap 
 
-filename='/scratch/c.c1521474/Masahiro2/ics/snapshot_001'                #read remesh data
+filename='/scratch/c.c1521474/Masahiro2/ics/snapshot_000'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
 shutil.copyfile(filename,'/scratch/c.c1521474/Masahiro2/remeshed.dat')
 
