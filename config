@@ -1,0 +1,24 @@
+Host gerty
+Hostname gertrude.astro.cf.ac.uk
+ProxyCommand ssh -W %h:%p c1521474@physxlogin.astro.cf.ac.uk
+ForwardX11 yes
+ForwardX11Trusted yes
+TCPKeepAlive yes
+ServerAliveInterval 120
+User c1521474
+
+Host physx
+HostName physxlogin.astro.cf.ac.uk
+User c1521474
+ForwardX11 yes
+ForwardX11Trusted yes
+TCPKeepAlive yes
+ServerAliveInterval 120
+
+Host hawk
+Hostname hawklogin.cf.ac.uk
+ForwardX11 yes
+ForwardX11Trusted yes
+TCPKeepAlive yes
+ServerAliveInterval 120
+User c.c1521474
