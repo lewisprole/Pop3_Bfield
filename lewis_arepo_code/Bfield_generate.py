@@ -30,9 +30,6 @@ def discrete_modes(k,M,boxsize_cgs):
 	This function converts wavenumbers into new k.'''
 	k_new=k*boxsize_cgs/(2*np.pi)
 
-	#k_new inversely proportional to k_old, needs rearranging 
-	#M_new=M[np.argsort(k_new)]
-	#k_new=k_new[np.argsort(k_new)]
 	return k_new
 
 
@@ -53,21 +50,32 @@ def modes(k,M,N):
 
         #values for navigating k space
 	kz=np.linspace(0,N-1,N)
-	ky,kx=np.meshgrid(N-1,N-1)
-	#for each coordinate in 3D k space, assign a 3D amplitude and phase 
+	ky,kx=np.meshgrid(kz,kz)
+
 	print('creating k space')
+	#for each coordinate in 3D k space, assign a 3D amplitude and phase
+	#split k space sube into xy sheet stack
 	for z in range(N): 
-		print(z)
+	
 		if z==int(N/2):
 			print('50%')
+		
+		#figure out where on the power spectrum we are 
 		K=np.sqrt( kx**2 + ky**2 + (kz[z])**2)
 		P=M_function(K)
+
+		#assign 3D amplitude from guassian distribution
 		Ax=np.sqrt(P)*np.random.normal(0,1,(N,N))
 		Ay=np.sqrt(P)*np.random.normal(0,1,(N,N))
 		Az=np.sqrt(P)*np.random.normal(0,1,(N,N))
+
+		#assign 3D phase from uniform distribution
 		phix=2*np.pi*np.random.uniform(0, 1,(N,N))
 		phiy=2*np.pi*np.random.uniform(0, 1,(N,N))
 		phiz=2*np.pi*np.random.uniform(0, 1,(N,N))	
+
+		#remove the divergent modes 
+		#refer to eq 2.6/2.7 from Lomax(2015)
 		dotx=(Ax*(kx))
 		doty=(Ay*(ky))
 		dotz=(Az*(kz[z]))
@@ -75,6 +83,8 @@ def modes(k,M,N):
 		Ax=Ax-(kx)*dot_product
 		Ay=Ay-(ky)*dot_product
 		Az=Az-(kz[z])*dot_product
+
+		#split the signal into real/imaginary parts based on phase 
 		Bx[:,:,z]=Ax*(np.cos(phix)+np.sin(phix)*1j)
 		By[:,:,z]=Ay*(np.cos(phiy)+np.sin(phiy)*1j)
 		Bz[:,:,z]=Az*(np.cos(phiz)+np.sin(phiz)*1j)
