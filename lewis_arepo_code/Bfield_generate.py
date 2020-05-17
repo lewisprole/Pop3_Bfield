@@ -52,42 +52,32 @@ def modes(k,M,N):
 	Bz=np.zeros((N,N,N),dtype=np.complex128)
 
         #values for navigating k space
-	ks=np.linspace(0,N-1,N)
-
+	kz=np.linspace(0,N-1,N)
+	ky,kx=np.meshgrid(N-1,N-1)
 	#for each coordinate in 3D k space, assign a 3D amplitude and phase 
 	print('creating k space')
-	for X in range(N):
-		for Y in range(N):
-			for Z in range(N):
-				#figure out where we are on the power spectrum
-				K=np.sqrt( (ks[X])**2 + (ks[Y])**2 + (ks[Z])**2)
-				
-				P=M_function(K)
-				#sample amplitude from Gaussian
-				Ax=np.sqrt(P)*np.random.normal(0,1)
-				Ay=np.sqrt(P)*np.random.normal(0,1)
-				Az=np.sqrt(P)*np.random.normal(0,1)
-				
-				#phase from random distribution
-				phix=2*np.pi*np.random.uniform(0, 1)
-				phiy=2*np.pi*np.random.uniform(0, 1)
-				phiz=2*np.pi*np.random.uniform(0, 1)
-	
-				#remove compressive modes (no div B)
-				#dot product between k and A
-				dotx=(Ax*(ks[X]))
-				doty=(Ay*(ks[Y]))
-				dotz=(Az*(ks[Z]))
-				dot_product=dotx+doty+dotz
-				#refer to eq 2.6/2.7 Lomax(2015)
-				Ax=Ax-(ks[X])*dot_product
-				Ay=Ay-(ks[Y])*dot_product
-				Az=Az-(ks[Z])*dot_product
-
-				#use phase to split into real/imaginary
-				Bx[X,Y,Z]=Ax*complex(np.cos(phix),np.sin(phix))
-				By[X,Y,Z]=Ay*complex(np.cos(phiy),np.sin(phiy))
-				Bz[X,Y,Z]=Az*complex(np.cos(phiz),np.sin(phiz))
+	for z in range(N): 
+		print(z)
+		if z==int(N/2):
+			print('50%')
+		K=np.sqrt( kx**2 + ky**2 + (kz[z])**2)
+		P=M_function(K)
+		Ax=np.sqrt(P)*np.random.normal(0,1,(N,N))
+		Ay=np.sqrt(P)*np.random.normal(0,1,(N,N))
+		Az=np.sqrt(P)*np.random.normal(0,1,(N,N))
+		phix=2*np.pi*np.random.uniform(0, 1,(N,N))
+		phiy=2*np.pi*np.random.uniform(0, 1,(N,N))
+		phiz=2*np.pi*np.random.uniform(0, 1,(N,N))	
+		dotx=(Ax*(kx))
+		doty=(Ay*(ky))
+		dotz=(Az*(kz[z]))
+		dot_product=dotx+doty+dotz
+		Ax=Ax-(kx)*dot_product
+		Ay=Ay-(ky)*dot_product
+		Az=Az-(kz[z])*dot_product
+		Bx[:,:,z]=Ax*(np.cos(phix)+np.sin(phix)*1j)
+		By[:,:,z]=Ay*(np.cos(phiy)+np.sin(phiy)*1j)
+		Bz[:,:,z]=Az*(np.cos(phiz)+np.sin(phiz)*1j)
 	
 	print('performing transform')	
 	#reverse FFT into real space
