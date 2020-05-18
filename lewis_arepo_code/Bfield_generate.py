@@ -76,13 +76,15 @@ def modes(k,M,N):
 
 		#remove the divergent modes 
 		#refer to eq 2.6/2.7 from Lomax(2015)
-		dotx=(Ax*(kx))
-		doty=(Ay*(ky))
-		dotz=(Az*(kz[z]))
+		#first normalise wavevectors
+		mag=np.sqrt(kx**2+ky**2+kz[z]**2) 
+		dotx=(Ax*(kx/mag))
+		doty=(Ay*(ky/mag))
+		dotz=(Az*(kz[z]/mag))
 		dot_product=dotx+doty+dotz
-		Ax=Ax-(kx)*dot_product
-		Ay=Ay-(ky)*dot_product
-		Az=Az-(kz[z])*dot_product
+		Ax=Ax-(kx/mag)*dot_product
+		Ay=Ay-(ky/mag)*dot_product
+		Az=Az-(kz[z]/mag)*dot_product
 
 		#split the signal into real/imaginary parts based on phase 
 		Bx[:,:,z]=Ax*(np.cos(phix)+np.sin(phix)*1j)
