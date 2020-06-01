@@ -24,9 +24,9 @@ import turbulence
 import Bfield
 
 
-filename='/scratch/c.c1521474/popIII/Prole/high_res/ics/snapshot_066'                #read remesh data
+filename='/scratch/c.c1521474/popIII/Prole/ics_turb_highres/snapshot_001'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
-shutil.copyfile(filename,'/scratch/c.c1521474/popIII/Prole/high_res/remeshed.dat')
+shutil.copyfile(filename,'/scratch/c.c1521474/popIII/Prole/turb_highres/remeshed.dat')
 
 n0,n1,n2,n3,n4,n5=a.npart
                                             #header data
@@ -82,13 +82,20 @@ m_cgs=np.asarray(m)*code_units.M_cu
 x=np.asarray(a.x)*code_units.d_cu 
 y=np.asarray(a.y)*code_units.d_cu
 z=np.asarray(a.z)*code_units.d_cu
+U=internal_energy.int_en(len(x),T,1)
 
-
+#rotation
 #Beta=np.array([1e-5,1e-4])
-Beta=np.array([0])
+Beta=np.array([0]) 
+
+#magnetic field
 #Gamma=np.array([1e-2,1e-8])
-Gamma=np.array([0])
+Gamma=np.array([0]) 
+
+#turbulence
 Alpha=np.array([0.05])
+#Alpha=np.array([0])
+
 for i in range (len(Gamma)):
 	for j in range (len(Beta)):
 		for k in range(len(Alpha)):
@@ -124,7 +131,7 @@ for i in range (len(Gamma)):
 			#prepare for rewrite
 			X=(a.x,a.y,a.z)
 			ids=a.ids
-			u=a.u
+			
 
 
 #crit_MtoF=0.53/(3*np.pi) * np.sqrt(5/G) #critical mass-to-flux (cgs)
@@ -146,8 +153,8 @@ for i in range (len(Gamma)):
 			sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 			sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 			sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
-			sofar=arepo_input_writer.tag_block(sofar,u,'U   ','d',1)
+			sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
 			sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-			arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/resolution_test/2e8_new/arepo_input.dat')
+			arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/turb_highres/arepo_input.dat')
 #Y1e%.0f_B1e%.0f/arepo_input_Y1e%.0f_B1e%.0f.dat'%(np.log10(Gamma[j]),np.log10(Beta[j]),np.log10(Gamma[j]),np.log10(Beta[j])))
 

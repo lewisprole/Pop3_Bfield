@@ -15,10 +15,11 @@ import plot3D
 
 #box parameters - Bonnor Ebert sphere in diffuse ISM 
 T=200
+mu=1
 #M=1.989e33
 r=1.87*ap.pc.cgs.value
 n0=3.7e-20/1.83
-enhance=1.83
+enhance=2
 n_bg=n0*enhance/100
 boxsize=4*r
 mid=boxsize/2
@@ -37,11 +38,11 @@ print(x)
 rs=np.sqrt(((mid-x)**2+(mid-y)**2+(mid-z)**2).astype(float))
 
 #density
-rho,rs=radial_density.non_crit_BE(x,y,z,boxsize,T,n0,n_bg,r,enhance)
+rho,rs=radial_density.non_crit_BE(x,y,z,boxsize,T,n0,r,enhance,mu)
 
 #others
 ids =np.linspace(1,len(x),len(x)).astype(int)
-U=internal_energy.int_en(len(x),T)
+U=internal_energy.int_en(len(x),T,mu)
 v=velocities.zero_vel(len(x))
 
 #convert to code units
@@ -83,7 +84,7 @@ sofar=arepo_input_writer.tag_block(sofar,v,'VEL ','d',3)
 sofar=arepo_input_writer.tag_block(sofar,ids,'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,rho,'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/high_res/ics/pre_remesh.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/popIII/Prole/ics_turb_highres/pre_remesh.dat')
 
 
 

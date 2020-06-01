@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def int_en(N,T):
+def int_en(N,T,mu):
 	u=np.ones(N)
 	R = 8.314e7
 	gg = 6.672041e-8
@@ -11,7 +11,7 @@ def int_en(N,T):
 	utime = np.sqrt((udist)**3/(gg*umass))
 	uergg=(udist)**2/(utime)**2
     
-	mu=2.4
+	
 	U = u*3.0/2.0*T*R/mu/uergg
 
 	return U
