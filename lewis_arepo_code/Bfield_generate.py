@@ -2,13 +2,24 @@ import numpy as np
 import scipy.special as sc
 import  scipy.optimize as sp 
 import scipy.interpolate as interp
+from scipy.interpolate import RegularGridInterpolator
+
+def uniform_from_dynamo(theta,kstar,Rm_crit,boxsize,N,rho,v_turb):
+	'''estimates the saturated integrated field strength field strength
+	-used for generating the uniform field for comparison with spectrum fields
+	-refer to Schober2015 eq39'''
+	gamma = (304*theta + 163) / 60
+	m=3/4*gamma * (gamma*Rm_crit)**(-2*theta/(theta+1)) * (rho*v_turb**2)
+	b=np.sqrt(m)
+	return b
+
 
 def spectrum(theta,kstar,Rm_crit,boxsize,N,rho,v_turb):
 	'''turbulent dynamo saturated B field energy spectrum from Schober(2015)
 	set k (2pi/lambda) limits as lambda=boxsize to lambda=boxsize/(N-1), where N is the 
-	number of pixels you want in the real space image'''
+	number of pixels you want in the real space image, will have N/2 k modes'''
 	kmin=2*np.pi/boxsize
-	kmax=2*np.pi/(boxsize/(N-1))
+	kmax=2*np.pi/(boxsize/(N/2))
 	kL=kmin
 	
 	gamma = (304*theta + 163) / 60
@@ -33,17 +44,34 @@ def discrete_modes(k,M,boxsize_cgs):
 	return k_new
 
 
+def mirror_spectrum(k,M,N):
+	'''the input for inverse fourier transform requires negative k modes which come after the positive ones, 
+	without repeating k=0 or k= -N/2, such that k= 0 to N/2 becomes k= 0 to N/2 straight to -(N/2 -1) to -1. 
+	The spectrum M for the negative modes must mirror the postives modes
+	The k array isn't inputted into the ifft function so can remain linear from 0 to (N-1) for plotting simplicity '''
+	M_function=interp.interp1d(k,M,bounds_error=False,fill_value=0)
+	n=int(N/2) #Niquist frequency
+	k=np.linspace(0,n,n+1) #0th k mode and modes 1 to Niquist 
+	k_negative=np.linspace(n+1,n+1 + n-2, n-1) #the -2 is because we dont need an extra 0th or N/2 mode 
+	k_new=np.append(k,k_negative)
+
+	M=M_function(k)
+	M_reverse=M[::-1][1:-1] #reversed, but don't want 0th or N/2th mode
+	M_mirror=np.append(M,M_reverse)
+	return M_mirror,k_new
+
 def modes(k,M,N):
 	'''generate 3D wavevectors, aplitudes and phases, removes divergent modes
-	-based on Lomax(2015)'''
+	-based on Lomax(2015)
+	k is number of cycles per boxsize
+	N is number of pixels in the real image, giving N/2 k modes'''
 	
 	#first fit a spline to power spectrum
 	M_function=interp.interp1d(k,M,bounds_error=False,fill_value=0)
 	
 	#3D wavevectors have a 3D amplitude for each k=(kx,ky,kz)	
-
-	N=int(N)
-	#need space for B field distribution
+	#space for B field amplitude in k space
+	n=int(N/2) #k modes up to Niquist frequency
 	Bx=np.zeros((N,N,N),dtype=np.complex128)
 	By=np.zeros((N,N,N),dtype=np.complex128)
 	Bz=np.zeros((N,N,N),dtype=np.complex128)
@@ -57,7 +85,7 @@ def modes(k,M,N):
 	#split k space sube into xy sheet stack
 	for z in range(N): 
 	
-		if z==int(N/2):
+		if z==int(n):
 			print('50%')
 		
 		#figure out where on the power spectrum we are 
@@ -85,7 +113,14 @@ def modes(k,M,N):
 		Ax=Ax-(kx/mag)*dot_product
 		Ay=Ay-(ky/mag)*dot_product
 		Az=Az-(kz[z]/mag)*dot_product
-
+		mask=np.where(mag==0) #preventing nans 
+		Ax[mask]=0
+		Ay[mask]=0
+		Az[mask]=0
+		mask2=np.where(K>N-1) #K cube goes beyond k spectrum 
+		Ax[mask2]=0
+		Ay[mask2]=0
+		Az[mask2]=0		
 		#split the signal into real/imaginary parts based on phase 
 		Bx[:,:,z]=Ax*(np.cos(phix)+np.sin(phix)*1j)
 		By[:,:,z]=Ay*(np.cos(phiy)+np.sin(phiy)*1j)
@@ -93,9 +128,48 @@ def modes(k,M,N):
 	
 	print('performing transform')	
 	#reverse FFT into real space
+	
 	bx=np.fft.ifftn(Bx,np.array([N,N,N]))
 	by=np.fft.ifftn(By,np.array([N,N,N]))
 	bz=np.fft.ifftn(Bz,np.array([N,N,N]))
 
 
-	return Bx,By,Bz,bx,by,bz
+	return Bx,By,Bz,bx.real,by.real,bz.real
+
+def create_field(theta,kstar,Rm_crit,box,N,rho,v_turb):
+	M,k=spectrum(theta,kstar,Rm_crit,box,N,rho,v_turb)
+	k=discrete_modes(k,M,box)
+	Bx,By,B,bx,by,bz=modes(k,M,N)
+	return M,k,bx,by,bz
+
+
+
+
+def rescale(bx,by,bz,theta,kstar,Rm_crit,boxsize,N,rho,v_turb):
+	b=uniform_from_dynamo(theta,kstar,Rm_crit,boxsize,N,rho,v_turb) 
+	energy_density=b**2 #cgs 
+	E_tot_goal=energy_density*boxsize**3
+
+	b_mag=np.sqrt(bx**2+by**2+bz**2)
+	E_density_mag=b_mag**2
+
+	pix_vol=boxsize**3/N**3
+	E_per_pix=E_density_mag*pix_vol
+	E_tot=sum(sum(sum(E_per_pix)))	
+
+	E_boost_factor=E_tot_goal/E_tot
+	B_boost_factor=np.sqrt(E_boost_factor)
+	bx,by,bz=bx*B_boost_factor,by*B_boost_factor,bz*B_boost_factor
+	return bx,by,bz
+
+def interpolate_field(bx,by,bz,x,y,z,box,N):
+	'''interpolates bx,by,bz values fromN**3 field box onto Arepo coordinates within boxsize[cgs]'''
+	side=np.linspace(0,box,N)
+	fx=RegularGridInterpolator((side,side,side),bx)
+	fy=RegularGridInterpolator((side,side,side),by)
+	fz=RegularGridInterpolator((side,side,side),bz)
+	bx=fx((x,y,z))
+	by=fy((x,y,z))
+	bz=fz((x,y,z))
+	return bx,by,bz
+	

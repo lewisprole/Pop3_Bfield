@@ -105,3 +105,12 @@ def rescale(vx,vy,vz,alpha,M,r):
 	factor=required_velocity/vmean #centre on 0
 	v1,v2,v3=vx*factor,vy*factor,vz*factor #mean(|v|)=required velocity
 	return v1,v2,v3
+
+def rescale_from_Vrms(v_rms,vx,vy,vz):
+	'''rescales field if the rms velocity is already known'''
+	v=np.sqrt(vx**2+vy**2+vz**2)
+	vmean=np.mean(v)
+	factor=v_rms/vmean
+	v1,v2,v3=vx*factor,vy*factor,vz*factor
+	return v1,v2,v2
+
