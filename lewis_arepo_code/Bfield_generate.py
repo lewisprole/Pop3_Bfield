@@ -78,7 +78,7 @@ def modes(k,M,N):
 
         #values for navigating k space
 	kz=np.linspace(0,N-1,N)
-	ky,kx=np.meshgrid(kz,kz)
+	ky,kx=np.meshgrid(kz,kz) #working in [x,y] format 
 
 	print('creating k space')
 	#for each coordinate in 3D k space, assign a 3D amplitude and phase
@@ -142,7 +142,27 @@ def create_field(theta,kstar,Rm_crit,box,N,rho,v_turb):
 	Bx,By,B,bx,by,bz=modes(k,M,N)
 	return M,k,bx,by,bz
 
+def div_check(bx,by,bz):
+	'''calculate the divergence of the box using Gauss theorem
+	integral (divB dV) = integral (B.n dS)'''
 
+	L_pix=box/N
+	S_pix=L_pix**2
+
+	F_dot_S_x0 = sum(sum(bx[0,:,:]  * -S_pix))
+	F_dot_S_x1 = sum(sum(bx[-1,:,:] *  S_pix))
+
+	F_dot_S_y0 = sum(sum(by[0,:,:]  * -S_pix))
+	F_dot_S_y1 = sum(sum(by[-1,:,:] *  S_pix))
+
+	F_dot_S_z0 = sum(sum(bz[0,:,:]  * -S_pix))
+	F_dot_S_z1 = sum(sum(bz[-1,:,:] * -S_pix))
+	
+	integral = (F_dot_S_x0+F_dot_S_x1+F_dot_S_y0+F_dot_S_y1+F_dot_S_z0+F_dot_S_z1)
+	
+	divB=integral / box**3 #dividing by the volume of the box
+
+	
 
 
 def rescale(bx,by,bz,theta,kstar,Rm_crit,boxsize,N,rho,v_turb):
