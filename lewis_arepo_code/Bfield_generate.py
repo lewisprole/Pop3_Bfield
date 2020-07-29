@@ -4,23 +4,74 @@ import  scipy.optimize as sp
 import scipy.interpolate as interp
 from scipy.interpolate import RegularGridInterpolator
 
-def uniform_from_dynamo(theta,kstar,Rm_crit,boxsize,N,rho,v_turb):
-	'''estimates the saturated integrated field strength field strength
+def calc_params(a,zoom_zone_cu,boxsize_cu):
+	'''calculates the rms velocity,density and forcing scale within cropped cube from AREPO scruct 'a' '''
+	#crop cube of chosen size
+	mid=boxsize_cu/2
+	xmask=np.where(abs(mid-a.x)<zoom_zone_cu)	
+	ymask=np.where(abs(mid-a.y)<zoom_zone_cu)
+	zmask=np.where(abs(mid-a.z)<zoom_zone_cu)
+	#combine masks to crop 3D cube 	
+	mask=np.intersect1d(maskx,masky)
+	mask=np.intersect1d(mask,maskz)
+	#calculate rms velocity in cropped cube 
+	v=np.sqrt(a.vx[mask]**2+a.vy[mask]**2+a.vz[mask]**2)
+	v_rms=np.mean(abs(v)) * v_cu #cgs
+	#mean density 
+	av_rho=np.mean(a.rho) * rho_cu #cgs
+	#calculate Kmin corresponding in the jeans length in cube 
+	sound_speed=np.sqrt(ap.k_B.cgs.value * a.temp /(ap.m_p.cgs.value))
+	jeans_length=np.sqrt(1/(ap.G.cgs.value*a.rho*rho_cu)) * sound_speed
+	forcing_scale=np.mean(jeans_length) #cgs
+	return v_rms,av_rho,forcing_scale
+
+def uniform_from_dynamo(turb_type,forcing_scale,rho,v_turb):
+	'''estimates the saturated integrated field strength field strength:
 	-used for generating the uniform field for comparison with spectrum fields
-	-refer to Schober2015 eq39'''
+	-refer to Schober2015 eq39
+	   set turb_type as either 'burgers' or 'kolmogorov'.
+	   set forcing length to boxsize or average Jeans length (cgs)
+	'''
+
+	kL=2*np.pi/forcing_scale 
+
+	if turb_type=='burgers':
+		theta=1/2
+		Rm_crit=2718
+		kstar=588*kL
+
+	if turb_type=='kolmogorov':
+		theta=1/3
+		Rm_crit=107
+		kstar=101*kL	
+
 	gamma = (304*theta + 163) / 60
 	m=3/4*gamma * (gamma*Rm_crit)**(-2*theta/(theta+1)) * (rho*v_turb**2)
 	b=np.sqrt(m)
 	return b
 
 
-def spectrum(theta,kstar,Rm_crit,boxsize,N,rho,v_turb):
-	'''turbulent dynamo saturated B field energy spectrum from Schober(2015)
-	set k (2pi/lambda) limits as lambda=boxsize to lambda=boxsize/(N-1), where N is the 
-	number of pixels you want in the real space image, will have N/2 k modes'''
-	kmin=2*np.pi/boxsize
-	kmax=2*np.pi/(boxsize/(N/2))
-	kL=kmin
+def spectrum(turb_type,forcing_scale,boxsize,N,rho,v_turb):
+	'''turbulent dynamo saturated B field energy spectrum from Schober(2015).
+	Sets k (2pi/lambda) limits as lambda=forcing_scale to lambda=boxsize/(N-1), where N is the 
+	number of pixels you want in the real space image.
+	K space will have N/2 k modes.
+	Choose either 'burgers' or 'kolmogorov' for turbulence type.
+	Easy option: set forcing scale as the boxsize (cgs) or use calc_params to find average Jeans length (cgs).'''
+	
+	kL=2*np.pi/forcing_scale
+
+	kmin=kL
+	kmax=2*np.pi / (boxsize/(N/2))
+	
+	if turb_type=='burgers':
+		theta=1/2
+		Rm_crit=2718
+		kstar=588*kL
+	if turb_type=='kolmogorov':
+		theta=1/3
+		Rm_crit=107
+		kstar=101*kL
 	
 	gamma = (304*theta + 163) / 60
 	logk=np.linspace(np.log10(kmin),np.log10(kmax),1000)
@@ -90,42 +141,43 @@ def modes(k,M,N):
 		
 		#figure out where on the power spectrum we are 
 		K=np.sqrt( kx**2 + ky**2 + (kz[z])**2)
-		P=M_function(K)
+		if K>0:
+			P=M_function(K)
 
-		#assign 3D amplitude from guassian distribution
-		Ax=np.sqrt(P)*np.random.normal(0,1,(N,N))
-		Ay=np.sqrt(P)*np.random.normal(0,1,(N,N))
-		Az=np.sqrt(P)*np.random.normal(0,1,(N,N))
-
-		#assign 3D phase from uniform distribution
-		phix=2*np.pi*np.random.uniform(0, 1,(N,N))
-		phiy=2*np.pi*np.random.uniform(0, 1,(N,N))
-		phiz=2*np.pi*np.random.uniform(0, 1,(N,N))	
-
-		#remove the divergent modes 
-		#refer to eq 2.6/2.7 from Lomax(2015)
-		#first normalise wavevectors
-		mag=np.sqrt(kx**2+ky**2+kz[z]**2) 
-		dotx=(Ax*(kx/mag))
-		doty=(Ay*(ky/mag))
-		dotz=(Az*(kz[z]/mag))
-		dot_product=dotx+doty+dotz
-		Ax=Ax-(kx/mag)*dot_product
-		Ay=Ay-(ky/mag)*dot_product
-		Az=Az-(kz[z]/mag)*dot_product
-		mask=np.where(mag==0) #preventing nans 
-		Ax[mask]=0
-		Ay[mask]=0
-		Az[mask]=0
-		mask2=np.where(K>N-1) #K cube goes beyond k spectrum 
-		Ax[mask2]=0
-		Ay[mask2]=0
-		Az[mask2]=0		
-		#split the signal into real/imaginary parts based on phase 
-		Bx[:,:,z]=Ax*(np.cos(phix)+np.sin(phix)*1j)
-		By[:,:,z]=Ay*(np.cos(phiy)+np.sin(phiy)*1j)
-		Bz[:,:,z]=Az*(np.cos(phiz)+np.sin(phiz)*1j)
+			#assign 3D amplitude from guassian distribution
+			Ax=np.sqrt(P)*np.random.normal(0,1,(N,N))
+			Ay=np.sqrt(P)*np.random.normal(0,1,(N,N))
+			Az=np.sqrt(P)*np.random.normal(0,1,(N,N))
 	
+			#assign 3D phase from uniform distribution
+			phix=2*np.pi*np.random.uniform(0, 1,(N,N))
+			phiy=2*np.pi*np.random.uniform(0, 1,(N,N))
+			phiz=2*np.pi*np.random.uniform(0, 1,(N,N))	
+
+			#remove the divergent modes 
+			#refer to eq 2.6/2.7 from Lomax(2015)
+			#first normalise wavevectors
+			mag=np.sqrt(kx**2+ky**2+kz[z]**2) 
+			dotx=(Ax*(kx/mag))
+			doty=(Ay*(ky/mag))
+			dotz=(Az*(kz[z]/mag))
+			dot_product=dotx+doty+dotz
+			Ax=Ax-(kx/mag)*dot_product
+			Ay=Ay-(ky/mag)*dot_product
+			Az=Az-(kz[z]/mag)*dot_product
+			mask=np.where(mag==0) #preventing nans 
+			Ax[mask]=0
+			Ay[mask]=0
+			Az[mask]=0
+			mask2=np.where(K>N-1) #K cube goes beyond k spectrum 
+			Ax[mask2]=0
+			Ay[mask2]=0
+			Az[mask2]=0		
+			#split the signal into real/imaginary parts based on phase 
+			Bx[:,:,z]=Ax*(np.cos(phix)+np.sin(phix)*1j)
+			By[:,:,z]=Ay*(np.cos(phiy)+np.sin(phiy)*1j)
+			Bz[:,:,z]=Az*(np.cos(phiz)+np.sin(phiz)*1j)
+		
 	print('performing transform')	
 	#reverse FFT into real space
 	
@@ -136,11 +188,20 @@ def modes(k,M,N):
 
 	return Bx,By,Bz,bx.real,by.real,bz.real
 
-def create_field(theta,kstar,Rm_crit,box,N,rho,v_turb):
-	M,k=spectrum(theta,kstar,Rm_crit,box,N,rho,v_turb)
-	k=discrete_modes(k,M,box)
+
+
+def create_field(a,turb_type,zoom_zone_cu,boxsize_cu,N):
+	'''calculates turbulent v and cloud rho within cropped zoomzone, generates 
+	magnetic energy density spectrum and performs 3D inverse FT to create field
+	with dimentions NxNxN containing (N/2)**3 3D k modes'''
+	v,rho,L=calc_params(a,zoom_zone_cu,boxsize_cu)
+	boxsize=boxsize_cu*d_cu
+	M,k=spectrum(turb_type,L,boxsize,N,rho,v)
+	k=discrete_modes(k,M,boxsize)
 	Bx,By,B,bx,by,bz=modes(k,M,N)
 	return M,k,bx,by,bz
+
+
 
 def div_check(bx,by,bz):
 	'''calculate the divergence of the box using Gauss theorem
@@ -181,6 +242,9 @@ def rescale(bx,by,bz,theta,kstar,Rm_crit,boxsize,N,rho,v_turb):
 	B_boost_factor=np.sqrt(E_boost_factor)
 	bx,by,bz=bx*B_boost_factor,by*B_boost_factor,bz*B_boost_factor
 	return bx,by,bz
+
+
+
 
 def interpolate_field(bx,by,bz,x,y,z,box,N):
 	'''interpolates bx,by,bz values fromN**3 field box onto Arepo coordinates within boxsize[cgs]'''
