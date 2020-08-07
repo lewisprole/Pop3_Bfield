@@ -27,7 +27,7 @@ def solenoidal_velocity(a):
 	nonrad_v=np.sqrt(nonrad_v[0]**2 + nonrad_v[1]**2 + nonrad_v[2]**2) 
 
 	v_mag=np.sqrt(a.vx**2+a.vy**2+a.vz**2)
-	return radial_v,nonrad_v,v_mag
+	return radial_v,nonrad_v,v_mag,R
 
 
 def equal_volumes_average(v,volumes):
@@ -53,7 +53,7 @@ def snapname(start,i,interval):
 		n=str(start+i*interval)
 	return n
 
-def cycle(dirname,start,end,interval,name):
+def cycle(dirname,start,end,interval,zoomzone,name):
 
 	#create txt file to write data
 	f = open(name, "x")
@@ -72,16 +72,16 @@ def cycle(dirname,start,end,interval,name):
 		n=snapname(start,i,interval)
 		a=arepo_utils.aread(dirname+'snapshot_'+n)
 		#radial and non-radial velocities 
-		radial_v,nonrad_v,v=solenoidal_velocity(a)
+		radial_v,nonrad_v,v,Rs=solenoidal_velocity(a)
 		#equalise volumes and take weighted average
 #		radial_v=equal_volumes_average(radial_v, a.mass/a.rho)
 #		nonrad_v=equal_volumes_average(nonrad_v, a.mass/a.rho)
 #		v=equal_volumes_average(v, a.mass/a.rho)
 
-
-		Enonrad_=sum(0.5*a.mass*nonrad_v**2)
-		Eradial_=sum(0.5*a.mass*radial_v**2)
-		Etot_=sum(0.5*a.mass*v**2)
+		mask=np.where(Rs<zoomzone)
+		Enonrad_=sum(0.5*a.mass[mask]*nonrad_v[mask]**2)
+		Eradial_=sum(0.5*a.mass[mask]*radial_v[mask]**2)
+		Etot_=sum(0.5*a.mass[mask]*v[mask]**2)
 
 		#add to time laps arrays
 		Enonrad.append(Enonrad_)
