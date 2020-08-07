@@ -24,9 +24,9 @@ import turbulence
 import Bfield
 
 
-filename='/cosma/home/dp155/dc-prol1/ics/snapshot_000'                #read remesh data
+filename='/cosma7/data/dp155/dc-prol1/resolution_test/remeshed.dat'#'/cosma/home/dp155/dc-prol1/ics/snapshot_000'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
-shutil.copyfile(filename,'/cosma/home/dp155/dc-prol1/resolution_test/remeshed.dat')
+shutil.copyfile(filename,'/cosma7/data/dp155/dc-prol1/jeans_study/remeshed.dat')
 
 n0,n1,n2,n3,n4,n5=a.npart
                                             #header data
@@ -155,6 +155,6 @@ for i in range (len(Gamma)):
 			sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 			sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
 			sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-			arepo_input_writer.writer(sofar,'/cosma/home/dp155/dc-prol1/resolution_test/1e8_sink/arepo_input.dat')
+			arepo_input_writer.writer(sofar,'/cosma7/data/dp155/dc-prol1/jeans_study/16jeans/arepo_input.dat')
 #Y1e%.0f_B1e%.0f/arepo_input_Y1e%.0f_B1e%.0f.dat'%(np.log10(Gamma[j]),np.log10(Beta[j]),np.log10(Gamma[j]),np.log10(Beta[j])))
 
