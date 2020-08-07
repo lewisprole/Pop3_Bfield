@@ -105,4 +105,4 @@ def txtread(txtfile):
 			Eradial.append(line.split()[1])
 			Etot.append(line.split()[2])
 			t.append(line.split()[3])
-	return nonrad, radial, v, t
+	return Enonrad,Eradial,Etot ,t
