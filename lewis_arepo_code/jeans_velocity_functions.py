@@ -60,10 +60,10 @@ def cycle(dirname,start,end,interval,name):
 	
 
 	N=int((end-start)/interval)
-	av_nonrad=np.array([])
-	av_radial=np.array([])
-	av_v=np.array([])
-	t=np.array([])
+	Enonrad=[]
+	Eradial=[]
+	Etot=[]
+	t=[]
 	for i in range(N):
 		
 		text_trap = io.StringIO() #prevent massive text output from snapshot reads
@@ -74,30 +74,35 @@ def cycle(dirname,start,end,interval,name):
 		#radial and non-radial velocities 
 		radial_v,nonrad_v,v=solenoidal_velocity(a)
 		#equalise volumes and take weighted average
-		radial_v=equal_volumes_average(radial_v, a.mass/a.rho)
-		nonrad_v=equal_volumes_average(nonrad_v, a.mass/a.rho)
-		v=equal_volumes_average(v, a.mass/a.rho)
+#		radial_v=equal_volumes_average(radial_v, a.mass/a.rho)
+#		nonrad_v=equal_volumes_average(nonrad_v, a.mass/a.rho)
+#		v=equal_volumes_average(v, a.mass/a.rho)
+
+
+		Enonrad_=sum(0.5*a.mass*nonrad_v**2)
+		Eradial_=sum(0.5*a.mass*radial_v**2)
+		Etot_=sum(0.5*a.mass*v**2)
 
 		#add to time laps arrays
-		av_nonrad=np.append(av_nonrad,nonrad_v)
-		av_radial=np.append(av_radial,radial_v)
-		av_v=np.append(av_v,v)
-		t=np.append(t,a.time)
+		Enonrad.append(Enonrad_)
+		Eradial.append(Eradial_)
+		Etot.append(Etot_)
+		t.append(a.time)
 
 		sys.stdout = sys.__stdout__
-		f.write(str(nonrad_v) + ' ' + str(radial_v) + ' ' + str(v) + ' ' + str(a.time) + '\n')
+		f.write(str(Enonrad_) + ' ' + str(Eradial_) + ' ' + str(Etot_) + ' ' + str(a.time) + '\n')
 		print(n + ' :written')
-	return av_nonrad,av_radial,av_v,t 
+	return Enonrad_,Eradial_,Etot_,a.time 
 		
 def txtread(txtfile):
-	nonrad=[]
-	radial=[]	
-	v=[]
+	Enonrad=[]
+	Eradial=[]	
+	Etot=[]
 	t=[]
 	with open(txtfile) as f:
 		for line in f.readlines():
-			nonrad.append(line.split()[0])
-			radial.append(line.split()[1])
-			v.append(line.split()[2])
+			Enonrad.append(line.split()[0])
+			Eradial.append(line.split()[1])
+			Etot.append(line.split()[2])
 			t.append(line.split()[3])
 	return nonrad, radial, v, t
