@@ -134,7 +134,7 @@ def weighted_hist(snap,zoomzone,bins):
 
 	#create PDFs
 	Av,Bv=np.histogram(v[mask],weights=weight_v,bins=bins,density=True)
-	Anv,Bnv=np.histogram(nonrad_v[[mask],weights=weight_v,bins=bins,density=True)
+	Anv,Bnv=np.histogram(nonrad_v[mask],weights=weight_v,bins=bins,density=True)
 	Arv,Brv=np.histogram(radial_v[mask],weights=weight_v,bins=bins,density=True)
 
 	return Av,Bv,Anv,Bnv,Arv,Brv
