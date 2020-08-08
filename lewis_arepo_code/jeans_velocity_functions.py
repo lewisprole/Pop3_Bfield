@@ -64,6 +64,9 @@ def cycle(dirname,start,end,interval,zoomzone,name):
 	Eradial=[]
 	Etot=[]
 	t=[]
+	nonradial_av=[]
+	radial_av=[]
+	v_av=[]
 	for i in range(N):
 		
 		text_trap = io.StringIO() #prevent massive text output from snapshot reads
@@ -83,16 +86,24 @@ def cycle(dirname,start,end,interval,zoomzone,name):
 		Eradial_=sum(0.5*a.mass[mask]*radial_v[mask]**2)
 		Etot_=sum(0.5*a.mass[mask]*v[mask]**2)
 
+		nonradial_av_=equal_volumes_average(nonrad_v[mask],(a.mass/a.rho)[mask])
+		radial_av_=equal_volumes_average(radial_v[mask],(a.mass/a.rho)[mask])
+		v_av_=equal_volumes_average(v[mask],(a.mass/a.rho)[mask])
+
 		#add to time laps arrays
 		Enonrad.append(Enonrad_)
 		Eradial.append(Eradial_)
 		Etot.append(Etot_)
 		t.append(a.time)
+		nonradial_av.append(nonradial_av_)
+		radial_av.append(radial_av_)
+		v_av.append(v_av_)
+
 
 		sys.stdout = sys.__stdout__
-		f.write(str(Enonrad_) + ' ' + str(Eradial_) + ' ' + str(Etot_) + ' ' + str(a.time) + '\n')
+		f.write(str(Enonrad_) + ' ' + str(Eradial_) + ' ' + str(Etot_) + ' ' + str(nonradial_av_) + ' ' + str(radial_av_) + ' ' + str(v_av_) + ' ' + str(a.time) + '\n')
 		print(n + ' :written')
-	return Enonrad_,Eradial_,Etot_,a.time 
+	return Enonrad_,Eradial_,Etot_,nonradial_av_,radial_av_,v_av_,a.time
 		
 def txtread(txtfile):
 	Enonrad=[]
