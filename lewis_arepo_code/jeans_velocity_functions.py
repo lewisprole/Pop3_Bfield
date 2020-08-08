@@ -41,7 +41,7 @@ def equal_volumes_average(v,volumes):
 	vol_unit=volumes.min()
 	num_cells=(np.round(volumes/vol_unit,0)).astype(int)
 	weighted_av=sum(v*num_cells)/sum(num_cells)
-	return weighted_av
+	return weighted_av,num_cells
 	
 
 def snapname(start,i,interval):
@@ -86,9 +86,9 @@ def cycle(dirname,start,end,interval,zoomzone,name):
 		Eradial_=sum(0.5*a.mass[mask]*radial_v[mask]**2)
 		Etot_=sum(0.5*a.mass[mask]*v[mask]**2)
 
-		nonradial_av_=equal_volumes_average(nonrad_v[mask],(a.mass/a.rho)[mask])
-		radial_av_=equal_volumes_average(radial_v[mask],(a.mass/a.rho)[mask])
-		v_av_=equal_volumes_average(v[mask],(a.mass/a.rho)[mask])
+		nonradial_av_,w=equal_volumes_average(nonrad_v[mask],(a.mass/a.rho)[mask])
+		radial_av_,w=equal_volumes_average(radial_v[mask],(a.mass/a.rho)[mask])
+		v_av_,w=equal_volumes_average(v[mask],(a.mass/a.rho)[mask])
 
 		#add to time laps arrays
 		Enonrad.append(Enonrad_)
@@ -117,3 +117,39 @@ def txtread(txtfile):
 			Etot.append(line.split()[2])
 			t.append(line.split()[3])
 	return Enonrad,Eradial,Etot ,t
+
+
+
+def weighted_hist(snap,zoomzone,bins):
+	'''create PDF of radial, non-radial and total velcoity for a single snapshot'''
+	#read and zoom in
+	a=arepo_utils.aread(snap)
+	radial_v,nonrad_v,v,Rs=solenoidal_velocity(a)
+	mask=np.where(Rs<zoomzone)
+
+	#find how many volume units there are per cell for weighted histogram
+	ignore,weight_nrad=equal_volumes_average(nonrad_v[mask],(a.mass/a.rho)[mask])
+	ignore,weight_rad=equal_volumes_average(radial_v[mask],(a.mass/a.rho)[mask])
+	ignore,weight_v=equal_volumes_average(v[mask],(a.mass/a.rho)[mask])
+
+	#create PDFs
+	Av,Bv=np.histogram(v[mask],weights=weight_v,bins=bins,density=True)
+	Anv,Bnv=np.histogram(nonrad_v[[mask],weights=weight_v,bins=bins,density=True)
+	Arv,Brv=np.histogram(radial_v[mask],weights=weight_v,bins=bins,density=True)
+
+	return Av,Bv,Anv,Bnv,Arv,Brv
+
+def PDF_plotter(snaps,zoomzone,bins):
+	fig,axs=plt.subplots(3)
+	for i in range(len(snaps)):
+		Av,Bv,Anv,Bnv,Arv,Brv=weighted_hist(snaps[i],zoomzone,bins)
+		axs[0].plot(Bv[:-1]*v_cu/1e5,Av)
+		axs[1].plot(Bnv[:-1]*v_cu/1e5,Anv)
+		axs[2].plot(Brv[:-1]*v_cu/1e5,Arv)
+
+
+
+
+
+
+
