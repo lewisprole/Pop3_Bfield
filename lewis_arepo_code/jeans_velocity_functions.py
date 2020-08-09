@@ -110,14 +110,20 @@ def txtread(txtfile):
 	Enonrad=[]
 	Eradial=[]	
 	Etot=[]
+	vnr=[]
+	vr=[]
+	v=[]
 	t=[]
 	with open(txtfile) as f:
 		for line in f.readlines():
 			Enonrad.append(line.split()[0])
 			Eradial.append(line.split()[1])
 			Etot.append(line.split()[2])
-			t.append(line.split()[3])
-	return Enonrad,Eradial,Etot ,t
+			vnr.append(line.split()[3])
+			vnr.append(line.split()[4])
+			vnr.append(line.split()[5])
+			t.append(line.split()[6])
+	return Enonrad,Eradial,Etot ,vnr,vr,v,t
 
 
 
@@ -129,16 +135,22 @@ def weighted_hist(snap,zoomzone,bins):
 	mask=np.where(Rs<zoomzone)
 
 	#find how many volume units there are per cell for weighted histogram
-	ignore,weight_nrad=equal_volumes_average(nonrad_v[mask],(a.mass/a.rho)[mask])
-	ignore,weight_rad=equal_volumes_average(radial_v[mask],(a.mass/a.rho)[mask])
-	ignore,weight_v=equal_volumes_average(v[mask],(a.mass/a.rho)[mask])
+	average_nonrad,weight_nrad=equal_volumes_average(nonrad_v[mask],(a.mass/a.rho)[mask])
+	average_rad,weight_rad=equal_volumes_average(radial_v[mask],(a.mass/a.rho)[mask])
+	average_v,weight_v=equal_volumes_average(v[mask],(a.mass/a.rho)[mask])
 
 	#create PDFs
 	Av,Bv=np.histogram(v[mask],weights=weight_v,bins=bins,density=True)
 	Anv,Bnv=np.histogram(nonrad_v[mask],weights=weight_v,bins=bins,density=True)
 	Arv,Brv=np.histogram(radial_v[mask],weights=weight_v,bins=bins,density=True)
 
-	return Av,Bv,Anv,Bnv,Arv,Brv
+	return Av,Bv,Anv,Bnv,Arv,Brv,average_nonrad,average_rad,average_v
+
+
+def clear_bar(x,y):
+	for i in range(len(x)):
+		
+
 
 def PDF_plotter(snaps,zoomzone,bins,labels):
 	'''
@@ -147,18 +159,28 @@ def PDF_plotter(snaps,zoomzone,bins,labels):
 	bins=100
 	labels=np.array(['16 cells','32 cells','64 cells','128 cells'])
 	'''		
-
+	colors=np.array(['b','r','chartreuse','k'])
 	fig,axs=plt.subplots(3,sharex=True)
 	for i in range(len(snaps)):
-		Av,Bv,Anv,Bnv,Arv,Brv=weighted_hist(snaps[i],zoomzone,bins)
-		axs[0].plot(Bv[:-1]*code_units.v_cu/1e5,Av,label=labels[i])
-		axs[1].plot(Bnv[:-1]*code_units.v_cu/1e5,Anv)
-		axs[2].plot(Brv[:-1]*code_units.v_cu/1e5,Arv)
-	
-	axs[1].text(0.8,0.6,r'$\frac{v \times r}{|\ r\ |}$',transform=axs[1].transAxes,fontsize=15)
-	axs[2].text(0.8,0.6,r'$\frac{v \cdot r}{|\ r\ |}$',transform=axs[2].transAxes,fontsize=15)
-	axs[2].set_xlabel(r'$v \ [kms^{-1}$]')	
-	axs[0].legend()
+		Av,Bv,Anv,Bnv,Arv,Brv,average_nonrad,average_rad,average_v=weighted_hist(snaps[i],zoomzone,bins)
+		axs[0].plot(Bv[:-1]*code_units.v_cu/1e5,Av,label=labels[i],color=colors[i],ls='steps')
+		axs[1].plot(Bnv[:-1]*code_units.v_cu/1e5,Anv,color=colors[i],ls='steps')
+		axs[2].plot(Brv[:-1]*code_units.v_cu/1e5,Arv,color=colors[i],ls='steps') 
+		
+		
+		#axs[0].axvline(average_v*code_units.v_cu/1e5,0,0.15,color=colors[i],linestyle='--')
+		#axs[1].axvline(average_nonrad*code_units.v_cu/1e5,0,0.15,color=colors[i],linestyle='--')
+		#axs[2].axvline(average_rad*code_units.v_cu/1e5,0,0.15,color=colors[i],linestyle='--')
+	axs[0].yaxis.set_visible(False)
+	axs[1].yaxis.set_visible(False)
+	axs[2].yaxis.set_visible(False)
+	axs[1].text(0.8,0.6,r'$\frac{v \times r}{|\ r\ |}$',transform=axs[1].transAxes,fontsize=20)
+	axs[2].text(0.8,0.6,r'$\frac{v \cdot r}{|\ r\ |}$',transform=axs[2].transAxes,fontsize=20)
+	axs[2].set_xlabel(r'$v \ [kms^{-1}$]',fontsize=15)	
+	axs[0].legend(fontsize=11)
+	axs[0].tick_params(axis="x", labelsize=15)
+	axs[1].tick_params(axis="x", labelsize=15)
+	axs[2].tick_params(axis="x", labelsize=15)
 	plt.subplots_adjust(wspace=0, hspace=0)
 	plt.xlim(0,Brv.max()*code_units.v_cu/1e5)
 
