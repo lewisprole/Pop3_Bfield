@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import arepo_utils 
 import io
 import sys
+import code_units
 
 def solenoidal_velocity(a):
 	'''calculates radial and non radial component of the velocity, also returns total vel magnitude''' 
@@ -139,17 +140,48 @@ def weighted_hist(snap,zoomzone,bins):
 
 	return Av,Bv,Anv,Bnv,Arv,Brv
 
-def PDF_plotter(snaps,zoomzone,bins):
-	fig,axs=plt.subplots(3)
+def PDF_plotter(snaps,zoomzone,bins,labels):
+	'''
+	snaps='16jeans','32jeans','64jeans','128jeans'
+	zoomzone=0.01
+	bins=100
+	labels=np.array(['16 cells','32 cells','64 cells','128 cells'])
+	'''		
+
+	fig,axs=plt.subplots(3,sharex=True)
 	for i in range(len(snaps)):
 		Av,Bv,Anv,Bnv,Arv,Brv=weighted_hist(snaps[i],zoomzone,bins)
-		axs[0].plot(Bv[:-1]*v_cu/1e5,Av)
-		axs[1].plot(Bnv[:-1]*v_cu/1e5,Anv)
-		axs[2].plot(Brv[:-1]*v_cu/1e5,Arv)
+		axs[0].plot(Bv[:-1]*code_units.v_cu/1e5,Av,label=labels[i])
+		axs[1].plot(Bnv[:-1]*code_units.v_cu/1e5,Anv)
+		axs[2].plot(Brv[:-1]*code_units.v_cu/1e5,Arv)
+	
+	axs[1].text(0.8,0.6,r'$\frac{v \times r}{|\ r\ |}$',transform=axs[1].transAxes,fontsize=15)
+	axs[2].text(0.8,0.6,r'$\frac{v \cdot r}{|\ r\ |}$',transform=axs[2].transAxes,fontsize=15)
+	axs[2].set_xlabel(r'$v \ [kms^{-1}$]')	
+	axs[0].legend()
+	plt.subplots_adjust(wspace=0, hspace=0)
+	plt.xlim(0,Brv.max()*code_units.v_cu/1e5)
 
+def average_fromPDF(snaps,zoomzone):
+	res=np.array([16,32,64,128])
+	rv=[]
+	nv=[]
+	V=[]
+	for i in range(len(snaps)):
+		a=arepo_utils.aread(snaps[i])
+		radial_v,nonrad_v,v,Rs=solenoidal_velocity(a)
+		mask=np.where(Rs<zoomzone)
+		avnrad,weight=equal_volumes_average(nonrad_v[mask],(a.mass/a.rho)[mask])
+		avrad,weight=equal_volumes_average(radial_v[mask],(a.mass/a.rho)[mask])
+		avv,weight=equal_volumes_average(v[mask],(a.mass/a.rho)[mask])
+		
+		rv.append(avrad)
+		nv.append(avnrad)
+		V.append(avv)
 
-
-
-
-
-
+	fig,ax=plt.subplots(1)
+	ax.plot(res,np.asarray(V)*code_units.v_cu/1e5,color='k',label='total velocity')
+	ax.plot(res,np.asarray(rv)*code_units.v_cu/1e5,color='r',label='radial component')
+	ax.plot(res,np.asarray(nv)*code_units.v_cu/1e5,color='b',label='non-radial component')
+	ax.legend()
+		
