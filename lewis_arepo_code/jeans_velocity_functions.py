@@ -147,9 +147,7 @@ def weighted_hist(snap,zoomzone,bins):
 	return Av,Bv,Anv,Bnv,Arv,Brv,average_nonrad,average_rad,average_v
 
 
-def clear_bar(x,y):
-	for i in range(len(x)):
-		
+	
 
 
 def PDF_plotter(snaps,zoomzone,bins,labels):
