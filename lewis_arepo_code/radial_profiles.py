@@ -73,8 +73,8 @@ def cycle_plot(snaps,weight_type,bins,labels):
 	
 	fig,axs=plt.subplots(6,sharex=True)
 	plt.subplots_adjust(wspace=0, hspace=0,top=0.9,bottom=0.1)
-	for i in range(1):#len(snaps)):
-		a=arepo_utils.aread(snaps)#[i])
+	for i in range(len(snaps)):
+		a=arepo_utils.aread(snaps[i])
 		rv,nv,v,rs=solenoidal_velocity(a)
 		H2,e=abundances(a)
 
