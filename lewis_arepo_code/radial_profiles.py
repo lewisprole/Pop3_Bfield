@@ -184,7 +184,7 @@ def cumulative_velocity(snaps,weight_type,bins,labels):
 		axs[0].semilogx(x[:-1],v,label=labels[i])
 		axs[1].semilogx(x[:-1],rv)
 		axs[2].semilogx(x[:-1],nv)
-
+	axs[0].legend(fontsize=9,frameon=False,loc='lower center',bbox_to_anchor=(0.5,-0.05))
 	axs[0].set_ylabel(r'$\bar{v}$ [kms$^{-1}$]',fontsize=11)
 	axs[1].set_ylabel(r'$\bar{v_{r}}$ [kms$^{-1}$]',fontsize=11)
 	axs[2].set_ylabel(r'$\bar{v_{\theta}}$ [kms$^{-1}$]',fontsize=11)
