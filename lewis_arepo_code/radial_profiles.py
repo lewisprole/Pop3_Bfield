@@ -72,7 +72,7 @@ def radial_average(variable,a,weight_type,bins,cumulative):
 		avs=np.append(avs,av)
 	return x,avs
 	
-def cycle_plot(snaps,weight_type,bins,labels):
+def cycle_plot(snaps,weight_type,bins,labels,title):
 	
 	fig,axs=plt.subplots(6,sharex=True)
 	plt.subplots_adjust(wspace=0, hspace=0,top=0.95,bottom=0.08,right=0.97,left=0.2)
@@ -162,6 +162,7 @@ def cycle_plot(snaps,weight_type,bins,labels):
 		axs[i].get_yaxis().set_label_coords(-0.15,0.5)
 
 	plt.xlim(x.min(),np.sort(x)[-2])
+	axs[0].set_title(title,fontsize=11)
 	return fig,axs
 
 
