@@ -5,7 +5,8 @@ import sys
 import io
 import arepo_utils
 import astropy.constants as ap
-
+from  scipy import interpolate
+import analyse
 
 def Rs(a):
 	mid=np.where(a.rho==a.rho.max())
@@ -61,7 +62,7 @@ def radial_average(variable,a,weight_type,bins,cumulative):
 	avs=np.array([])
 	for i in range(bins-1):
 		if cumulative==True:
-			mask=np.where(rs<x[i+1])
+			mask=np.where((rs>x[0]) & (rs<x[i+1]))
 		else:
 			mask=np.where((rs>x[i]) & (rs<x[i+1]))
 		RS=rs[mask]
@@ -200,5 +201,116 @@ def cumulative_velocity(snaps,weight_type,bins,labels):
 	axs[1].set_yticks([1,2,3,4])
 	axs[2].set_yticks([1,2,3])
 	return fig,axs
+
+def cumulative_radial(variable,a,bins):
+	rs=Rs(a)
+	x=np.linspace(np.log10(np.sort(rs)[1]),np.log10(rs.max()),bins)
+	x=10**x
+	tots=[]
+	for i in range(bins-1):
+		mask=np.where(rs<x[i+1])
+		tots.append(sum(variable[mask]))
+	return x,tots
+
+def total_energy(snaps,weight_type,bins,labels):
+	fig,axs=plt.subplots(3,sharex=True)
+	plt.subplots_adjust(wspace=0, hspace=0,top=0.95,bottom=0.15,right=0.97,left=0.2)
+	for i in range(len(snaps)):
+		a=arepo_utils.aread(snaps[i])
+		rv,nv,v,rs=solenoidal_velocity(a)
+		Er,En,E=0.5*(a.mass*code_units.M_cu)*(rv*code_units.v_cu)**2, 0.5*(a.mass*code_units.M_cu)*(nv*code_units.v_cu)**2, 0.5*(a.mass*code_units.M_cu)*(v*code_units.v_cu)**2
+		print('averaging')
+		x,E=cumulative_radial(E,a,bins)
+		print('v')
+		x,Er=cumulative_radial(Er,a,bins)
+		print('rv')
+		x,En=cumulative_radial(En,a,bins)
+		print('nv')
+		
+		axs[0].semilogx(x[:-1],E,label=labels[i])	
+		axs[1].semilogx(x[:-1],Er)
+		axs[2].semilogx(x[:-1],En)
+	
+	axs[0].legend(fontsize=9,frameon=False)
+	axs[0].set_ylabel(r'$E_{tot}$ [ergs]',fontsize=11)
+	axs[1].set_ylabel(r'$E_{r}$ [ergs]',fontsize=11)
+	axs[2].set_ylabel(r'$E_{theta}$ [ergs]',fontsize=11)
+	axs[2].set_xlabel(r'R [pc]',fontsize=11)
+	return fig,axs
+
+'''		||||||||||||||||||||||||||||||||||||| Functions for handling Fourier transforms of the velocity fields |||||||||||||||||||||||||||||||||||||||			'''
+
+def FT_reduce1D(v_of_k,bins):
+	'''reduces 3D k space into 3D spectrum'''
+	x=np.linspace(0,len(v_of_k[:,0,0]))
+	y,x,z=np.meshgrid(x,x,x)
+	K=np.sqrt(x**2+y**2+z**2)
+	ks=np.linspace(0,x.max(),bins)
+	vs=[]
+	for i in range(bins-1):
+		mask=np.where((K>ks[i]) & (K<ks[i+1]))
+		vs.append(np.mean(v_of_k[mask]))
+	return ks[:-1],vs
+
+def spectrum_fit(ks,vs,K):
+	'''interpolate to extract v(k) for given k'''
+	f=interpolate.interp1d(ks,vs)
+	return f(K)
+
+def convert_L_to_k(scale,boxsize):
+	'''convert length sclae into cycles per boxsize'''
+	k= 2*np.pi/scale *boxsize/(2*np.pi) 
+	return k
+
+def jeans_length(rho,T):
+	'''calculate jeans length'''
+	sound_speed=np.sqrt(ap.k_B.cgs.value * T /(ap.m_p.cgs.value))
+	jeans_length=np.sqrt(np.pi / ap.G.cgs.value / (rho*code_units.rho_cu)) * sound_speed /code_units.d_cu
+	return jeans_length
+
+def crop(a,croplength):
+	mid=np.where(a.rho==a.rho.max())
+	maskx=np.where((a.x > a.x[mid]-croplength) & (a.x > a.x[mid]+croplength))
+	masky=np.where((a.y > a.y[mid]-croplength) & (a.y > a.y[mid]+croplength))
+	maskz=np.where((a.z > a.z[mid]-croplength) & (a.z > a.z[mid]+croplength))
+	MASK=np.intersect1d(maskx,masky)
+	MASK=np.intersect1d(MASK,maskz)
+	return mask
+
+def jeans_v(cubefile,snapshot,boxsize,bins):
+	fig,axs=plt.subplots(1)
+	#different crop sizes
+#	rs=np.array([1e-3,1e-2,1e-1]) *ap.pc.cgs.value/code_units.d_cu #code units
+	rs=1e-2*ap.pc.cgs.value/d_cu
+	vx,vy,vz=analyse.read_3code(cubename)
+	Ncube=len(vx[:,:,0])
+	a=arepo_utils.aread(snapshot)
+	jeans=1e-4*ap.pc.cgs.value/d_cu
+#	jeans=jeans_length(a.rho,a.temp)
+#	JEANSV=[]
+	for i in range(len(rs)):
+		print('starting crop '+str(rs[i]))
+		mask=crop(a,rs[i])
+		jeans_k=convert_L_to_k(jeans,2*rs[i])
+
+		Lcell=boxsize/Ncube		
+		Ncell=np.round(rs[i]/Lcell,0)
+		Nhalf=np.round(Ncube/2,0) 
+		#amplitudes from FT of cropped v cube
+		print('starting transform')
+		A=np.fft.fftn(vx[Nhalf-Ncell:Nhalf+Ncell+1, Nhalf-Ncell:Nhalf+Ncell+1, Nhalf-Ncell:Nhalf+Ncell+1])
+		normalise=int((2*Nell)**3)
+		print('reducing to 1D')
+		ks,vs=FT_reduce1D(A/normalise,bins)
+		jeans_v=spectrum_fit(ks,vs,jeans_k)
+		JEANSV.append(jeans_v)
+	return JEANSV
+
+	
+	
+	
+		
+		
+
 
 
