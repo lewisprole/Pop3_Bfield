@@ -7,6 +7,7 @@ import arepo_utils
 import astropy.constants as ap
 from  scipy import interpolate
 import analyse
+plt.ion()
 
 def Rs(a):
 	mid=np.where(a.rho==a.rho.max())
@@ -238,18 +239,19 @@ def total_energy(snaps,weight_type,bins,labels):
 	axs[2].set_xlabel(r'R [pc]',fontsize=11)
 	return fig,axs
 
-'''		||||||||||||||||||||||||||||||||||||| Functions for handling Fourier transforms of the velocity fields |||||||||||||||||||||||||||||||||||||||			'''
+'''		|||||||||||||||||||||||||||||||| Functions for handling Fourier transforms of the velocity fields (OBSOLETE!) ||||||||||||||||||||||||||||||||||		'''
 
 def FT_reduce1D(v_of_k,bins):
 	'''reduces 3D k space into 3D spectrum'''
-	x=np.linspace(0,len(v_of_k[:,0,0]))
+	x=np.linspace(0,len(v_of_k[:,0,0]),len(v_of_k[:,0,0])-1)
 	y,x,z=np.meshgrid(x,x,x)
 	K=np.sqrt(x**2+y**2+z**2)
-	ks=np.linspace(0,x.max(),bins)
-	vs=[]
+	ks=np.linspace(1,x.max(),bins)
+	
+	vs=np.array([])
 	for i in range(bins-1):
 		mask=np.where((K>ks[i]) & (K<ks[i+1]))
-		vs.append(np.mean(v_of_k[mask]))
+		vs=np.append(vs,np.mean(v_of_k[mask]))
 	return ks[:-1],vs
 
 def spectrum_fit(ks,vs,K):
@@ -275,42 +277,88 @@ def crop(a,croplength):
 	maskz=np.where((a.z > a.z[mid]-croplength) & (a.z > a.z[mid]+croplength))
 	MASK=np.intersect1d(maskx,masky)
 	MASK=np.intersect1d(MASK,maskz)
-	return mask
+	return MASK
 
-def jeans_v(cubefile,snapshot,boxsize,bins):
+def jeans_v(cubefile,snapshot,boxsize,bins,labels):
 	fig,axs=plt.subplots(1)
 	#different crop sizes
 #	rs=np.array([1e-3,1e-2,1e-1]) *ap.pc.cgs.value/code_units.d_cu #code units
-	rs=1e-2*ap.pc.cgs.value/d_cu
-	vx,vy,vz=analyse.read_3code(cubename)
-	Ncube=len(vx[:,:,0])
-	a=arepo_utils.aread(snapshot)
-	jeans=1e-4*ap.pc.cgs.value/d_cu
+	for i in range(len(cubefile)):
+#		rs=1e-2*ap.pc.cgs.value/code_units.d_cu
+		vx,vy,vz=analyse.read_3cube(cubefile[i])
+		Ncube=len(vx[:,:,0])
+		a=arepo_utils.aread(snapshot[i])
+		jeans=1e-4*ap.pc.cgs.value/code_units.d_cu
 #	jeans=jeans_length(a.rho,a.temp)
 #	JEANSV=[]
-	for i in range(len(rs)):
-		print('starting crop '+str(rs[i]))
-		mask=crop(a,rs[i])
-		jeans_k=convert_L_to_k(jeans,2*rs[i])
+	
+#		print('starting crop '+str(rs))
+#		mask=crop(a,rs)
+#		jeans_k=convert_L_to_k(jeans,2*rs)
 
-		Lcell=boxsize/Ncube		
-		Ncell=np.round(rs[i]/Lcell,0)
-		Nhalf=np.round(Ncube/2,0) 
+#		Lcell=boxsize/Ncube		
+#		Ncell=int(np.round(rs/Lcell,0))
+#		Nhalf=int(np.round(Ncube/2,0))
 		#amplitudes from FT of cropped v cube
 		print('starting transform')
-		A=np.fft.fftn(vx[Nhalf-Ncell:Nhalf+Ncell+1, Nhalf-Ncell:Nhalf+Ncell+1, Nhalf-Ncell:Nhalf+Ncell+1])
-		normalise=int((2*Nell)**3)
+		A=np.fft.fftn(vx)#[Nhalf-Ncell:Nhalf+Ncell+1, Nhalf-Ncell:Nhalf+Ncell+1, Nhalf-Ncell:Nhalf+Ncell+1])
+		normalise=int((Ncube)**3)#(2*Ncell)**2)
 		print('reducing to 1D')
-		ks,vs=FT_reduce1D(A/normalise,bins)
-		jeans_v=spectrum_fit(ks,vs,jeans_k)
-		JEANSV.append(jeans_v)
-	return JEANSV
+		ks,vs=FT_reduce1D(abs(A)/normalise,bins)
+#		jeans_v=spectrum_fit(ks,vs,jeans_k)
 
+
+#		axs.loglog(2*np.pi/(ks*2*np.pi/(2*Ncell*Lcell)) *code_units.d_cu/ap.pc.cgs.value ,vs*code_units.v_cu/1e5,label=labels[i])
+		axs.loglog(2*np.pi/(ks*2*np.pi/(boxsize)) *code_units.d_cu/ap.pc.cgs.value ,vs*code_units.v_cu/1e5,label=labels[i])
+	axs.set_xlabel(r'$\lambda$ [pc]',fontsize=11)
+	axs.set_ylabel(r'$v(\lambda)$ [kms$^{-1}$]',fontsize=11)
+	axs.legend(fontsize=9,frameon=False)
+#		JEANSV.append(jeans_v)
+	
+	return fig,axs
+
+
+
+'''             |||||||||||||||||||||||||||||||||||| Functions for handling Fourier transforms of the velocity fields NEW ||||||||||||||||||||||||||||||||||||||                  '''
+
+def power_spectrum(v,boxsize,bins):
+	powers=np.array([]) #space for power spectrum
+	Ncube=len(v[:,:,0]) #length of side of k space cube
+	x=np.linspace(0,Ncube,Ncube-1) #k modes
+	k=x * 2*np.pi / boxsize #convert k modes into k=2pi/lambda
+	dk=k[1]-k[0] #will be needed when integrating the spectrum
+	ky,kx,kz=np.meshgrid(k,k,k) #k coordinates for navigating in k-space
+	
+	k_walk=np.linspace(k[1],k[-1],bins) #going to integrate outward along the 3D cube (excluding 0 - ruins log)
+	k_mag=np.sqrt(kx**2+ky**2+kz**2) #each k mode has a radius in k space from 0
+	for i in range(bins-1):
+		mask=np.where((k_mag>=k_walk[i]) & (k_mag<k_walk[i+1])) #shell of thickness 
+		power=sum(v[mask]**2*dk**2) #power = energy density * volume, treat v**2 as energy density in k space
+					#integrate the shell by summing each 3d k mode with its dk^3 
+					#only integrating by dk^2 becaue want the final units to be P(v)dk=E
+		powers=np.append(powers,power)
+	return k_walk[:-1],powers
 	
 	
-	
-		
-		
+def cycle_spectrum(cubefiles,boxsize,bins,labels):
+	'''give boxsize in pc units'''
+	fig,axs=plt.subplots(1)
+	for i in range(len(cubefiles)):	
+		print('reading')
+		vx,vy,vz=analyse.read_3cube(cubefiles[-(i+1)])
+		Ncube=len(vx[:,:,0])
+		A=np.fft.fftn(vx)
+		normalise=int((Ncube)**3)
+		print('normalising')
+		A=abs(A)/normalise
+		print('creating power spectrum')
+		k,P=power_spectrum(A,boxsize,bins)
+		axs.loglog(k,P,marker='o', linestyle='dashed',label=labels[-(i+1)])
+	axs.set_ylabel(r'$P(v)$',fontsize=11)
+	axs.set_xlabel('R [pc]',fontsize=11)
+	axs.loglog(k,k**(-5/3) *1e10,linestyle='dotted',color='k',label=r'$k^{-5/3}$')
+	axs.set_legend(frameon=False,fontsize=9)
+	return fig,axs
 
 
 
