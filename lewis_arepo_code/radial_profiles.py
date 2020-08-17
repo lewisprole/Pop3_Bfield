@@ -332,11 +332,15 @@ def power_spectrum(v,boxsize,bins):
 	k_walk=np.linspace(k[1],k[-1],bins) #going to integrate outward along the 3D cube (excluding 0 - ruins log)
 	k_mag=np.sqrt(kx**2+ky**2+kz**2) #each k mode has a radius in k space from 0
 	for i in range(bins-1):
+		delta_k=k_walk[i+1]-k_walk[i]
 		mask=np.where((k_mag>=k_walk[i]) & (k_mag<k_walk[i+1])) #shell of thickness 
-		power=sum(v[mask]**2*dk**2) #power = energy density * volume, treat v**2 as energy density in k space
+		power=sum(v[mask]**2*dk**3) /delta_k #power = energy density * volume, treat v**2 as energy density in k space
 					#integrate the shell by summing each 3d k mode with its dk^3 
-					#only integrating by dk^2 becaue want the final units to be P(v)dk=E
-		powers=np.append(powers,power)
+		if delta_k<dk:
+			print('dk: '+str(dk)+', delta_k: '+str(delta_k) +': '+str(k_walk[i+1]) +'-' + str(k_walk[i]))
+			powers=np.append(powers,np.nan)			#only integrating by dk^2 becaue want the final units to be P(v)dk=E
+		else:
+			powers=np.append(powers,power)
 	return k_walk[:-1],powers
 	
 	
