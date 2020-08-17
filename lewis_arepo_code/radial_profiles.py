@@ -362,7 +362,7 @@ def subtract_radial(vx,vy,vz,boxsize):
 	
 def cycle_spectrum(cubefiles,boxsize,bins,labels):
 	'''give boxsize in pc units'''
-	sizes=np.array([7,6,5,4])
+	sizes=np.array([8,6,4,2])
 	fig,axs=plt.subplots(1)
 	for i in range(len(cubefiles)):	
 		print('reading')
