@@ -321,9 +321,9 @@ def jeans_v(cubefile,snapshot,boxsize,bins,labels):
 
 '''             |||||||||||||||||||||||||||||||||||| Functions for handling Fourier transforms of the velocity fields NEW ||||||||||||||||||||||||||||||||||||||                  '''
 
-def power_spectrum(v,boxsize,bins):
+def power_spectrum(A,boxsize,bins):
 	powers=np.array([]) #space for power spectrum
-	Ncube=len(v[:,:,0]) #length of side of k space cube
+	Ncube=len(A[:,:,0]) #length of side of k space cube
 	x=np.linspace(0,Ncube,Ncube-1) #k modes
 	k=x * 2*np.pi / boxsize #convert k modes into k=2pi/lambda
 	dk=k[1]-k[0] #will be needed when integrating the spectrum
@@ -334,7 +334,7 @@ def power_spectrum(v,boxsize,bins):
 	for i in range(bins-1):
 		delta_k=k_walk[i+1]-k_walk[i]
 		mask=np.where((k_mag>=k_walk[i]) & (k_mag<k_walk[i+1])) #shell of thickness 
-		power=sum(v[mask]**2*dk**3) /delta_k #power = energy density * volume, treat v**2 as energy density in k space
+		power=sum(A[mask]**2*dk**3) /delta_k #power = energy density * volume, treat v**2 as energy density in k space
 					#integrate the shell by summing each 3d k mode with its dk^3 
 		if delta_k<dk:
 			print('dk: '+str(dk)+', delta_k: '+str(delta_k) +': '+str(k_walk[i+1]) +'-' + str(k_walk[i]))
@@ -342,28 +342,45 @@ def power_spectrum(v,boxsize,bins):
 		else:
 			powers=np.append(powers,power)
 	return k_walk[:-1],powers
+
+def subtract_radial(vx,vy,vz,boxsize):
+	Ncube=len(vx[:,:,0])
+	Lcell=boxsize/Ncube
+	x=np.linspace(0,boxsize,Ncube)
+	y,x,z=np.meshgrid(x,x,x)
+	c=int(Ncube/2)
+	rx=x-x[c,c,c]
+	ry=y-y[c,c,c]
+	rz=z-z[c,c,c]
+	rmag=np.sqrt(rx**2+ry**2+rz**2)
+	vmag=np.sqrt(vx**2+vy**2+vz**2)
+	radial=(rx*vx+ry*vy+rz*vz)/rmag
 	
+	v_new=vmag-abs(radial)
+	
+		
 	
 def cycle_spectrum(cubefiles,boxsize,bins,labels):
 	'''give boxsize in pc units'''
+	sizes=np.array([7,6,5,4])
 	fig,axs=plt.subplots(1)
 	for i in range(len(cubefiles)):	
 		print('reading')
-		vx,vy,vz=analyse.read_3cube(cubefiles[-(i+1)])
+		vx,vy,vz=analyse.read_3cube(cubefiles[i])
 		Ncube=len(vx[:,:,0])
 		A=np.fft.fftn(vx)
-		A=A[:int(Ncube/2),:int(Ncube/2),:int(Ncube/2)]
+		A=A[:int(Ncube/10),:int(Ncube/10),:int(Ncube/10)]
 		normalise=int((Ncube)**3)
 		print('normalising')
 		A=abs(A)/normalise
 		print('creating power spectrum')
 		k,P=power_spectrum(A,boxsize,bins)
-		axs.loglog(k,P,marker='o', linestyle='dashed',label=labels[-(i+1)])
-	axs.set_ylabel(r'$P(v)$',fontsize=11)
-	axs.set_xlabel('R [pc]',fontsize=11)
-	axs.loglog(k,k**(-5/3) *1e10,linestyle='dotted',color='k',label=r'$k^{-5/3}$')
+		axs.loglog(k,P,markersize=sizes[i],marker='o',linestyle='--',label=labels[i])
+	axs.set_ylabel(r'$P_{v}$',fontsize=11)
+	axs.set_xlabel(r'$\lambda$ [pc$^{-1}$]',fontsize=11)
+#	axs.loglog(k,k**(-5/3) *1e10,linestyle='dotted',color='k',label=r'$k^{-5/3}$')
 	axs.legend(frameon=False,fontsize=9)
-	return fig,axs
+	return fig,axs,k
 
 
 
