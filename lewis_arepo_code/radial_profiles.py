@@ -348,6 +348,7 @@ def cycle_spectrum(cubefiles,boxsize,bins,labels):
 		vx,vy,vz=analyse.read_3cube(cubefiles[-(i+1)])
 		Ncube=len(vx[:,:,0])
 		A=np.fft.fftn(vx)
+		A=A[:int(Ncube/2),:int(Ncube/2),:int(Ncube/2)]
 		normalise=int((Ncube)**3)
 		print('normalising')
 		A=abs(A)/normalise
@@ -357,7 +358,7 @@ def cycle_spectrum(cubefiles,boxsize,bins,labels):
 	axs.set_ylabel(r'$P(v)$',fontsize=11)
 	axs.set_xlabel('R [pc]',fontsize=11)
 	axs.loglog(k,k**(-5/3) *1e10,linestyle='dotted',color='k',label=r'$k^{-5/3}$')
-	axs.set_legend(frameon=False,fontsize=9)
+	axs.legend(frameon=False,fontsize=9)
 	return fig,axs
 
 
