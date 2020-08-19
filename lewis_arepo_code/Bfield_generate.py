@@ -111,12 +111,32 @@ def mirror_spectrum(k,M,N):
 	M_mirror=np.append(M,M_reverse)
 	return M_mirror,k_new
 
+
+def kcube_energy(k,M,N):
+	'''1d power spectrum energy  E=power * dk,   3D amplitudes are E=power*dk**3,
+	Create kcube amplitudes based on energy per dk shell volume, such that
+	1Dpower*dk=3Dpower*(4pi k**2 *dk)
+	1Dpower/4piR**2 = 3Dpower
+	input k should be in cycles per boxlength'''
+	M_function=interp.interp1d(k,M,bounds_error=False,fill_value=0)
+	ks=np.linspace(0,N-1,N) #radius 
+	dk=ks[1]-ks[0] #should be dk=1 but just in case 
+	shell_volumes=4*np.pi*ks**2 *dk
+	shell_energies=M_function(ks)*dk
+	shell_powers=shell_energies / shell_volumes   
+	return ks,shell_powers
+	
+	
+
 def modes(k,M,N):
 	'''generate 3D wavevectors, aplitudes and phases, removes divergent modes
 	-based on Lomax(2015)
 	k is number of cycles per boxsize
 	N is number of pixels in the real image, giving N/2 k modes'''
 	
+	#convert 1D power into 3D power (1Dpower*dk=3Dpower*dk**3)
+	ks,M=kcube_energy(k,M,N)
+
 	#first fit a spline to power spectrum
 	M_function=interp.interp1d(k,M,bounds_error=False,fill_value=0)
 	

@@ -321,7 +321,7 @@ def jeans_v(cubefile,snapshot,boxsize,bins,labels):
 
 '''             |||||||||||||||||||||||||||||||||||| Functions for handling Fourier transforms of the velocity fields NEW ||||||||||||||||||||||||||||||||||||||                  '''
 
-def power_spectrum(A,boxsize,bins):
+def power_spectrum(A,boxsize,interval):
 	powers=np.array([]) #space for power spectrum
 	Ncube=len(A[:,:,0]) #length of side of k space cube
 	x=np.linspace(0,Ncube,Ncube-1) #k modes
@@ -329,18 +329,19 @@ def power_spectrum(A,boxsize,bins):
 	dk=k[1]-k[0] #will be needed when integrating the spectrum
 	ky,kx,kz=np.meshgrid(k,k,k) #k coordinates for navigating in k-space
 	
-	k_walk=np.linspace(k[1],k[-1],bins) #going to integrate outward along the 3D cube (excluding 0 - ruins log)
+	k_walk=k[1::interval]#np.linspace(k[1],k[-1],bins) #going to integrate outward along the 3D cube (excluding 0 - ruins log)
 	k_mag=np.sqrt(kx**2+ky**2+kz**2) #each k mode has a radius in k space from 0
-	for i in range(bins-1):
+	for i in range(int(len(k)/interval)):
+		print(str(i) +' of ' +str(int(len(k)/interval)))
 		delta_k=k_walk[i+1]-k_walk[i]
 		mask=np.where((k_mag>=k_walk[i]) & (k_mag<k_walk[i+1])) #shell of thickness 
 		power=sum(A[mask]**2*dk**3) /delta_k #power = energy density * volume, treat v**2 as energy density in k space
 					#integrate the shell by summing each 3d k mode with its dk^3 
 		if delta_k<dk:
 			print('dk: '+str(dk)+', delta_k: '+str(delta_k) +': '+str(k_walk[i+1]) +'-' + str(k_walk[i]))
-			powers=np.append(powers,np.nan)			#only integrating by dk^2 becaue want the final units to be P(v)dk=E
-		else:
-			powers=np.append(powers,power)
+	#		powers=np.append(powers,np.nan)			#only integrating by dk^2 becaue want the final units to be P(v)dk=E
+	#	else:
+		powers=np.append(powers,power)
 	return k_walk[:-1],powers
 
 def subtract_radial(vx,vy,vz,boxsize):
@@ -349,35 +350,42 @@ def subtract_radial(vx,vy,vz,boxsize):
 	x=np.linspace(0,boxsize,Ncube)
 	y,x,z=np.meshgrid(x,x,x)
 	c=int(Ncube/2)
-	rx=x-x[c,c,c]
-	ry=y-y[c,c,c]
-	rz=z-z[c,c,c]
+	rx=x[c,c,c]-x
+	ry=y[c,c,c]-y
+	rz=z[c,c,c]-z
 	rmag=np.sqrt(rx**2+ry**2+rz**2)
-	vmag=np.sqrt(vx**2+vy**2+vz**2)
-	radial=(rx*vx+ry*vy+rz*vz)/rmag
-	
-	v_new=vmag-abs(radial)
+	#vmag=np.sqrt(vx**2+vy**2+vz**2)
+	crossx,crossy,crossz=np.zeros_like(rx),np.zeros_like(rx),np.zeros_like(rx)
+	mask=np.where(rmag>0)
+	crossx[mask]=(vy*rz-vz*ry)[mask]/rmag[mask]
+	crossy[mask]=-(vx*rz-vz*rx)[mask]/rmag[mask]
+	crossz[mask]=(vx*ry-vy*rx)[mask]/rmag[mask]
+		
+	return crossx,crossy,crossz
 	
 		
 	
-def cycle_spectrum(cubefiles,boxsize,bins,labels):
-	'''give boxsize in pc units'''
+def cycle_spectrum(cubefiles,boxsize,interval,labels):
+	'''give boxsize in cm'''
 	sizes=np.array([8,6,4,2])
 	fig,axs=plt.subplots(1)
 	for i in range(len(cubefiles)):	
 		print('reading')
-		vx,vy,vz=analyse.read_3cube(cubefiles[i])
+		vx1,vy1,vz1=analyse.read_3cube(cubefiles[i])
+		vx1,vy1,vz1=vx1*code_units.v_cu, vy1*code_units.v_cu, vz1*code_units.v_cu
+		print('subtracting radial')
+		vx,vy,vz=subtract_radial(vx1,vy1,vz1,boxsize)
 		Ncube=len(vx[:,:,0])
 		A=np.fft.fftn(vx)
-		A=A[:int(Ncube/10),:int(Ncube/10),:int(Ncube/10)]
+		A=A[:int(Ncube/2),:int(Ncube/2),:int(Ncube/2)]
 		normalise=int((Ncube)**3)
 		print('normalising')
 		A=abs(A)/normalise
 		print('creating power spectrum')
-		k,P=power_spectrum(A,boxsize,bins)
+		k,P=power_spectrum(A,boxsize,interval)
 		axs.loglog(k,P,markersize=sizes[i],marker='o',linestyle='--',label=labels[i])
 	axs.set_ylabel(r'$P_{v}$',fontsize=11)
-	axs.set_xlabel(r'$\lambda$ [pc$^{-1}$]',fontsize=11)
+	axs.set_xlabel(r'$\lambda$ [cm$^{-1}$]',fontsize=11)
 #	axs.loglog(k,k**(-5/3) *1e10,linestyle='dotted',color='k',label=r'$k^{-5/3}$')
 	axs.legend(frameon=False,fontsize=9)
 	return fig,axs,k
