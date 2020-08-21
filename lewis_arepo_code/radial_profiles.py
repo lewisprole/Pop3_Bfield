@@ -425,17 +425,26 @@ def cycle_spectrum(cubefiles,boxsize,interval,labels):
 			A=abs(A)/normalise
 			print('creating power spectrum')
 			k,P=power_spectrum(A,boxsize,interval)
-			axs[j].loglog(k,P,markersize=sizes[i],marker='o',linestyle='--',label=labels[i])
+			if j==0:
+				axs[j].loglog(k,P,markersize=sizes[i],marker='o',label=labels[i])
+			else:
+				axs[j].loglog(k,P,markersize=sizes[i],marker='o')
 			axs[j].set_ylabel(r'$P_{v}$',fontsize=11)
 			axs[j].tick_params(axis="y", labelsize=11,direction="in")
 	axs[1].tick_params(axis="x", labelsize=11,direction="in")
 	axs[1].set_xlabel(r'$\lambda$ [cm$^{-1}$]',fontsize=11)
-	axs[1].annotate('Radial profile subtracted',(3e-19,2e-34))
-	axs[1].loglog(k,k**(-2)*3e-66,linestyle='dotted',color='k')
-	axs[1].annotate(r'$\propto k^{-2}$',(1e-18,5e-30))
-	plt.xlim(2.7e-19,1e-16)
+	axs[1].annotate('Radial profile subtracted',(3e-19,0.5e-33))
+
+	axs[1].loglog(k[np.where((k>2e-17) & (k<1e-16))],k[np.where((k>2e-17)&(k<1e-16))]**(-5/3)*2e-60,linestyle='--',color='k')
+	axs[1].annotate(r'$\propto k^{-5/3}$',(4e-17,1e-32))
+	axs[1].loglog(k[np.where((k>2e-18) & (k<2e-17))],k[np.where((k>2e-18) & (k<2e-17))]**(-2)*0.5e-65,linestyle='--',color='k')
+	axs[1].annotate(r'$\propto k^{-2}$',(1e-17,1e-31))
+	#axs[1].loglog(k,k**(-2)*3e-66,linestyle='dotted',color='k',label=r'$\propto k^{-2}$')
+	#axs[1].loglog(k[np.where(k>2e-17)],k[np.where(k>2e-17)]**(-5/3)*1.2e-60,linestyle='--',color='k',label=r'$\propto k^{-5/3}$')
+	#axs[1].annotate(r'$\propto k^{-2}$',(1e-18,5e-30))
+	plt.xlim(k.min(),k.max())#2.7e-19,1e-16)
 #	axs.loglog(k,k**(-5/3) *1e10,linestyle='dotted',color='k',label=r'$k^{-5/3}$')
-	axs.legend(frameon=False,fontsize=9)
+	axs[0].legend(frameon=False,fontsize=9)
 	return fig,axs,k
 
 
