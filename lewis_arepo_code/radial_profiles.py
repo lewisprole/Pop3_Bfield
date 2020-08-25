@@ -7,6 +7,7 @@ import arepo_utils
 import astropy.constants as ap
 from  scipy import interpolate
 import analyse
+from scipy.stats import binned_statistic
 plt.ion()
 
 def Rs(a):
@@ -360,6 +361,7 @@ def power_spectrum(A,boxsize,interval):
 	ky,kx,kz=np.meshgrid(k,k,k) #k coordinates for navigating in k-space
 	
 	k_walk=k[1::interval]#np.linspace(k[1],k[-1],bins) #going to integrate outward along the 3D cube (excluding 0 - ruins log)
+	
 	k_mag=np.sqrt(kx**2+ky**2+kz**2) #each k mode has a radius in k space from 0
 	for i in range(int(len(k_walk)-1)):
 		print(str(i) +' of ' +str(int(len(k)/interval)))
@@ -391,11 +393,22 @@ def subtract_radial(vx,vy,vz,x,y,z,boxsize):
 		
 	return crossx,crossy,crossz
 	
+def create_spectrum(A):
+	Ncube=int(len(A[0,0,:]))
+	k=np.fft.fftfreq(Ncube)*Ncube
+	kx,ky,kz=np.meshgrid(k,k,k)
+	K=np.sqrt(kx**2+ky**2+kz**2)
+	bins=np.linspace(1,int(K.max()),int(K.max())+1)
+	av,ks,args=binned_statistic(K.flatten(),(abs(A)/Ncube**3).flatten()**2,bins=bins)
+	dk=ks[1]-ks[0]
+	energy=av*4*np.pi*ks[1:]**2 *dk
+	return ks[1:],energy
 		
 	
 def cycle_spectrum(cubefiles,boxsize,interval,labels):
 	'''give boxsize in cm'''
 	sizes=np.array([8,6,4,2])
+	marker=np.array(['v','.','+','2'])
 	fig,axs=plt.subplots(2,sharex=True)
 	for i in range(len(cubefiles)):	
 		print('reading')
@@ -420,32 +433,65 @@ def cycle_spectrum(cubefiles,boxsize,interval,labels):
 			Az=Az[:int(Ncube/2),:int(Ncube/2),:int(Ncube/2)]
 
 			A=np.sqrt(abs(Ax)**2+abs(Ay)**2+abs(Az)**2)
-			normalise=int((Ncube)**3)
-			print('normalising')
-			A=abs(A)/normalise
+			#normalise=int((Ncube)**3)
+			#print('normalising')
+			#A=abs(A)/normalise
 			print('creating power spectrum')
-			k,P=power_spectrum(A,boxsize,interval)
+			#k,P=power_spectrum(A,boxsize,interval)
+			k,P=create_spectrum(A)
 			if j==0:
-				axs[j].loglog(k,P,markersize=sizes[i],marker='o',label=labels[i])
+				axs[j].loglog(k,P,marker[i],markersize=4,label=labels[i])
 			else:
-				axs[j].loglog(k,P,markersize=sizes[i],marker='o')
+				axs[j].loglog(k,P,marker[i],markersize=4)
 			axs[j].set_ylabel(r'$P_{v}$',fontsize=11)
 			axs[j].tick_params(axis="y", labelsize=11,direction="in")
 	axs[1].tick_params(axis="x", labelsize=11,direction="in")
-	axs[1].set_xlabel(r'$\lambda$ [cm$^{-1}$]',fontsize=11)
-	axs[1].annotate('Radial profile subtracted',(3e-19,0.5e-33))
-
-	axs[1].loglog(k[np.where((k>2e-17) & (k<1e-16))],k[np.where((k>2e-17)&(k<1e-16))]**(-5/3)*2e-60,linestyle='--',color='k')
-	axs[1].annotate(r'$\propto k^{-5/3}$',(4e-17,1e-32))
-	axs[1].loglog(k[np.where((k>2e-18) & (k<2e-17))],k[np.where((k>2e-18) & (k<2e-17))]**(-2)*0.5e-65,linestyle='--',color='k')
-	axs[1].annotate(r'$\propto k^{-2}$',(1e-17,1e-31))
-	#axs[1].loglog(k,k**(-2)*3e-66,linestyle='dotted',color='k',label=r'$\propto k^{-2}$')
-	#axs[1].loglog(k[np.where(k>2e-17)],k[np.where(k>2e-17)]**(-5/3)*1.2e-60,linestyle='--',color='k',label=r'$\propto k^{-5/3}$')
-	#axs[1].annotate(r'$\propto k^{-2}$',(1e-18,5e-30))
+	axs[1].set_xlabel(r'$cycles per box length$]',fontsize=11)
+	#axs[1].annotate('Radial profile subtracted',(3e-19,0.5e-33))
+	#axs[1].loglog(k[np.where((k>2e-17) & (k<1e-16))],k[np.where((k>2e-17)&(k<1e-16))]**(-5/3)*2e-60,linestyle='--',color='k')
+	#axs[1].annotate(r'$\propto k^{-5/3}$',(4e-17,1e-32))
+	#axs[1].loglog(k[np.where((k>2e-18) & (k<2e-17))],k[np.where((k>2e-18) & (k<2e-17))]**(-2)*0.5e-65,linestyle='--',color='k')
+	#axs[1].annotate(r'$\propto k^{-2}$',(1e-17,1e-31))
 	plt.xlim(k.min(),k.max())#2.7e-19,1e-16)
-#	axs.loglog(k,k**(-5/3) *1e10,linestyle='dotted',color='k',label=r'$k^{-5/3}$')
 	axs[0].legend(frameon=False,fontsize=9)
 	return fig,axs,k
 
+def spectrum_graph(velfiles,boxsize):
+	fig,axs=plt.subplots(2,sharex=True)
+	marker=np.array(['v','.','+','2'])
+	labels=np.array(['16 cells','32 cells','64 cells','128 cells'])
+	for i in range(len(velfiles)):
+		vx1,vy1,vz1,x,y,z=read_3cube(velfiles[i])
+		vx1,vy1,vz1=vx1*code_units.v_cu, vy1*code_units.v_cu, vz1*code_units.v_cu
+		x,y,z=x/x.max() * boxsize, y/y.max() * boxsize, z/z.max() * boxsize
+		for j in range(2):
+			if j==1:
+				vx,vy,vz=subtract_radial(vx1,vy1,vz1,x,y,z,boxsize)
+			if j==0:
+				vx,vy,vz=vx1,vy1,vz1
+			Ax=np.fft.fftn(vx)
+			Ay=np.fft.fftn(vy)
+			Az=np.fft.fftn(vz)
+			A=np.sqrt(abs(Ax)**2+abs(Ay)**2+abs(Az)**2)
+			Ncube=int(len(A[0,0,:]))
+			k=np.fft.fftfreq(Ncube)*Ncube
+			kx,ky,kz=np.meshgrid(k,k,k)
+			K=np.sqrt(kx**2+ky**2+kz**2)
+			bins=np.linspace(1,int(K.max()),int(K.max()))
+			av1,ks1,args=binned_statistic(K.flatten(),abs(A/Ncube**3).flatten()**2,bins=bins)
+			dk=ks1[1]-ks1[0]
+			energy1=av1*4*np.pi*ks1[1:]**2 *dk
+			if j==0:
+				axs[j].loglog(ks1[:-1],energy1,marker[i],markersize=4,label=labels[i])
+			if j==1:
+				axs[j].loglog(ks1[:-1],energy1,marker[i],markersize=4)
+			axs[j].set_ylabel(r'$P_{v}$',fontsize=11)	
+			axs[j].tick_params(axis="y", labelsize=11,direction="in")
+	axs[1].tick_params(axis="x", labelsize=11,direction="in")
+	axs[1].set_xlabel(r'$cycles per box length$]',fontsize=11)
+	plt.xlim(k.min(),k.max())
+	axs[0].legend(frameon=False,fontsize=9)
+	return fig,axs,k
 
+	
 
