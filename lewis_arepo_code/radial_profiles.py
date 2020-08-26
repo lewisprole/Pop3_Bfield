@@ -398,10 +398,10 @@ def create_spectrum(A):
 	k=np.fft.fftfreq(Ncube)*Ncube
 	kx,ky,kz=np.meshgrid(k,k,k)
 	K=np.sqrt(kx**2+ky**2+kz**2)
-	bins=np.linspace(1,int(K.max()),int(K.max())+1)
+	bins=np.linspace(1,int(K.max()),int(K.max()))
 	av,ks,args=binned_statistic(K.flatten(),(abs(A)/Ncube**3).flatten()**2,bins=bins)
 	dk=ks[1]-ks[0]
-	energy=av*4*np.pi*ks[1:]**2 *dk
+	energy=av*4*np.pi*ks[:-1]**2 *dk
 	return ks[1:],energy
 		
 	
@@ -480,7 +480,7 @@ def spectrum_graph(velfiles,boxsize):
 			bins=np.linspace(1,int(K.max()),int(K.max()))
 			av1,ks1,args=binned_statistic(K.flatten(),abs(A/Ncube**3).flatten()**2,bins=bins)
 			dk=ks1[1]-ks1[0]
-			energy1=av1*4*np.pi*ks1[1:]**2 *dk
+			energy1=av1*4*np.pi*ks1[:-1]**2 *dk
 			if j==0:
 				axs[j].loglog(ks1[:-1],energy1,marker[i],markersize=4,label=labels[i])
 			if j==1:
