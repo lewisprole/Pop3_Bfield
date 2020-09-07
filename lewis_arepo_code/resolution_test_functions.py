@@ -36,6 +36,7 @@ def cycle(dirname,start,end,interval,name):
 			t.append(a.time)
 			f.write(str(a.npart[-1]) + ' ' + str(sum(a.sinkmass)) + ' ' + str(a.time) + '\n')
 		print(str(n)+' :done')
+	f.close()
 	return Mtot,N,t		
 
 def txtread(txtfile):

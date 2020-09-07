@@ -77,7 +77,7 @@ def radial_average(variable,a,weight_type,bins,cumulative):
 	
 def cycle_plot(snaps,weight_type,bins,labels,title):
 	
-	fig,axs=plt.subplots(6,sharex=True)
+	fig,axs=plt.subplots(5,sharex=True)
 	plt.subplots_adjust(wspace=0, hspace=0,top=0.95,bottom=0.08,right=0.97,left=0.2)
 	for i in range(len(snaps)):
 		a=arepo_utils.aread(snaps[i])
@@ -99,68 +99,58 @@ def cycle_plot(snaps,weight_type,bins,labels,title):
 		print('H2')
 		x,e=radial_average(e,a,weight_type,bins,False)
 		print('e')
-		
+		x,b=radial_average(a.bmag,a,weight_type,bins,False)
 
 		rho=rho*code_units.rho_cu
 		v=v*code_units.v_cu/1e5
 		rv=rv*code_units.v_cu/1e5
 		nv-nv*code_units.v_cu/1e5
+		b=b*code_units.B_cu
 		x=x*code_units.d_cu/ap.pc.cgs.value
 		
 		x=x[:-1]
 		axs[0].loglog(x,rho,label=labels[i])
 		axs[1].semilogx(x,rv)
 		axs[2].semilogx(x,nv)
-		axs[3].loglog(x,T)
-		axs[4].loglog(x,H2)
-		axs[5].loglog(x,e)
+		axs[3].loglog(x,b)
+		axs[4].loglog(x,T)
+		#axs[4].loglog(x,H2)
+		#axs[5].loglog(x,e)
 	
-	axs[5].set_xlabel('R [pc]',fontsize=11)
-	axs[5].tick_params(axis="x", labelsize=11,direction="in")
+	axs[4].set_xlabel('R [pc]',fontsize=11)
+	axs[4].tick_params(axis="x", labelsize=11,direction="in")
 
 	axs[0].legend(fontsize=9,frameon=False,loc='lower left',bbox_to_anchor=(0.,-0.05))	
 	axs[0].set_ylabel(r'$\rho$ [gcm$^{-3}$]',fontsize=11)
-#	logrange=np.log10(rho.max())-np.log10(rho.min())
-#	p=np.round( np.log10(rho.min()) + logrange*np.array([0.25,0.5,0.75]) ,0)
-#	axs[0].set_yticks(10**(p.astype(float)))
 	axs[0].set_yticks([10**-21,10**-18,10**-15,10**-12])
 	axs[0].tick_params(axis="y", labelsize=11,direction="in")
 
 	axs[1].set_ylabel(r'$v_{r}$ [kms$^{-1}$]',fontsize=11)	
-#	axs[1].set_yticks((rv.min() + (rv.max()-rv.min()) * np.array([0.25,0.5,0.75])).astype(int))
 	axs[1].set_yticks([1,2,3,4])
 	axs[1].tick_params(axis="y", labelsize=11,direction="in")
 
 	axs[2].set_ylabel(r'$v_{\theta}$ [kms$^{-1}$]',fontsize=11)
-#	t=axs[2].get_yticks()
-#	axs[2].set_yticks((nv.min() + (nv.max()-nv.min()) * np.array([0.25,0.5,0.75])).astype(int))
 	axs[2].set_yticks([3,5,7,9])
 	axs[2].tick_params(axis="y", labelsize=11,direction="in")
 
-
-	axs[3].set_ylabel('T [K]',fontsize=11)
-#	logrange=np.log10(T.max())-np.log10(T.min())
-#	p=np.round( np.log10(T.min()) + logrange*np.array([0.25,0.5,0.75]) ,0)
-#	axs[3].set_yticks(10**(p.astype(float)))
-	axs[3].set_yticks([10**3])
+	
+	axs[3].set_ylabel('B [G]',fontsize=11)
 	axs[3].tick_params(axis="y", labelsize=11,direction="in")
-	
-	axs[4].set_ylabel(r'H$_{2}$',fontsize=11)
-#	logrange=np.log10(H2.max())-np.log10(H2.min())
-#	p=np.round( np.log10(H2.min()) + logrange*np.array([0.25,0.5,0.75]) ,0)
-#	axs[4].set_yticks(10**(p.astype(float)))
-	axs[4].set_yticks([10**-2,10**-1])
+
+	axs[4].set_ylabel('T [K]',fontsize=11)
+	axs[4].set_yticks([10**3])
 	axs[4].tick_params(axis="y", labelsize=11,direction="in")
+	
+	#axs[4].set_ylabel(r'H$_{2}$',fontsize=11)
+	#axs[4].set_yticks([10**-2,10**-1])
+	#axs[4].tick_params(axis="y", labelsize=11,direction="in")
 
-	axs[5].set_ylabel(r'$e^{-}$',fontsize=11)
-#	logrange=np.log10(e.max())-np.log10(e.min())
-#	p=np.round( np.log10(e.min()) + logrange*np.array([0.25,0.5,0.75]) ,0)
-#	axs[5].set_yticks(10**(p.astype(float)))
-	axs[5].set_yticks([10**-9,10**-8,10**-7])
-	axs[5].tick_params(axis="y", labelsize=11,direction="in")
+	#axs[5].set_ylabel(r'$e^{-}$',fontsize=11)
+	#axs[5].set_yticks([10**-9,10**-8,10**-7])
+	#axs[5].tick_params(axis="y", labelsize=11,direction="in")
 	
 
-	for i in range(6):
+	for i in range(5):
 		axs[i].tick_params(axis="x", labelsize=11,direction="in")
 		axs[i].get_yaxis().set_label_coords(-0.15,0.5)
 
@@ -461,14 +451,17 @@ def spectrum_graph(velfiles,boxsize):
 	marker=np.array(['v','.','+','2'])
 	labels=np.array(['16 cells','32 cells','64 cells','128 cells'])
 	for i in range(len(velfiles)):
+		print('reading')
 		vx1,vy1,vz1,x,y,z=read_3cube(velfiles[i])
 		vx1,vy1,vz1=vx1*code_units.v_cu, vy1*code_units.v_cu, vz1*code_units.v_cu
 		x,y,z=x/x.max() * boxsize, y/y.max() * boxsize, z/z.max() * boxsize
 		for j in range(2):
+			print('subtracting')
 			if j==1:
 				vx,vy,vz=subtract_radial(vx1,vy1,vz1,x,y,z,boxsize)
 			if j==0:
 				vx,vy,vz=vx1,vy1,vz1
+			print('transform')
 			Ax=np.fft.fftn(vx)
 			Ay=np.fft.fftn(vy)
 			Az=np.fft.fftn(vz)
@@ -477,6 +470,7 @@ def spectrum_graph(velfiles,boxsize):
 			k=np.fft.fftfreq(Ncube)*Ncube
 			kx,ky,kz=np.meshgrid(k,k,k)
 			K=np.sqrt(kx**2+ky**2+kz**2)
+			print('spectra')
 			bins=np.linspace(1,int(K.max()),int(K.max()))
 			av1,ks1,args=binned_statistic(K.flatten(),abs(A/Ncube**3).flatten()**2,bins=bins)
 			dk=ks1[1]-ks1[0]
