@@ -224,6 +224,11 @@ def aread(filename):
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
                                 a.peak = np.fromfile(file,dtype=np.int32,count=ngas)
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
+                        elif(tag=='FACA'):
+                                print('Reading face angles')
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                                a.angle=np.fromfile(file,dtype=np.double,count=ngas)
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
                         else:
                                 print("Skipping through property",tag," with record length", nextblock-8)
                                 dummy = np.fromfile(file,dtype=np.int32,count=(nextblock//4))
@@ -240,7 +245,8 @@ def aread(filename):
             #
             # first, copy the sink properites to their own arrays
             print("Sinks read. Making sink arrays.")
-            a.idsink = np.linspace(0,nsink-1,nsink,dtype='int32') + ngas
+            n_not_sink=int(sum(npart)-npart[5])
+            a.idsink = np.linspace(0,nsink-1,nsink,dtype='int32') + n_not_sink #ngas
             a.sinkx = a.x[a.idsink]
             a.sinky = a.y[a.idsink]
             a.sinkz = a.z[a.idsink]
@@ -296,6 +302,7 @@ def aread(filename):
         #
         #
         if(igot_bmag > 0):
+           a.l = (a.mass / a.rho)**(1./3.)
            a.bmag = np.sqrt(a.bfield[:,0]**2 + a.bfield[:,1]**2 + a.bfield[:,2]**2)   
  
         print("Finished reading file:", filename,"\n")

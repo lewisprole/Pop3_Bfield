@@ -245,7 +245,8 @@ def aread(filename):
             #
             # first, copy the sink properites to their own arrays
             print("Sinks read. Making sink arrays.")
-            a.idsink = np.linspace(0,nsink-1,nsink,dtype='int32') + ngas
+            n_not_sink=int(sum(npart)-npart[5])
+            a.idsink = np.linspace(0,nsink-1,nsink,dtype='int32') + n_not_sink #ngas
             a.sinkx = a.x[a.idsink]
             a.sinky = a.y[a.idsink]
             a.sinkz = a.z[a.idsink]

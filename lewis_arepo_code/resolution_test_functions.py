@@ -6,6 +6,7 @@ import io
 import sys
 import code_units
 import astropy.constants as ap
+import os
 
 
 def snapname(start,i,interval):
@@ -19,7 +20,12 @@ def snapname(start,i,interval):
 
 
 def cycle(dirname,start,end,interval,name):
-	f = open(name, "x")
+	if os.path.isfile(name):
+		print("file exists, appending")
+		f=open(name, "a+")
+	else:
+		print("creating new file")
+		f = open(name, "x")
 	Mtot=[]
 	N=[]
 	t=[]
@@ -37,7 +43,8 @@ def cycle(dirname,start,end,interval,name):
 			f.write(str(a.npart[-1]) + ' ' + str(sum(a.sinkmass)) + ' ' + str(a.time) + '\n')
 		print(str(n)+' :done')
 	f.close()
-	return Mtot,N,t		
+	return Mtot,N,t
+	
 
 def txtread(txtfile):
 	N=[]
