@@ -94,4 +94,12 @@ def write_txt(velfile,boxsize,subtract,name):
 
 
 
-
+def txtread(txtfile):
+        
+        e=[]
+        k=[]
+        with open(txtfile) as f:
+                for line in f.readlines():
+                        k.append(line.split()[0])
+                        e.append(line.split()[1])
+        return np.asarray(k).astype(float),np.asarray(e).astype(float) 
