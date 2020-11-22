@@ -3,6 +3,23 @@ import matplotlib.pyplot as plt
 import code_units
 from scipy.stats import binned_statistic
 
+
+
+def read_cube(name):
+        '''returns AREPO binary cube data, coordinates arranged as data[y,x,z]'''
+        A=np.fromfile(name,dtype=np.float32)
+        a=np.fromfile(name,dtype=np.int32)
+        n=a[0]
+        N=n*n
+        A=A[3:]
+        cube=np.zeros((n,n,n))
+        for X in range(n):
+                plane=A[X*N:X*N+N].reshape(n,n)
+                cube[X,:,:]=plane
+
+        return cube
+
+
 def read_3cube(name):
         '''returns 3 cubes giving x,y and z components, individual cubes have positional
         axis cube[y,x,z]'''
@@ -32,6 +49,7 @@ def read_3cube(name):
 
         return cubex,cubey,cubez,x,y,z
 
+'''||||||||| POWER SPECTRUM ||||||||||'''
 
 def subtract_radial(vx,vy,vz,x,y,z,boxsize):
         Ncube=len(vx[:,:,0])
@@ -93,7 +111,6 @@ def write_txt(velfile,boxsize,subtract,name):
 
 
 
-
 def txtread(txtfile):
         
         e=[]
@@ -103,3 +120,30 @@ def txtread(txtfile):
                         k.append(line.split()[0])
                         e.append(line.split()[1])
         return np.asarray(k).astype(float),np.asarray(e).astype(float) 
+
+
+'''||||||||||| IMAGES ||||||||||'''
+
+def prep_image_line(dirname, file_names):
+        rho={}
+        for i in range(len(file_names)):
+            rho_=read_cube(dirname+file_names[i])
+            rho[i]=rho
+        return np.asarray(rho)    
+
+def grid_plot(dirnames,file_names,xlabels,ylabels):
+        '''grid of images of dimensions [len(dirnames), len(filenames)]'''
+
+        fig,axs=plt.subplots(int(len(dirnames)),int(len(file_names)))
+        plt.subplots_adjust(wspace=0, hspace=0)
+        for i in range(len(dirnames)):
+           rho=prep_image_line(dirnames[i],file_names)
+           axs[i,0].set_ylabel(ylabels[j],labelsize=15)
+           for j in range(len(filenames)):
+               axs[i,j].imshow(rho[j])
+               axs[i,j].tick_params(axis="x", labelsize=15)
+               axs[i,j].tick_params(axis="y", labelsize=15)
+               if i==0:
+                   axs[0,j].set_title(xlabels[i],labelsize=15)
+        return fig,axs
+                    

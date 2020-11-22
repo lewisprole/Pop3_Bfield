@@ -203,5 +203,5 @@ def average_fromPDF(snaps,zoomzone):
 	ax.plot(res,np.asarray(V)*code_units.v_cu/1e5,color='k',label='total velocity')
 	ax.plot(res,np.asarray(rv)*code_units.v_cu/1e5,color='r',label='radial component')
 	ax.plot(res,np.asarray(nv)*code_units.v_cu/1e5,color='b',label='non-radial component')
-	ax.legend()
+	ax.legend(frameon=False)
 		

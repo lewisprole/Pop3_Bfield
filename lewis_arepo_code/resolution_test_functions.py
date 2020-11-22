@@ -60,22 +60,22 @@ def txtread(txtfile):
 def plot_MN(files):
 	fig,axs=plt.subplots(2,sharex=True)
 	plt.subplots_adjust(wspace=0, hspace=0)
-	colors='b','r','k'
-	labels=r'1x10$^{-10}$',r'1x10$^{-9}$',r'1x10$^{-8}$'
+	colors='b','g','r','cyan'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$'
 	for i in range(len(files)):
 		N,M,t=txtread(files[i])
 		if i==0:
 			t0=t[0]
-		axs[0].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i],label=labels[i])
-		axs[1].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i])
+		axs[0].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i])
+		axs[1].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i],label=labels[i]))
 
-	axs[1].set_xlabel(r'$t \ [s]$',fontsize=20)
+	axs[1].set_xlabel(r'$t \ [yrs]$',fontsize=20)
 	axs[0].set_ylabel(r'$N_{sinks}$',fontsize=20)
 	axs[1].set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=20)
 	axs[1].tick_params(axis="x", labelsize=15)
 	axs[0].tick_params(axis="y", labelsize=15)
 	axs[1].tick_params(axis="y", labelsize=15)
-
+	axs[1].legend(fontsize=12)
 
 	
 
