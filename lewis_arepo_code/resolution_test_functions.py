@@ -67,7 +67,7 @@ def plot_MN(files):
 		if i==0:
 			t0=t[0]
 		axs[0].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i])
-		axs[1].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i],label=labels[i]))
+		axs[1].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i],label=labels[i])
 
 	axs[1].set_xlabel(r'$t \ [yrs]$',fontsize=20)
 	axs[0].set_ylabel(r'$N_{sinks}$',fontsize=20)
