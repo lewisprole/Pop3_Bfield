@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.11.18)  22 NOV 2020 17:38
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2020.11.18)  23 NOV 2020 19:53
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -661,23 +661,29 @@ LaTeX Font Info:    Font shape `T1/ntxtlf/b/n' will be
 (Font)              scaled to size 9.0pt on input line 95.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
 (Font)              scaled to size 10.0pt on input line 95.
+LaTeX Font Info:    Font shape `OT1/ntxtlf/m/n' will be
+(Font)              scaled to size 10.0pt on input line 96.
+LaTeX Font Info:    Font shape `OT1/ntxtlf/m/n' will be
+(Font)              scaled to size 7.3pt on input line 96.
 LaTeX Font Info:    Font shape `T1/ntxtlf/b/n' will be
 (Font)              scaled to size 10.0pt on input line 101.
 LaTeX Font Info:    Font shape `OT1/ntxtlf/m/n' will be
 (Font)              scaled to size 9.0pt on input line 112.
-LaTeX Font Info:    Font shape `OT1/ntxtlf/m/n' will be
-(Font)              scaled to size 7.3pt on input line 112.
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
 LaTeX Font Info:    Font shape `T1/ntxtlf/b/n' will be
-(Font)              scaled to size 8.0pt on input line 125.
+(Font)              scaled to size 8.0pt on input line 122.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
-(Font)              scaled to size 6.2pt on input line 125.
+(Font)              scaled to size 6.2pt on input line 122.
 LaTeX Font Info:    Trying to load font information for TS1+ntxtlf on input lin
-e 125.
+e 122.
+
 (/usr/local/texlive/2020/texmf-dist/tex/latex/newtx/ts1ntxtlf.fd
 File: ts1ntxtlf.fd 2015/01/18 v1.0 fd file for TS1/ntxtlf
 )
 LaTeX Font Info:    Font shape `TS1/ntxtlf/m/n' will be
-(Font)              scaled to size 8.0pt on input line 125.
+(Font)              scaled to size 8.0pt on input line 122.
  [1{/usr/local/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
@@ -686,63 +692,56 @@ LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
 (Font)              scaled to size 7.3pt on input line 147.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
 (Font)              scaled to size 5.5pt on input line 147.
-<sink_mergers_zoom.pdf, id=56, 578.16pt x 433.62pt>
-File: sink_mergers_zoom.pdf Graphic file (type pdf)
-<use sink_mergers_zoom.pdf>
-Package pdftex.def Info: sink_mergers_zoom.pdf  used on input line 154.
+<sink_mergers.pdf, id=58, 578.16pt x 433.62pt>
+File: sink_mergers.pdf Graphic file (type pdf)
+<use sink_mergers.pdf>
+Package pdftex.def Info: sink_mergers.pdf  used on input line 154.
 (pdftex.def)             Requested size: 289.07928pt x 216.80946pt.
-
-No file resolution_test.bbl.
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 209.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/n' will be
-(Font)              scaled to size 12.0pt on input line 209.
+(Font)              scaled to size 12.0pt on input line 172.
 LaTeX Font Info:    Font shape `T1/ntxtlf/m/it' will be
-(Font)              scaled to size 12.0pt on input line 209.
-[2pdfTeX warning (ext4): destination with the same identifier (name{table.1}) h
-as been already used, duplicate ignored
+(Font)              scaled to size 12.0pt on input line 172.
+ [2pdfTeX warning (ext4): destination with the same identifier (name{table.1}) 
+has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.209 \end{document}
-                    pdfTeX warning (ext4): destination with the same identifier
- (name{figure.1}) has been already used, duplicate ignored
+l.172 
+      pdfTeX warning (ext4): destination with the same identifier (name{figure.
+1}) has been already used, duplicate ignored
 
 \AtBegShi@Output ...ipout \box \AtBeginShipoutBox 
                                                   \fi \fi 
-l.209 \end{document}
-                     <./sink_mergers_zoom.pdf>]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 209.
+l.172 
+       <./sink_mergers.pdf>]
+No file resolution_test.bbl.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 219.
+[3
+
+]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 219.
  (./resolution_test.aux)
-Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 209.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 209.
+Package atveryend Info: Empty hook `AtVeryEndDocument' on input line 219.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 219.
+Package rerunfilecheck Info: File `resolution_test.out' has not changed.
+(rerunfilecheck)             Checksum: 97AC98F9937C93A2ED6A7781A477BBCE;406.
 
-
-Package rerunfilecheck Warning: File `resolution_test.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `resolution_test.out':
-(rerunfilecheck)             Before: A90DC566308ABCAF4213A33E5A9E0F53;371
-(rerunfilecheck)             After:  F734660552BB8273B061D05A821FD0F0;304.
 
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.5pt have occurred.
 
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 209.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 219.
  ) 
 Here is how much of TeX's memory you used:
- 10020 strings out of 480608
- 138968 string characters out of 5903629
- 407708 words of memory out of 5000000
- 25670 multiletter control sequences out of 15000+600000
- 623284 words of font info for 149 fonts, out of 8000000 for 9000
+ 10035 strings out of 480608
+ 139111 string characters out of 5903629
+ 407705 words of memory out of 5000000
+ 25680 multiletter control sequences out of 15000+600000
+ 628271 words of font info for 160 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 42i,15n,40p,2190b,347s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 42i,15n,40p,2190b,374s stack positions out of 5000i,500n,10000p,200000b,80000s
 pdfTeX warning (dest): name{Hfootnote.1} has been referenced but does not exi
 st, replaced by a fixed one
-
-pdfTeX warning (dest): name{subsection.3.1} has been referenced but does not ex
-ist, replaced by a fixed one
 
 {/usr/local/texlive/2020/texmf-dist/fonts/enc/dvips/tex-gyre/q-ts1.enc}{/usr/lo
 cal/texlive/2020/texmf-dist/fonts/enc/dvips/newtx/ntx-ec-tlf.enc}{/usr/local/te
@@ -756,10 +755,10 @@ ublic/newtx/txmiaX.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/n
 ewtx/txsys.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/newtx/ztm
 b.pfb></usr/local/texlive/2020/texmf-dist/fonts/type1/public/newtx/ztmr.pfb></u
 sr/local/texlive/2020/texmf-dist/fonts/type1/public/newtx/ztmri.pfb>
-Output written on resolution_test.pdf (2 pages, 227880 bytes).
+Output written on resolution_test.pdf (3 pages, 236898 bytes).
 PDF statistics:
- 159 PDF objects out of 1000 (max. 8388607)
- 109 compressed objects within 2 object streams
- 14 named destinations out of 1000 (max. 500000)
- 62 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 173 PDF objects out of 1000 (max. 8388607)
+ 124 compressed objects within 2 object streams
+ 17 named destinations out of 1000 (max. 500000)
+ 70 words of extra memory for PDF output out of 10000 (max. 10000000)
 

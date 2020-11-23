@@ -93,7 +93,7 @@ $$
 
 % Abstract of the paper
 \begin{abstract}
-The Population III initial mass function (IMF) is currently unknown, but recent studies agree that fragmentation of primordial gas gives a broader IMF than the initially accepted singular star per halo. Sink particles introduced at high densities can prevent artificial fragmentation of the gas once the mesh stops refining, but an incorrect choice of sink particle creation density will effect the resulting IMF. We present the evolution of the  total number of sinks formed and the total mass of the combined sinks, for five different sink creation densities, and the difference in velocity power spectra just before sink creation. This study also introduces sink mergers into AREPO.
+The Population III initial mass function (IMF) is currently unknown, but recent studies agree that fragmentation of primordial gas gives a broader IMF than the initially accepted singular star per halo. Sink particles introduced at high densities can prevent artificial fragmentation of the gas once the mesh stops refining, but an incorrect choice of sink particle creation density will effect the resulting IMF. This study introduces sink mergers into AREPO, and presents the effects of varying the sink particle creation density from $\rho_{sink}$=10$^{-10}$-10$^{-7}gcm^{-3}$. While the total mass accreted onto sinks remains invariant to the $\rho_{sink}$, the total number of sinks forms increases with increasing $\rho_{sink}$ and does not converge within the range tested. Numerical estimations of the primordial IMF using sink particles are reliant on the authors choice of sink creation density. The velocity power spectra taken just after the formation of the first sink show that the turbulent field is independent of the sink parameters. 
 \end{abstract}
 
 % Select between one and six entries from the list of approved keywords.
@@ -151,14 +151,24 @@ Four iterations were performed with identical initial conditions with the moving
 	% To include a figure from a file named example.*
 	% Allowable file formats are eps or ps if compiling using latex
 	% or pdf, png, jpg if compiling using pdflatex
-	\hbox{\hspace{-0.8cm} \includegraphics[scale=0.5]{sink_mergers_zoom.pdf}}
+	\hbox{\hspace{-0.8cm} \includegraphics[scale=0.5]{sink_mergers.pdf}}
     \caption{Evolution of the number of sinks and the total mass of all sinks with sink mergers allowed.}
-    \label{fig:example_figure}
+    \label{fig:sinks}
 \end{figure}
 
 % Example table
 
+\section{Velocity power spectra}
+To investigate possible effects of sink creation density on the resulting velocity field, we calculate the velocity power spectrum at the same time for each of the runs, at a time just after the all of the runs have finished forming their first sink. The AREPO unstructured mesh of the inner $\sim$ 1300AU region of simulation box was projected the onto a uniform $1000^3$ grid cube. Taking the Fourier transform of the velocity fields $A_v$ gives a 3-dimensional $k$ space of velocity amplitudes, where $k$ is the number of wavelengths per box length. The average energy in each $k$ mode $\hat A_v$ was found by averaging the amplitudes within $k$ shells spanning out from $k$=1 to $k$=500 i.e the Nyquist frequency of the data. The power spectrum $P_v$ was obtained using
 
+\begin{equation}
+P_v \delta k = \int_{1}^{500} \hat A_v^2 4\pi k^2 \delta k 
+\end{equation}
+
+The radial velocity profile was removed by taking the cross product $v_\theta=(v \times r)/|r|$, to subtract the effects of material falling into the sink, giving the pure turbulent field. The resulting velocity power spectra are given in figure REF
+
+\section{Discussion}
+Figure \ref{fig:sinks} shows that even with sink mergers enabled, the total number of sinks formed did not converge within the range of sink formation densities used. Higher values of $\rho_{sink}$ gave higher number of sinks formed. Due to the sink accretion radius decreasing with increasing $\rho_{sink}$, mergers were less likely to occur for higher $\rho_{sink}$ runs, aiding the number of surviving sinks. $N_{sink}$ may converge for higher $\rho_{sink}$ than tested in this study, but it is currently computationally impractical to run collapse problems to densities that high if the study attempts to cover a large parameter space such as turbulent energy or magnetic field strength. However, after a threshold period of time, the total mass in sinks was invariant with changing sink parameters. As higher $\rho_{sink}$ produces higher $N_{sink}$ while $M_{tot}$ remains unaffected, using higher $\rho_{sink}$ produces lower mass stars and a broadened IMF, while lower $\rho_{sink}$ give higher mass stars. The resulting IMFs at time t=REF are given in figure REF. The results show that numerically obtained IMFs using sink particles are reliant on the authors choice of $\rho_{sink}$. Figure (REF) shows that the velocity power spectra after the formation of the first sink was also invariant with changing $\rho_{sink}$.
 
 \section{Conclusions}
 
