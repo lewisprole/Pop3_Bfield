@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import code_units
 from scipy.stats import binned_statistic
-import arepo_utils 
+import arepo_utils
+import astropy.constants as ap 
 
 
 
@@ -151,20 +152,58 @@ def grid_plot(dirnames,file_names,xlabels,ylabels):
                    
 
 def IMF(dirs,snap,no_bins,name):
-        for i in range(len(files)):
+        cs='b','g','r','cyan'
+        for i in range(len(dirs)):
             a=arepo_utils.aread(dirs[i]+snap)
             if i==0:
                 max_sinkmass=a.sinkmass.max()
             else: 
                if a.sinkmass.max()>max_sinkmass:
                    max_sinkmass=a.sinkmass.max()
-        for i in range(len(files)):
-            f = open('IMF'+str(8+i)+'.txt', "x")
+        for i in range(len(dirs)):
+            #f = open('IMF'+str(8+i)+'.txt', "x")
             a=arepo_utils.aread(dirs[i]+snap)
             N,M=np.histogram(a.sinkmass,bins=np.linspace(0,max_sinkmass,no_bins))
-            for j in range(len(M)):
-                f.write(str(N[j]),str(M[j]) + '\n')
-            f.close()
+            N_=np.array([])
+            M_=np.array([])
+            for j in range(len(N)):
+               N_=np.append(N_,N[j])
+               N_=np.append(N_,N[j])
+               M_=np.append(M_,M[j])
+               M_=np.append(M_,M[j+1])
+            plt.plot(M_,N_,cs[i])
+         #   for j in range(len(M)):
+         #       f.write(str(N[j]),str(M[j]) + '\n')
+         #   f.close()
 
 
-          
+
+
+def IMF_col(dirs,snap,no_bins,name):
+        fig,axs=plt.subplots(4,sharex=True)
+        plt.subplots_adjust(wspace=0, hspace=0)
+        axs[-1].set_xlabel(r'M [M$_{\odot}$]',fontsize=20)
+        #plt.ylabel( r'N$_{sink}$',fontsize=20)
+        cs='b','g','r','cyan'
+        rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$'
+        for i in range(len(dirs)):
+            a=arepo_utils.aread(dirs[i]+snap)
+            if i==0:
+                max_sinkmass=a.sinkmass.max()*code_units.M_cu/ap.M_sun.cgs.value
+            else:
+               if a.sinkmass.max()>max_sinkmass:
+                   max_sinkmass=a.sinkmass.max()*code_units.M_cu/ap.M_sun.cgs.value
+        for i in range(len(dirs)):
+            #f = open('IMF'+str(8+i)+'.txt', "x")
+            a=arepo_utils.aread(dirs[i]+snap)
+            N,M=np.histogram(a.sinkmass,bins=np.linspace(0,max_sinkmass,no_bins))
+            #axs[i].bar(M,N,label=rhos[i])
+            axs[i].hist(a.sinkmass*code_units.M_cu/ap.M_sun.cgs.value,bins=np.linspace(0,max_sinkmass,no_bins),color=cs[i],label=rhos[i])
+            #axs[i].legend(fontsize=12,frameon=False,loc='upper right')
+            axs[i].set_ylim(0,N.max()+1)
+            axs[i].text(0.85,0.85,rhos[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=12)
+            axs[i].get_yticklabels()[0].set_visible(False)
+            axs[i].set_yticks([])
+        return fig,axs
+
+
