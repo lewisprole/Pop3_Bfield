@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import code_units
 from scipy.stats import binned_statistic
+import arepo_utils 
 
 
 
@@ -127,9 +128,10 @@ def txtread(txtfile):
 def prep_image_line(dirname, file_names):
         rho={}
         for i in range(len(file_names)):
+            print('reading '+dirname+file_names[i])
             rho_=read_cube(dirname+file_names[i])
             rho[i]=rho
-        return np.asarray(rho)    
+        return rho
 
 def grid_plot(dirnames,file_names,xlabels,ylabels):
         '''grid of images of dimensions [len(dirnames), len(filenames)]'''
@@ -146,4 +148,23 @@ def grid_plot(dirnames,file_names,xlabels,ylabels):
                if i==0:
                    axs[0,j].set_title(xlabels[i],labelsize=15)
         return fig,axs
-                    
+                   
+
+def IMF(dirs,snap,no_bins,name):
+        for i in range(len(files)):
+            a=arepo_utils.aread(dirs[i]+snap)
+            if i==0:
+                max_sinkmass=a.sinkmass.max()
+            else: 
+               if a.sinkmass.max()>max_sinkmass:
+                   max_sinkmass=a.sinkmass.max()
+        for i in range(len(files)):
+            f = open('IMF'+str(8+i)+'.txt', "x")
+            a=arepo_utils.aread(dirs[i]+snap)
+            N,M=np.histogram(a.sinkmass,bins=np.linspace(0,max_sinkmass,no_bins))
+            for j in range(len(M)):
+                f.write(str(N[j]),str(M[j]) + '\n')
+            f.close()
+
+
+          
