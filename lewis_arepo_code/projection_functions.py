@@ -126,58 +126,102 @@ def txtread(txtfile):
 
 '''||||||||||| IMAGES ||||||||||'''
 
-def prep_image_line(dirname, file_names):
+def prep_image_line(dirname, file_numbers):
         rho={}
-        for i in range(len(file_names)):
-            print('reading '+dirname+file_names[i])
-            rho_=read_cube(dirname+file_names[i])
+        for i in range(len(file_numbers)):
+            print('reading '+dirname+'density_grid_'+file_numbers[i])
+            rho_=read_cube(dirname+'density_grid_'+file_numbers[i])
             rho[i]=rho_
         return rho
 
-def grid_plot(dirnames,file_names,xlabels,ylabels):
+def convert_sinkcoord_image(dirname,snap_no,imsize,imx1,imx2,imy1,imz1):
+        '''function to convert the AREPO coordinates of sinks into the grid projection coordinates
+        imsize is number of pixels per grid dimension
+        imx1 and imx2 are the AREPO coords corresponding to the edges of the grids x dimension
+        assumes the grid is a N**3 cube'''
+        a=arepo_utils.aread(dirname+'snapshot_'+snap_no)
+        X,Y,Z=a.sinkx-imx1,a.sinky-imy1,a.sinkz-imz1
+        pixel=(imx2-imx1)/imsize
+        x,y,z=(X/pixel).astype(int),(Y/pixel).astype(int),(Z/pixel).astype(int)
+        f=open(dirname+'sink_coord_'+snap_no,'x')
+        for i in range(len(np.asarray(x))):
+             f.write(str(x[i])+' '+str(y[i])+' '+str(z[i])+'\n')
+        f.close()
+        
+def read_sink(dirname,sink_number):
+        x=[]
+        y=[]
+        z=[]
+        with open(dirname+'sink_coord_'+sink_number) as f:
+            for line in f.readlines():
+                    x.append(line.split()[0])
+                    y.append(line.split()[1])
+                    z.append(line.split()[2])
+        
+        return x,y,z
+
+
+def grid_plot(dirnames,file_numbers,xlabels,ylabels):
         '''grid of images of dimensions [len(dirnames), len(filenames)]'''
 
-        fig,axs=plt.subplots(int(len(dirnames)),int(len(file_names)))
+        fig,axs=plt.subplots(int(len(dirnames)),int(len(file_numbers)))
+
         for i in range(len(dirnames)):
-           rho=prep_image_line(dirnames[i],file_names)
-           axs[i,0].set_ylabel(ylabels[i],fontsize=15)
-           for j in range(len(file_names)):
+           rho=prep_image_line(dirnames[i],file_numbers)
+           for j in range(len(file_numbers)):
                axs[i,j].axis("off")
-               axs[i,j].imshow(np.log10( np.sum(rho[j],2) / len(rho[j][:,0,0]) * code_units.rho_cu) ) 
+               axs[i,j].imshow(np.log10( np.sum(rho[j],2) / len(rho[j][:,0,0]) * code_units.rho_cu) )
+
+               mid=np.where(rho[j]==rho[j].max())
+               if len(mid[0])>1:
+                   axs[i,j].set_ylim(mid[0][0]-200,mid[0][0]+200)
+                   axs[i,j].set_xlim(mid[1][0]-200,mid[1][0]+200)
+               else:
+                   axs[i,j].set_ylim(mid[0]-200,mid[0]+200)
+                   axs[i,j].set_xlim(mid[1]-200,mid[1]+200)
+
 
                axs[i,j].tick_params(axis="x", labelsize=15)
                axs[i,j].tick_params(axis="y", labelsize=15)
                if i==0:
                    axs[0,j].set_title(xlabels[j],fontsize=15)
-        plt.subplots_adjust(wspace=0, hspace=0)
+               if j==0:
+                   axs[i,0].set_ylabel(ylabels[i],fontsize=15)
+        plt.subplots_adjust(wspace=-0.6, hspace=0)
         return fig,axs
-                   
 
-def IMF(dirs,snap,no_bins,name):
-        cs='b','g','r','cyan'
-        for i in range(len(dirs)):
-            a=arepo_utils.aread(dirs[i]+snap)
-            if i==0:
-                max_sinkmass=a.sinkmass.max()
-            else: 
-               if a.sinkmass.max()>max_sinkmass:
-                   max_sinkmass=a.sinkmass.max()
-        for i in range(len(dirs)):
-            #f = open('IMF'+str(8+i)+'.txt', "x")
-            a=arepo_utils.aread(dirs[i]+snap)
-            N,M=np.histogram(a.sinkmass,bins=np.linspace(0,max_sinkmass,no_bins))
-            N_=np.array([])
-            M_=np.array([])
-            for j in range(len(N)):
-               N_=np.append(N_,N[j])
-               N_=np.append(N_,N[j])
-               M_=np.append(M_,M[j])
-               M_=np.append(M_,M[j+1])
-            plt.plot(M_,N_,cs[i])
-         #   for j in range(len(M)):
-         #       f.write(str(N[j]),str(M[j]) + '\n')
-         #   f.close()
 
+def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
+        fig,axs=plt.subplots(int(len(dirnames)),int(len(file_numbers)))
+        
+        for i in range(len(dirnames)):
+           rho=prep_image_line(dirnames[i],file_numbers)
+           for j in range(len(file_numbers)):
+               axs[i,j].set_yticks([])
+               axs[i,j].set_xticks([])
+               axs[i,j].imshow(np.log10( np.sum(rho[j],2) / len(rho[j][:,0,0]) * code_units.rho_cu) )
+               #import the sinks
+               x,y,z=read_sink(dirnames[i],file_numbers[j])
+               axis[i,j].scatter(y,x,s=0.5,c='r')
+               #crop the image
+               mid=np.where(rho[j]==rho[j].max())
+               if len(mid[0])>1:
+                   axs[i,j].set_ylim(mid[0][0]-200,mid[0][0]+200)
+                   axs[i,j].set_xlim(mid[1][0]-200,mid[1][0]+200)
+               else:
+                   axs[i,j].set_ylim(mid[0]-200,mid[0]+200)
+                   axs[i,j].set_xlim(mid[1]-200,mid[1]+200)
+
+
+               axs[i,j].tick_params(axis="x", labelsize=15)
+               axs[i,j].tick_params(axis="y", labelsize=15)
+               if i==0:
+                   axs[0,j].set_title(xlabels[j],fontsize=15)
+               if j==0:
+                   axs[i,0].set_ylabel(ylabels[i],fontsize=15)
+        plt.subplots_adjust(wspace=-0.6, hspace=0)
+        return fig,axs
+        
 
 
 
