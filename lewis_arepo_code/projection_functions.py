@@ -131,23 +131,25 @@ def prep_image_line(dirname, file_names):
         for i in range(len(file_names)):
             print('reading '+dirname+file_names[i])
             rho_=read_cube(dirname+file_names[i])
-            rho[i]=rho
+            rho[i]=rho_
         return rho
 
 def grid_plot(dirnames,file_names,xlabels,ylabels):
         '''grid of images of dimensions [len(dirnames), len(filenames)]'''
 
         fig,axs=plt.subplots(int(len(dirnames)),int(len(file_names)))
-        plt.subplots_adjust(wspace=0, hspace=0)
         for i in range(len(dirnames)):
            rho=prep_image_line(dirnames[i],file_names)
-           axs[i,0].set_ylabel(ylabels[j],labelsize=15)
-           for j in range(len(filenames)):
-               axs[i,j].imshow(rho[j])
+           axs[i,0].set_ylabel(ylabels[i],fontsize=15)
+           for j in range(len(file_names)):
+               axs[i,j].axis("off")
+               axs[i,j].imshow(np.log10( np.sum(rho[j],2) / len(rho[j][:,0,0]) * code_units.rho_cu) ) 
+
                axs[i,j].tick_params(axis="x", labelsize=15)
                axs[i,j].tick_params(axis="y", labelsize=15)
                if i==0:
-                   axs[0,j].set_title(xlabels[i],labelsize=15)
+                   axs[0,j].set_title(xlabels[j],fontsize=15)
+        plt.subplots_adjust(wspace=0, hspace=0)
         return fig,axs
                    
 

@@ -75,7 +75,7 @@ def plot_MN(files):
 	axs[1].set_xlabel(r'$t \ [yrs]$',fontsize=20)
 	axs[0].set_ylabel(r'$N_{sinks}$',fontsize=20)
 	axs[1].set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=20)
-	axs[0].set_yticks(np.arange(0,Nmax+2,2))
+	axs[0].set_yticks(np.arange(1,Nmax+2,2))
 	axs[1].tick_params(axis="x", labelsize=15,direction="in")
 	axs[0].tick_params(axis="x", labelsize=15,direction="in")
 	axs[0].tick_params(axis="y", labelsize=15,direction="in")
