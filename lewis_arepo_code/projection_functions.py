@@ -202,7 +202,8 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
                axs[i,j].imshow(np.log10( np.sum(rho[j],2) / len(rho[j][:,0,0]) * code_units.rho_cu) )
                #import the sinks
                x,y,z=read_sink(dirnames[i],file_numbers[j])
-               axis[i,j].scatter(y,x,s=0.5,c='r')
+               axs[i,j].scatter(y,x,s=0.5,c='r')
+               axs[i,j].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=axs[i,j].transAxes,fontsize=10,color='w')
                #crop the image
                mid=np.where(rho[j]==rho[j].max())
                if len(mid[0])>1:
