@@ -124,6 +124,38 @@ def txtread(txtfile):
         return np.asarray(k).astype(float),np.asarray(e).astype(float) 
 
 
+
+
+def plot_spectrum(files,subtracted_too,labels):
+        if subtracted_too=='no':
+           fig,axs=plt.subplots(1)
+        else:
+           fig,axs=plt.subplots(2,sharex=True)
+           plt.subplots_adjust(hspace=0)
+        for i in range(len(files)):
+            k,e=txtread(files[i])
+            axs[0].loglog(k,e,label=labels[i])
+            axs[0].set_xlim(2,k.max()/2)
+            axs[0].tick_params(axis="y", labelsize=15,direction="in")
+            if subtracted_too=='yes':
+                k,e=txtread(files[i]+'_radial')
+                axs[1].loglog(k,e)
+                axs[1].set_xlim(2,k.max()/2)
+                axs[1].set_ylabel(r'$P_{v_\theta}$',fontsize=15)
+                axs[1].set_xlabel('Cycles per box length',fontsize=15)
+                axs[1].text(0.1,0.1,'radial profile subtracted',ha='center', va='center', transform=axs[1].transAxes,fontsize=10)
+                axs[1].tick_params(axis="y", labelsize=15,direction="in")
+                axs[1].tick_params(axis="x", labelsize=15,direction="in")
+            else:
+                axs[0].set_xlabel('Cycles per box length',fontsize=15)
+                axs[0].tick_params(axis="x", labelsize=15,direction="in")
+        axs[0].set_ylabel(r'$P_v$',fontsize=15)
+        axs[0].legend(loc='upper right',fontsize=10,frameon=False)
+        return fig,axs
+            
+        
+        
+
 '''||||||||||| IMAGES ||||||||||'''
 
 def prep_image_line(dirname, file_numbers):
