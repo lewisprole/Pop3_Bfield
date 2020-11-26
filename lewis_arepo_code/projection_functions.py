@@ -150,7 +150,7 @@ def plot_spectrum(files,subtracted_too,labels):
                 axs[0].set_xlabel('Cycles per box length',fontsize=15)
                 axs[0].tick_params(axis="x", labelsize=15,direction="in")
         axs[0].set_ylabel(r'$P_v$',fontsize=15)
-        axs[0].legend(loc='upper right',fontsize=10,frameon=False)
+        axs[0].legend(loc='lower left',fontsize=10,frameon=False)
         return fig,axs
             
         
