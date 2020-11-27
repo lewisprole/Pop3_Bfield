@@ -141,16 +141,16 @@ def plot_spectrum(files,subtracted_too,labels):
                 k,e=txtread(files[i]+'_radial')
                 axs[1].loglog(k,e)
                 axs[1].set_xlim(2,k.max()/2)
-                axs[1].set_ylabel(r'$P_{v_\theta}$',fontsize=15)
-                axs[1].set_xlabel('Cycles per box length',fontsize=15)
-                axs[1].text(0.1,0.1,'radial profile subtracted',ha='center', va='center', transform=axs[1].transAxes,fontsize=10)
+                axs[1].set_ylabel(r'$P_{v_\theta}$',fontsize=20)
+                axs[1].set_xlabel('Cycles per box length',fontsize=20)
+                axs[1].text(0.2,0.1,'radial profile subtracted',ha='center', va='center', transform=axs[1].transAxes,fontsize=10)
                 axs[1].tick_params(axis="y", labelsize=15,direction="in")
                 axs[1].tick_params(axis="x", labelsize=15,direction="in")
             else:
-                axs[0].set_xlabel('Cycles per box length',fontsize=15)
+                axs[0].set_xlabel('Cycles per box length',fontsize=20)
                 axs[0].tick_params(axis="x", labelsize=15,direction="in")
-        axs[0].set_ylabel(r'$P_v$',fontsize=15)
-        axs[0].legend(loc='lower left',fontsize=10,frameon=False)
+        axs[0].set_ylabel(r'$P_v$',fontsize=20)
+        axs[0].legend(loc='upper right',fontsize=10,frameon=False)
         return fig,axs
             
         
