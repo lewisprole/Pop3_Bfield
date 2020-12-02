@@ -246,8 +246,9 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
                axs[i,J].imshow(np.log10( np.sum(rho[J],2) / len(rho[J][:,0,0]) * code_units.rho_cu),cmap='bone',vmin=vmin,vmax=vmax )
                #import the sinks
                x,y,z,M=read_sink(dirnames[i],file_numbers[J])
-               cx,cu,cz=CoM(x,y,z,M)
-               axs[i,J].scatter(y,x,s=0.5,c='magenta')
+               mask=np.where((np.sqrt((y-500)**2+ (x-500)**2) <400))
+               cx,cy,cz=CoM(x[mask],y[mask],z[mask],M[mask])
+               axs[i,J].scatter(y,x,s=0.5,c='lime')
                axs[i,J].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=axs[i,J].transAxes,fontsize=10,color='w')
                #crop the image
                #mid=np.where(rho[J]==rho[J].max())
@@ -257,8 +258,8 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
                #else:
                #    axs[i,J].set_ylim(mid[0]-200,mid[0]+200)
                #    axs[i,J].set_xlim(mid[1]-200,mid[1]+200)
-               axs[i,J].set_ylim(cy-200,cy+200)
-               axs[i,J].set_xlim(cx-200,cx+200)
+               axs[i,J].set_ylim(cx-200,cx+200)
+               axs[i,J].set_xlim(cy-200,cy+200)
 
                axs[i,J].tick_params(axis="x", labelsize=15)
                axs[i,J].tick_params(axis="y", labelsize=15)
@@ -276,6 +277,9 @@ def IMF_col(dirs,snap,no_bins,name):
         fig,axs=plt.subplots(4,sharex=True)
         plt.subplots_adjust(wspace=0, hspace=0)
         axs[-1].set_xlabel(r'M [M$_{\odot}$]',fontsize=20)
+        axs[-1].tick_params(axis="x", labelsize=15)
+        axs[1].set_ylabel(r'N$_{\rm M}$',fontsize=20,rotation=90)
+        axs[1].yaxis.set_label_coords(-0.08, 0.1)
         #plt.ylabel( r'N$_{sink}$',fontsize=20)
         cs='b','g','r','cyan'
         rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$'
@@ -293,10 +297,11 @@ def IMF_col(dirs,snap,no_bins,name):
             #axs[i].bar(M,N,label=rhos[i])
             axs[i].hist(a.sinkmass*code_units.M_cu/ap.M_sun.cgs.value,bins=np.linspace(0,max_sinkmass,no_bins),color=cs[i],label=rhos[i])
             #axs[i].legend(fontsize=12,frameon=False,loc='upper right')
+            axs[i].tick_params(axis="y", labelsize=15)
             axs[i].set_ylim(0,N.max()+1)
             axs[i].text(0.85,0.85,rhos[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=12)
             axs[i].get_yticklabels()[0].set_visible(False)
-            axs[i].set_yticks([])
+            #axs[i].set_yticks([])
         return fig,axs
 
 
