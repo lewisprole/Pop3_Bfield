@@ -248,7 +248,7 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
                x,y,z,M=read_sink(dirnames[i],file_numbers[J])
                mask=np.where((np.sqrt((y-500)**2+ (x-500)**2) <400))
                cx,cy,cz=CoM(x[mask],y[mask],z[mask],M[mask])
-               axs[i,J].scatter(y,x,s=0.5,c='lime')
+               axs[i,J].scatter(y,x,s=0.5,c='magenta')
                axs[i,J].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=axs[i,J].transAxes,fontsize=10,color='w')
                #crop the image
                #mid=np.where(rho[J]==rho[J].max())
@@ -266,7 +266,7 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
                if i==0:
                    axs[0,J].set_title(xlabels[J],fontsize=12)
                if j==0:
-                   axs[i,0].set_ylabel(ylabels[i],fontsize=12,rotation=80)
+                   axs[i,0].set_ylabel(ylabels[i],fontsize=12,rotation=85)
         plt.subplots_adjust(wspace=-0.6, hspace=0)
         return fig,axs
         
