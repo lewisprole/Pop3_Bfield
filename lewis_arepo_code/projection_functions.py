@@ -177,21 +177,28 @@ def convert_sinkcoord_image(dirname,snap_no,imsize,imx1,imx2,imy1,imz1):
         x,y,z=(X/pixel).astype(int),(Y/pixel).astype(int),(Z/pixel).astype(int)
         f=open(dirname+'sink_coord_'+snap_no,'x')
         for i in range(len(np.asarray(x))):
-             f.write(str(x[i])+' '+str(y[i])+' '+str(z[i])+'\n')
+             f.write(str(x[i])+' '+str(y[i])+' '+str(z[i])+' '+str(a.sinkmass[i])+'\n')
         f.close()
         
 def read_sink(dirname,sink_number):
         x=[]
         y=[]
         z=[]
+        M=[]
         with open(dirname+'sink_coord_'+sink_number) as f:
             for line in f.readlines():
-                    x.append(line.split()[0])
-                    y.append(line.split()[1])
-                    z.append(line.split()[2])
+                    x.append(float(line.split()[0]))
+                    y.append(float(line.split()[1]))
+                    z.append(float(line.split()[2]))
+                    M.append(float(line.split()[3]))
         
-        return x,y,z
+        return np.asarray(x),np.asarray(y),np.asarray(z),np.asarray(M)
 
+def CoM(x,y,z,M):
+        X=sum(x*M)/sum(M)
+        Y=sum(y*M)/sum(M)
+        Z=sum(z*M)/sum(M)
+        return X,Y,Z
 
 def grid_plot(dirnames,file_numbers,xlabels,ylabels):
         '''grid of images of dimensions [len(dirnames), len(filenames)]'''
@@ -229,29 +236,36 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
         for i in range(len(dirnames)):
            rho=prep_image_line(dirnames[i],file_numbers)
            for j in range(len(file_numbers)):
-               axs[i,j].set_yticks([])
-               axs[i,j].set_xticks([])
-               axs[i,j].imshow(np.log10( np.sum(rho[j],2) / len(rho[j][:,0,0]) * code_units.rho_cu) )
-               #import the sinks
-               x,y,z=read_sink(dirnames[i],file_numbers[j])
-               axs[i,j].scatter(y,x,s=0.5,c='r')
-               axs[i,j].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=axs[i,j].transAxes,fontsize=10,color='w')
-               #crop the image
-               mid=np.where(rho[j]==rho[j].max())
-               if len(mid[0])>1:
-                   axs[i,j].set_ylim(mid[0][0]-200,mid[0][0]+200)
-                   axs[i,j].set_xlim(mid[1][0]-200,mid[1][0]+200)
-               else:
-                   axs[i,j].set_ylim(mid[0]-200,mid[0]+200)
-                   axs[i,j].set_xlim(mid[1]-200,mid[1]+200)
-
-
-               axs[i,j].tick_params(axis="x", labelsize=15)
-               axs[i,j].tick_params(axis="y", labelsize=15)
+               J=int(len(file_numbers) - j -1)
+               axs[i,J].set_yticks([])
+               axs[i,J].set_xticks([])
                if i==0:
-                   axs[0,j].set_title(xlabels[j],fontsize=15)
+                    if j==0:
+                        vmin=(np.log10( np.sum(rho[J],2) / len(rho[J][:,0,0]) * code_units.rho_cu)).min()
+                        vmax=(np.log10( np.sum(rho[J],2) / len(rho[J][:,0,0]) * code_units.rho_cu)).max()
+               axs[i,J].imshow(np.log10( np.sum(rho[J],2) / len(rho[J][:,0,0]) * code_units.rho_cu),cmap='bone',vmin=vmin,vmax=vmax )
+               #import the sinks
+               x,y,z,M=read_sink(dirnames[i],file_numbers[J])
+               cx,cu,cz=CoM(x,y,z,M)
+               axs[i,J].scatter(y,x,s=0.5,c='magenta')
+               axs[i,J].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=axs[i,J].transAxes,fontsize=10,color='w')
+               #crop the image
+               #mid=np.where(rho[J]==rho[J].max())
+               #if len(mid[0])>1:
+               #    axs[i,J].set_ylim(mid[0][0]-200,mid[0][0]+200)
+               #    axs[i,J].set_xlim(mid[1][0]-200,mid[1][0]+200)
+               #else:
+               #    axs[i,J].set_ylim(mid[0]-200,mid[0]+200)
+               #    axs[i,J].set_xlim(mid[1]-200,mid[1]+200)
+               axs[i,J].set_ylim(cy-200,cy+200)
+               axs[i,J].set_xlim(cx-200,cx+200)
+
+               axs[i,J].tick_params(axis="x", labelsize=15)
+               axs[i,J].tick_params(axis="y", labelsize=15)
+               if i==0:
+                   axs[0,J].set_title(xlabels[J],fontsize=12)
                if j==0:
-                   axs[i,0].set_ylabel(ylabels[i],fontsize=15)
+                   axs[i,0].set_ylabel(ylabels[i],fontsize=12,rotation=80)
         plt.subplots_adjust(wspace=-0.6, hspace=0)
         return fig,axs
         
