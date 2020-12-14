@@ -1,0 +1,119 @@
+\begin{thebibliography}{}
+\makeatletter
+\relax
+\def\mn@urlcharsother{\let\do\@makeother \do\$\do\&\do\#\do\^\do\_\do\%\do\~}
+\def\mn@doi{\begingroup\mn@urlcharsother \@ifnextchar [ {\mn@doi@}
+  {\mn@doi@[]}}
+\def\mn@doi@[#1]#2{\def\@tempa{#1}\ifx\@tempa\@empty \href
+  {http://dx.doi.org/#2} {doi:#2}\else \href {http://dx.doi.org/#2} {#1}\fi
+  \endgroup}
+\def\mn@eprint#1#2{\mn@eprint@#1:#2::\@nil}
+\def\mn@eprint@arXiv#1{\href {http://arxiv.org/abs/#1} {{\tt arXiv:#1}}}
+\def\mn@eprint@dblp#1{\href {http://dblp.uni-trier.de/rec/bibtex/#1.xml}
+  {dblp:#1}}
+\def\mn@eprint@#1:#2:#3:#4\@nil{\def\@tempa {#1}\def\@tempb {#2}\def\@tempc
+  {#3}\ifx \@tempc \@empty \let \@tempc \@tempb \let \@tempb \@tempa \fi \ifx
+  \@tempb \@empty \def\@tempb {arXiv}\fi \@ifundefined
+  {mn@eprint@\@tempb}{\@tempb:\@tempc}{\expandafter \expandafter \csname
+  mn@eprint@\@tempb\endcsname \expandafter{\@tempc}}}
+
+\bibitem[\protect\citeauthoryear{Bate, Bonnell  \& Price}{Bate
+  et~al.}{1995}]{Bate1995}
+Bate M.~R.,  Bonnell I.~A.,   Price N.~M.,  1995, \mn@doi [Monthly Notices of
+  the Royal Astronomical Society] {10.1093/mnras/277.2.362}, 277, 362
+
+\bibitem[\protect\citeauthoryear{Bonnell \& Bate}{Bonnell \&
+  Bate}{2005}]{Bonnell2005}
+Bonnell I.~A.,  Bate M.~R.,  2005, \mn@doi [Monthly Notices of the Royal
+  Astronomical Society] {10.1111/j.1365-2966.2005.09360.x}, 362, 915
+
+\bibitem[\protect\citeauthoryear{Bromm, Coppi  \& Larson}{Bromm
+  et~al.}{1999}]{Bromm1999}
+Bromm V.,  Coppi P.~S.,   Larson R.~B.,  1999, \mn@doi [The Astrophysical
+  Journal] {10.1086/312385}, 527, L5
+
+\bibitem[\protect\citeauthoryear{Bromm, Kudritzki  \& Loeb}{Bromm
+  et~al.}{2001}]{Bromm2001}
+Bromm V.,  Kudritzki R.~P.,   Loeb A.,  2001, \mn@doi [The Astrophysical
+  Journal] {10.1086/320549}, 552, 464
+
+\bibitem[\protect\citeauthoryear{Clark, Glover, Klessen  \& Bromm}{Clark
+  et~al.}{2011}]{Clark2011}
+Clark P.~C.,  Glover S. C.~O.,  Klessen R.~S.,   Bromm V.,  2011, \mn@doi [The
+  Astrophysical Journal] {10.1088/0004-637X/727/2/110}, 727, 110
+
+\bibitem[\protect\citeauthoryear{Federrath, Banerjee, Clark  \&
+  Klessen}{Federrath et~al.}{2010}]{Federrath2010}
+Federrath C.,  Banerjee R.,  Clark P.~C.,   Klessen R.~S.,  2010, \mn@doi [The
+  Astrophysical Journal] {10.1088/0004-637X/713/1/269}, 713, 269
+
+\bibitem[\protect\citeauthoryear{Haiman, Thoul  \& Loeb}{Haiman
+  et~al.}{1996}]{Haiman1996}
+Haiman Z.,  Thoul A.~A.,   Loeb A.,  1996, \mn@doi [The Astrophysical Journal]
+  {10.1086/177343}, 464, 523
+
+\bibitem[\protect\citeauthoryear{Heger, Fryer, Woosley, Langer  \&
+  Hartmann}{Heger et~al.}{2003}]{Heger2003}
+Heger A.,  Fryer C.~L.,  Woosley S.~E.,  Langer N.,   Hartmann D.~H.,  2003,
+  \mn@doi [The Astrophysical Journal] {10.1086/375341}, 591, 288
+
+\bibitem[\protect\citeauthoryear{Kulsrud}{Kulsrud}{1990}]{Kulsrud1990}
+Kulsrud R.~M.,  1990, \mn@doi [Symposium - International Astronomical Union]
+  {10.1017/S0074180900191065}, 140, 527
+
+\bibitem[\protect\citeauthoryear{Larson}{Larson}{1969}]{Larson1969}
+Larson R.~B.,  1969, \mn@doi [Monthly Notices of the Royal Astronomical
+  Society] {10.1093/mnras/145.3.271}, 145, 271
+
+\bibitem[\protect\citeauthoryear{Machida, Matsumoto  \& Inutsuka}{Machida
+  et~al.}{2008}]{Machida2008a}
+Machida M.~N.,  Matsumoto T.,   Inutsuka S.-i.,  2008, \mn@doi [The
+  Astrophysical Journal] {10.1086/591074}, 685, 690
+
+\bibitem[\protect\citeauthoryear{O'Shea \& Norman}{O'Shea \&
+  Norman}{2008}]{OShea2008}
+O'Shea B.~W.,  Norman M.~L.,  2008, \mn@doi [The Astrophysical Journal]
+  {10.1086/524006}, 673, 14
+
+\bibitem[\protect\citeauthoryear{Omukai, Tsuribe, Schneider  \& Ferrara}{Omukai
+  et~al.}{2005}]{Omukai2005}
+Omukai K.,  Tsuribe T.,  Schneider R.,   Ferrara A.,  2005, \mn@doi [The
+  Astrophysical Journal] {10.1086/429955}, 626, 627
+
+\bibitem[\protect\citeauthoryear{Schober, Schleicher, Federrath, Klessen  \&
+  Banerjee}{Schober et~al.}{2012}]{Schober2012}
+Schober J.,  Schleicher D.,  Federrath C.,  Klessen R.,   Banerjee R.,  2012,
+  \mn@doi [Physical Review E] {10.1103/PhysRevE.85.026303}, 85, 026303
+
+\bibitem[\protect\citeauthoryear{Seifried et~al.,}{Seifried
+  et~al.}{2017}]{Seifried2017}
+Seifried D.,  et~al., 2017, \mn@doi [Monthly Notices of the Royal Astronomical
+  Society] {10.1093/mnras/stx2343}, 472, 4797
+
+\bibitem[\protect\citeauthoryear{Sharda, Federrath  \& Krumholz}{Sharda
+  et~al.}{2020}]{Sharda2020}
+Sharda P.,  Federrath C.,   Krumholz M.~R.,  2020, \mn@doi [Monthly Notices of
+  the Royal Astronomical Society] {10.1093/mnras/staa1926}, 497, 336
+
+\bibitem[\protect\citeauthoryear{Springel}{Springel}{2010}]{Springel2010}
+Springel V.,  2010, \mn@doi [Monthly Notices of the Royal Astronomical Society]
+  {10.1111/j.1365-2966.2009.15715.x}, 401, 791
+
+\bibitem[\protect\citeauthoryear{Stacy, Pawlik, Bromm  \& Loeb}{Stacy
+  et~al.}{2014}]{Stacy2014}
+Stacy A.,  Pawlik A.~H.,  Bromm V.,   Loeb A.,  2014, \mn@doi [Monthly Notices
+  of the Royal Astronomical Society] {10.1093/mnras/stu621}, 441, 822
+
+\bibitem[\protect\citeauthoryear{Truelove, Klein, McKee, Holliman, Howell  \&
+  Greenough}{Truelove et~al.}{1997}]{Truelove1997}
+Truelove J.~K.,  Klein R.~I.,  McKee C.~F.,  Holliman II J.~H.,  Howell L.~H.,
+   Greenough J.~A.,  1997, \mn@doi [The Astrophysical Journal Letters]
+  {10.1086/310975}, 489, L179
+
+\bibitem[\protect\citeauthoryear{Wollenberg, Glover, Clark  \&
+  Klessen}{Wollenberg et~al.}{2019}]{Wollenberg2019}
+Wollenberg K. M.~J.,  Glover S. C.~O.,  Clark P.~C.,   Klessen R.~S.,  2019,
+  arXiv:1912.06377 [astro-ph]
+
+\makeatother
+\end{thebibliography}
