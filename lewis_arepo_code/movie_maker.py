@@ -1,4 +1,4 @@
-from numpy import * 
+import numpy as np
 import matplotlib.pyplot as plt
 import projection_functions 
 import arepo_utils 
@@ -20,11 +20,11 @@ def snapname(no):
 	return n
 
 def sink_pos(snap,pixels,imx1,imx2,imy1,imz1):
-        a=arepo_utils.aread(snap)
+	a=arepo_utils.aread(snap)
 	if a.npart[-1]>0:
-        	X,Y,Z=a.sinkx-imx1,a.sinky-imy1,a.sinkz-imz1
-        	pixel=(imx2-imx1)/pixels
-        	x,y,z=(X/pixel).astype(int),(Y/pixel).astype(int),(Z/pixel).astype(int)
+		X,Y,Z=a.sinkx-imx1,a.sinky-imy1,a.sinkz-imz1
+		pixel=(imx2-imx1)/pixels
+		x,y,z=(X/pixel).astype(int),(Y/pixel).astype(int),(Z/pixel).astype(int)
 	else:
 		x,y,z=np.array([0]),np.array([0]),np.array([0])
 	return x,y,z
@@ -39,16 +39,17 @@ def plot_save(dirname,imnames,nos,imx1,imx2,imy1,imz1,outdir):
 		if i==0:
 			vmin=(np.log10(im).min())
 			vmax=(np.log10(im).max())
-		ax.imshow(np.log10(im),vmin=vmin,vmax=vmax,cmap='bone')
-		cbar=plt.colorbar(image)
+		image=ax.imshow(np.log10(im),vmin=vmin,vmax=vmax,cmap='afmhot')
+		cbar=plt.colorbar(image,pad=0)
 		plt.text(1300,600,r'log$_{10}$( $\rho$ [gcm$^{-3}] )$', rotation=270)
-		ax.scatter(y,x,c='magenta',s=0.5)
-		ax.set_ylim(0,pixels)
-		ax.set_xlim(0,pixels)
+		ax.scatter(y,x,c='dodgerblue',s=0.5)
+		ax.set_ylim(0,1000)
+		ax.set_xlim(0,1000)
 		ax.set_aspect('equal')
 		ax.set_yticks([])
 		ax.set_xticks([])
 		plt.savefig(outdir+n+'.png')
+		plt.close('all')
 	
 
 
