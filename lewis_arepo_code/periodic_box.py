@@ -34,10 +34,13 @@ def shifter(a,mask,box_old,zoomzone):
 	
 	
 #filename='/cosma7/data/dp155/dc-prol1/uniform_field/0.1/snapshot_255'
-filename='/cosma7/data/dp155/dc-prol1/resolution_test/1e8_sink/snapshot_265'
+#filename='/cosma7/data/dp155/dc-prol1/resolution_test/1e8_sink/snapshot_265'
+#filename='/scratch/c.c1521474/resolution_test/merge/1e8_redo/snapshot_042'
+filename='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_037'
 a=arepo_utils.aread(filename)
 #zoomzone=0.1 
-zoomzone=1
+#zoomzone=1
+zoomzone=0.4
 box=230.809
 mask=masker(filename,zoomzone)
 x,y,z=shifter(a,mask,box,zoomzone)
@@ -80,4 +83,7 @@ sofar=arepo_input_writer.tag_block(sofar,a.mass[mask],'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,a.u[mask],'U   ','d',1)
 sofar=arepo_input_writer.tag_block(sofar,(a.bfield[:,0][mask],a.bfield[:,1][mask],a.bfield[:,2][mask]),'BFLD','d',3)
 #arepo_input_writer.writer(sofar,'/cosma7/data/dp155/dc-prol1/crop_scaling/strong/4node/arepo_input.dat')
-arepo_input_writer.writer(sofar,'/cosma7/data/dp155/dc-prol1/periodic_box/arepo_input.dat')
+#arepo_input_writer.writer(sofar,'/cosma7/data/dp155/dc-prol1/periodic_box/arepo_input.dat')
+#arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/merge/1e8_cutout/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/merge/1e11_cutout/arepo_input.dat')
+

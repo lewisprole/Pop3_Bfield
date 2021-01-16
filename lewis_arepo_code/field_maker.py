@@ -13,10 +13,24 @@ def spectrum(N,n):
 	P=k**n
 	return k,P
 
-def magnetic_spectrum(N):
+def magnetic_spectrum(N,forcing_scale,boxsize,turb_type):
 	'''magnetic energy spectrum from Schober 2015'''
-	k=np.linspace(0,N-1,N)
+	kL=2*np.pi/forcing_scale
+	kmin=kL
+	kmax=2*np.pi / (boxsize/(N/2))
+	if turb_type=='burgers':
+		theta=1/2
+		Rm_crit=2718
+		kstar=588*kL
+	if turb_type=='kolmogorov':
+		theta=1/3
+		Rm_crit=107
+		kstar=101*kL
+	k=np.linspace(0,N-1,N) *2*np.pi /boxsize #radians per meter (just for the calculation)
 	P=k**(3/2) * sc.kn(1,k/kstar)
+	k=np.linspace(0,N-1,N) #cycles per boxlength (used for the rest of the field generation)
+
+	return k,P
 
 
 def amplitudes(k,P):
@@ -26,11 +40,11 @@ def amplitudes(k,P):
 	return As_squared 
 
 def kspace(k,As_squared,remove_compressive):
-	Ncube=2*len(k)
+	Ncube=2*len(k) #multiply by 2 because the fft.fftfreq function sets second half of array as a mirror
 	Ax_space=np.zeros((Ncube,Ncube,Ncube))
 	Ay_space=np.zeros((Ncube,Ncube,Ncube))
 	Az_space=np.zeros((Ncube,Ncube,Ncube))
-	ks=np.fft.fftfreq(Ncube)*Ncube
+	ks=np.fft.fftfreq(Ncube)*Ncube #puts the k array into the weird format that fft wants
 	ky,kx,kz=np.meshgrid(ks,ks,ks)
 	kmag=np.sqrt(kx**2+ky**2+kz**2)
 
@@ -42,9 +56,9 @@ def kspace(k,As_squared,remove_compressive):
 	Azflat=Az_space.flatten()
 	in_range=np.where(Kflat<As_squared.shape) #the kmags go beyond the original spectrum, only use the modes up to kmag=k.max
 	Ks_in_range=Kflat[in_range]
-	Axflat[in_range]=np.sqrt(1/3 * As_squared[Ks_in_range])
-	Ayflat[in_range]=np.sqrt(1/3 * As_squared[Ks_in_range])
-	Azflat[in_range]=np.sqrt(1/3 * As_squared[Ks_in_range])
+	Axflat[in_range]=np.sqrt(1/3 * As_squared[Kflat[in_range]])
+	Ayflat[in_range]=np.sqrt(1/3 * As_squared[Kflat[in_range]])
+	Azflat[in_range]=np.sqrt(1/3 * As_squared[Kflat[in_range]])
 	Ax_space=Axflat.reshape(Ncube,Ncube,Ncube) #turn back into 3D array
 	Ay_space=Ayflat.reshape(Ncube,Ncube,Ncube)
 	Az_space=Azflat.reshape(Ncube,Ncube,Ncube)
@@ -131,7 +145,17 @@ def rescale(bx,by,bz,B_target):
 	bz=factor*bz
 	return bx,by,bz 
 	
-
+def prepare_ICs_Bfield(N,boxsize,xarepo,yarepo,zarepo,strength):
+	k,P=magnetic_spectrum(N)
+	As_squared=amplitudes(k,P)
+	Ax,Ay,Az=kspace(k,As_squared,'cross')
+	bx=np.fft.ifftn(Ax)
+	by=np.fft.ifftn(Ay)
+	bz=np.fft.ifftn(Az)
+	bx,by,bz=bx.real,by.real,bz.real
+	bx,by,bz=interpolate(bx,by,bz,xarepo,yarepo,zarepo,boxsize)
+	bx,by,bz=rescale(bx,by,bz,strength)
+	return bx,by,bz
 
 def prepare_ICs(N,n,boxsize,xarepo,yarepo,zarepo,strength):
 	k,P=spectrum(N,n)
@@ -141,7 +165,7 @@ def prepare_ICs(N,n,boxsize,xarepo,yarepo,zarepo,strength):
 	by=np.fft.ifftn(Ay)
 	bz=np.fft.ifftn(Az)
 	bx,by,bz=bx.real,by.real,bz.real
-	bx,by,bz=interpolate(bx,by,bz,xarepo,yarepo,zarepo,boxsize)
+	bx,by,bz=interpolate(bx,by,bz,xarepo,yarepo,zarepo,boxsizebx,by,bz=rescale(bx,by,bz,strength))
 	bx,by,bz=rescale(bx,by,bz,strength)
 	return bx,by,bz
 
