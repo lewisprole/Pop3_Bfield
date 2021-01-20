@@ -194,10 +194,30 @@ def aread(filename):
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
                                 a.divb = np.fromfile(file,dtype=np.double,count=ngas)
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
+                        elif(tag=="DVBA"):
+                                print("Reading DVBA")
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                                a.divbalt = np.fromfile(file,dtype=np.double,count=ngas)
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                        elif(tag=="BPSI"):
+                                print("Reading BPSI")
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                                a.psi = np.fromfile(file,dtype=np.double,count=ngas)
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                        elif(tag=="VDED"):
+                                print("VDED")
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                                a.dednerv = np.fromfile(file,dtype=np.double,count=ngas)
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                        elif(tag=="GAMM"):
+                                print("Reading GAMM")
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
+                                a.gamma = np.fromfile(file,dtype=np.double,count=ngas)
+                                skip = np.fromfile(file,dtype=np.int32,count=1)
                         elif(tag=="SOFT"):
                                 print("Reading softening")
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
-                                a.softening = np.fromfile(file,dtype=np.double,count=N)
+                                a.psi = np.fromfile(file,dtype=np.double,count=N)
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
                                 igot_soft = 1
                         elif(tag=="CHEM"):
@@ -229,6 +249,12 @@ def aread(filename):
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
                                 a.angle=np.fromfile(file,dtype=np.double,count=ngas)
                                 skip = np.fromfile(file,dtype=np.int32,count=1)
+                        elif(tag=='SGTR'):
+                               print('Reading chemical rates')
+                               skip = np.fromfile(file,dtype=np.int32,count=1)
+                               buf=np.fromfile(file,dtype=np.double,count=27*ngas)
+                               skip = np.fromfile(file,dtype=np.int32,count=1)
+                               a.cooling = np.reshape(buf,(-1,27))
                         else:
                                 print("Skipping through property",tag," with record length", nextblock-8)
                                 dummy = np.fromfile(file,dtype=np.int32,count=(nextblock//4))

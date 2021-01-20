@@ -35,12 +35,12 @@ def shifter(a,mask,box_old,zoomzone):
 	
 #filename='/cosma7/data/dp155/dc-prol1/uniform_field/0.1/snapshot_255'
 #filename='/cosma7/data/dp155/dc-prol1/resolution_test/1e8_sink/snapshot_265'
-#filename='/scratch/c.c1521474/resolution_test/merge/1e8_redo/snapshot_042'
-filename='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_037'
+filename='/scratch/c.c1521474/resolution_test/merge/1e8_redo/snapshot_042'
+#filename='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_037'
 a=arepo_utils.aread(filename)
 #zoomzone=0.1 
 #zoomzone=1
-zoomzone=0.4
+zoomzone=0.05
 box=230.809
 mask=masker(filename,zoomzone)
 x,y,z=shifter(a,mask,box,zoomzone)
@@ -81,9 +81,24 @@ sofar=arepo_input_writer.tag_block(sofar,(a.vx[mask],a.vy[mask],a.vz[mask]),'VEL
 sofar=arepo_input_writer.tag_block(sofar,a.partid[mask],'ID  ','i',1)
 sofar=arepo_input_writer.tag_block(sofar,a.mass[mask],'MASS','d',1)
 sofar=arepo_input_writer.tag_block(sofar,a.u[mask],'U   ','d',1)
+sofar=arepo_input_writer.tag_block(sofar,a.rho[mask],'RHO ','d',1)
+sofar=arepo_input_writer.tag_block(sofar,a.potential[mask],'POT ','d',1)
+sofar=arepo_input_writer.tag_block(sofar,(a.accel[:,0][mask],a.accel[:,1][mask],a.accel[:,2][mask]),'ACCE','d',3)
 sofar=arepo_input_writer.tag_block(sofar,(a.bfield[:,0][mask],a.bfield[:,1][mask],a.bfield[:,2][mask]),'BFLD','d',3)
+sofar=arepo_input_writer.tag_block(sofar,a.divb[mask],'DIVB','d',1)
+sofar=arepo_input_writer.tag_block(sofar,a.divbalt[mask],'DVBA','d',1)
+sofar=arepo_input_writer.tag_block(sofar,a.psi[mask],'BPSI ','d',1)
+sofar=arepo_input_writer.tag_block(sofar,a.dednerv[mask],'VDED','d',1)
+#chemical species slightly trickier to prepare
+chem=np.zeros((a.chem.shape[1],len(a.chem[:,0][mask])))
+for i in range(a.chem.shape[1]):
+	chem[i]=a.chem[:,i][mask]
+sofar=arepo_input_writer.tag_block(sofar,chem,'CHEM','d',int(a.chem.shape[1]))
+sofar=arepo_input_writer.tag_block(sofar,a.gamma[mask],'GAMM','d',1)
+sofar=arepo_input_writer.tag_block(sofar,a.divv[mask],'DIVV','d',1)
+
 #arepo_input_writer.writer(sofar,'/cosma7/data/dp155/dc-prol1/crop_scaling/strong/4node/arepo_input.dat')
 #arepo_input_writer.writer(sofar,'/cosma7/data/dp155/dc-prol1/periodic_box/arepo_input.dat')
-#arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/merge/1e8_cutout/arepo_input.dat')
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/merge/1e11_cutout/arepo_input.dat')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/merge/1e8_cutout/arepo_input.dat')
+#arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/merge/1e11_cutout/arepo_input.dat')
 
