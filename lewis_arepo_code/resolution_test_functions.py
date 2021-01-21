@@ -83,6 +83,31 @@ def plot_MN(files):
 	axs[1].legend(fontsize=12,loc='upper left',frameon=False)
 	axs[1].set_xlim(-100,1350)
 
+def plot_MNjeans(files):
+        Nmax=0
+        fig,axs=plt.subplots(2,sharex=True)
+        plt.subplots_adjust(wspace=0, hspace=0)
+        colors='fuchsia','k','c'
+        labels='8 cells','16 cells','32 cells'
+        for i in range(len(files)):
+                N,M,t=txtread(files[i])
+                if i==0:
+                        t0=t[0]
+                axs[0].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i])
+                axs[1].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i],label=labels[i])
+                if N.max()>Nmax:
+                        Nmax=N.max()
+
+        axs[1].set_xlabel(r'$t \ [yrs]$',fontsize=20)
+        axs[0].set_ylabel(r'$N_{sinks}$',fontsize=20)
+        axs[1].set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=20)
+        axs[0].set_yticks(np.arange(1,Nmax+2,2))
+        axs[1].tick_params(axis="x", labelsize=15,direction="in")
+        axs[0].tick_params(axis="x", labelsize=15,direction="in")
+        axs[0].tick_params(axis="y", labelsize=15,direction="in")
+        axs[1].tick_params(axis="y", labelsize=15,direction="in")
+        axs[1].legend(fontsize=12,loc='upper left',frameon=False)
+        #axs[1].set_xlim(-100,1350)
 	
 
 
