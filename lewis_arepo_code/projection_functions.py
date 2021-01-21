@@ -304,4 +304,7 @@ def IMF_col(dirs,snap,no_bins,name):
             #axs[i].set_yticks([])
         return fig,axs
 
-
+def histogram_velocities(filename):
+         vx,vy,vz,x,y,z=read_3cube(filename)
+         v=np.sqrt(vx**2+vy**2+vz**2)
+         hist, bin_edges = np.histogram(v,weights=a.mass/a.rho)
