@@ -91,35 +91,75 @@ def plot_MNjeans(files1and2):
         plt.subplots_adjust(wspace=0.3, hspace=0)
         colors='fuchsia','k','c'
         labels='8 cells','16 cells','32 cells'
-	labels2=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$'
-	for j in range(2):
-        	for i in range((len(files1and2[0]))):
-                	N,M,t=txtread(files1and2[j][i])
-                	if i==0:
-                        	t0=t[0]
-                	axs[0,j].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i],label=labels[i])
-                	axs[1,j].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i],label=labels[i])
-                	if N.max()>Nmax:
-                        	Nmax=N.max()
+        labels2=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$'
+        for j in range(2):
+                for i in range((len(files1and2[0]))):
+                        N,M,t=txtread(files1and2[j][i])
+                        if i==0:
+                                  t0=t[0]
+                        axs[0,j].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i],label=labels[i])
+                        axs[1,j].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i],label=labels[i])
+                        if N.max()>Nmax:
+                                  Nmax=N.max()
 
-		axs[1,j].tick_params(axis="x", labelsize=15,direction="in")
-		axs[0,j].tick_params(axis="x", labelsize=15,direction="in")
-		axs[0,j].tick_params(axis="y", labelsize=15,direction="in")
-		axs[1,j].tick_params(axis="y", labelsize=15,direction="in")
-		axs[1,j].text(0.78,0.1,labels2[j],ha='center', va='center', transform=axs[1,j].transAxes,fontsize=15)
+                axs[1,j].tick_params(axis="x", labelsize=15,direction="in")
+                axs[0,j].tick_params(axis="x", labelsize=15,direction="in")
+                axs[0,j].tick_params(axis="y", labelsize=15,direction="in")
+                axs[1,j].tick_params(axis="y", labelsize=15,direction="in")
+                axs[1,j].text(0.78,0.1,labels2[j],ha='center', va='center', transform=axs[1,j].transAxes,fontsize=15)
 
         axs[1,0].set_xlabel(r'$t \ [yrs]$',fontsize=20)
-	axs[1,1].set_xlabel(r'$t \ [yrs]$',fontsize=20)
+        axs[1,1].set_xlabel(r'$t \ [yrs]$',fontsize=20)
         axs[0,0].set_ylabel(r'$N_{sinks}$',fontsize=20)
-	axs[0,1].set_ylabel(r'$N_{sinks}$',fontsize=20)
+        axs[0,1].set_ylabel(r'$N_{sinks}$',fontsize=20)
         axs[1,0].set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=20)
-	axs[1,1].set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=20)
+        axs[1,1].set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=20)
         #axs[0,0].set_yticks(np.arange(1,Nmax+2,2))
         axs[1,1].legend(fontsize=12,loc='upper left',frameon=False)
-	axs[1,0].legend(fontsize=12,loc='upper left',frameon=False)
+        axs[1,0].legend(fontsize=12,loc='upper left',frameon=False)
         #axs[1].set_xlim(-100,1350)
-	plt.subplots_adjust(left = 0.1,bottom = 0.17,right=0.95)
-	
+        plt.subplots_adjust(left = 0.1,bottom = 0.17,right=0.95)
+
+def plot_MN_join(files):
+        fig = plt.figure()
+        ax1=plt.subplot2grid((2, 3), (0, 0), colspan=2)
+        ax2=plt.subplot2grid((2, 3), (1, 0), colspan=2,sharex=ax1)
+        ax3=plt.subplot2grid((2, 3), (0, 2), rowspan=2)
+        
+        Nmax=0
+        plt.subplots_adjust(wspace=0.4, hspace=0)
+        colors='b','g','r','cyan','Purple'
+        labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+        for i in range(len(files)):
+                N,M,t=txtread(files[i])
+                if i==0:
+                        t0=t[0]
+                ax1.plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i],label=labels[i])
+                ax2.plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i],label=labels[i])
+                ax3.plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i],label=labels[i])
+                if N.max()>Nmax:
+                        Nmax=N.max()
+
+        ax2.set_xlabel(r'$t \ [yrs]$',fontsize=20)
+        ax1.set_ylabel(r'$N_{sinks}$',fontsize=20)
+        ax3.set_xlabel(r'$t \ [yrs]$',fontsize=20)
+        ax3.set_ylabel(r'$N_{sinks}$',fontsize=20)
+        ax2.set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=20)
+        ax1.set_yticks(np.arange(1,Nmax+2,2))
+        ax2.tick_params(axis="x", labelsize=15,direction="in")
+        ax1.tick_params(axis="x", labelsize=15,direction="in")
+        ax1.tick_params(axis="y", labelsize=15,direction="in")
+        ax2.tick_params(axis="y", labelsize=15,direction="in")
+        ax3.tick_params(axis="y", labelsize=15,direction="in")
+        ax3.tick_params(axis="x", labelsize=15,direction="in")
+        ax3.legend(fontsize=12,loc='upper left',frameon=False,bbox_to_anchor=(0.99, 1.05))
+        ax2.set_xlim(-80,1350)
+        ax2.set_ylim(-3,70)
+        ax3.set_xlim(-50,250)
+        ax3.set_ylim(0.5,11)
+        plt.subplots_adjust(left = 0.1,bottom = 0.17,right=0.8)
+        
+
 
 def velocity_graph(files):
         colors='cyan','r','g','b'
