@@ -288,25 +288,30 @@ def IMF_col(dirs,snap,no_bins,name):
             a=arepo_utils.aread(dirs[i]+str(snap[i]))
             if i==0:
                 max_sinkmass=a.sinkmass.max()*code_units.M_cu/ap.M_sun.cgs.value
-                min_sinkmass=a.sinkmass.min()*code_units.M_cu/ap.M_sun.cgs.value
+                #min_sinkmass=a.sinkmass.min()*code_units.M_cu/ap.M_sun.cgs.value
             else:
                if a.sinkmass.max()>max_sinkmass:
                    max_sinkmass=a.sinkmass.max()*code_units.M_cu/ap.M_sun.cgs.value
-               if a.sinkmass.min()<min_sinkmass:
-                   min_sinkmass=a.sinkmass.min()*code_units.M_cu/ap.M_sun.cgs.value
+               #if a.sinkmass.min()<min_sinkmass:
+                   #min_sinkmass=a.sinkmass.min()*code_units.M_cu/ap.M_sun.cgs.value
 
+        min_sinkmass=4/3*np.pi*(1.71E-05*d_cu)**3 *1e12*rho_cu /ap.M_sun.cgs.value
         bins=10**np.linspace(np.log10(min_sinkmass),np.log10(max_sinkmass),no_bins)
         for i in range(len(dirs)):
             #f = open('IMF'+str(8+i)+'.txt', "x")
             a=arepo_utils.aread(dirs[i]+str(snap[i]))
-            N,M=np.histogram(a.sinkmass*code_units.M_cu,bins=bins)
+            N,M=np.histogram(a.sinkmass*code_units.M_cu/ap.M_sun.cgs.value,bins=bins)
             #axs[i].bar(M,N,label=rhos[i])
             axs[i].hist(a.sinkmass*code_units.M_cu/ap.M_sun.cgs.value,bins=bins,color=cs[i],label=rhos[i])
             #axs[i].legend(fontsize=12,frameon=False,loc='upper right')
+            axs[i].set_ylim(0,N.max()+1)
+            minmass=np.array([1e8,1e9,1e10,1e11,1e12])[i] *code_units.rho_cu  * 4/3*np.pi * (np.array([0.001376823,0.0004563,0.000152667,5.04801E-05,1.71E-05])[i]*d_cu)**3 /ap.M_sun.cgs.value
+            axs[i].axvline(x=minmass,ymin=0,ymax=1,color='k')
             axs[i].tick_params(axis="y", labelsize=15)
             axs[i].set_ylim(0,N.max()+1)
             axs[i].text(1.22,0.5,rhos[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=12)
-            axs[i].get_yticklabels()[0].set_visible(False)
+            #axs[i].get_yticklabels()[0].set_visible(False)
+            axs[i].set_yticks([N.max()])
             #axs[i].set_yticks([])
             axs[i].set_xscale('log')
             plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
