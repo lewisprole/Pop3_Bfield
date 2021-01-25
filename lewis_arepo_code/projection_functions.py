@@ -274,37 +274,41 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
 
 
 def IMF_col(dirs,snap,no_bins,name):
-        fig,axs=plt.subplots(4,sharex=True)
+        fig,axs=plt.subplots(5,sharex=True)
         plt.subplots_adjust(wspace=0, hspace=0)
         axs[-1].set_xlabel(r'M [M$_{\odot}$]',fontsize=20)
         axs[-1].tick_params(axis="x", labelsize=15)
-        axs[1].set_ylabel(r'N$_{\rm M}$',fontsize=20,rotation=90)
+        axs[2].set_ylabel(r'N$_{\rm M}    $',fontsize=20,rotation=0)
+        axs[2].yaxis.set_label_coords(-0.15,0.3)
         axs[1].yaxis.set_label_coords(-0.08, 0.1)
         #plt.ylabel( r'N$_{sink}$',fontsize=20)
-        cs='b','g','r','cyan'
-        rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$'
+        cs='b','g','r','cyan','Purple'
+        rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
         for i in range(len(dirs)):
-            a=arepo_utils.aread(dirs[i]+snap)
+            a=arepo_utils.aread(dirs[i]+str(snap[i]))
             if i==0:
                 max_sinkmass=a.sinkmass.max()*code_units.M_cu/ap.M_sun.cgs.value
+                min_sinkmass=a.sinkmass.min()*code_units.M_cu/ap.M_sun.cgs.value
             else:
                if a.sinkmass.max()>max_sinkmass:
                    max_sinkmass=a.sinkmass.max()*code_units.M_cu/ap.M_sun.cgs.value
+               if a.sinkmass.min()<min_sinkmass:
+                   min_sinkmass=a.sinkmass.min()*code_units.M_cu/ap.M_sun.cgs.value
+
+        bins=10**np.linspace(np.log10(min_sinkmass),np.log10(max_sinkmass),no_bins)
         for i in range(len(dirs)):
             #f = open('IMF'+str(8+i)+'.txt', "x")
-            a=arepo_utils.aread(dirs[i]+snap)
-            N,M=np.histogram(a.sinkmass,bins=np.linspace(0,max_sinkmass,no_bins))
+            a=arepo_utils.aread(dirs[i]+str(snap[i]))
+            N,M=np.histogram(a.sinkmass*code_units.M_cu,bins=bins)
             #axs[i].bar(M,N,label=rhos[i])
-            axs[i].hist(a.sinkmass*code_units.M_cu/ap.M_sun.cgs.value,bins=np.linspace(0,max_sinkmass,no_bins),color=cs[i],label=rhos[i])
+            axs[i].hist(a.sinkmass*code_units.M_cu/ap.M_sun.cgs.value,bins=bins,color=cs[i],label=rhos[i])
             #axs[i].legend(fontsize=12,frameon=False,loc='upper right')
             axs[i].tick_params(axis="y", labelsize=15)
             axs[i].set_ylim(0,N.max()+1)
-            axs[i].text(0.85,0.85,rhos[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=12)
+            axs[i].text(1.22,0.5,rhos[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=12)
             axs[i].get_yticklabels()[0].set_visible(False)
             #axs[i].set_yticks([])
+            axs[i].set_xscale('log')
+            plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
         return fig,axs
 
-def histogram_velocities(filename):
-         vx,vy,vz,x,y,z=read_3cube(filename)
-         v=np.sqrt(vx**2+vy**2+vz**2)
-         hist, bin_edges = np.histogram(v,weights=a.mass/a.rho)
