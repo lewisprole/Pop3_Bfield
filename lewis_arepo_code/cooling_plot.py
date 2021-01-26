@@ -134,10 +134,10 @@ def both(file):
 
 	rho=10**np.linspace(z[0],z[-1],100)
 	tff=np.sqrt(3*np.pi/(32*ap.G.cgs.value*rho))/(60*60*24*365)
-	compression_rate =ap.k_B.cgs.value*a.temp/(ap.m_p.cgs.value) * np.sqrt(32*ap.G.cgs.value/(3*np.pi)) * (a.rho*code_units.rho_cu)**(3/2)
-	t_comp=(a.u*code_units.v_cu**2 *a.rho*code_units.rho_cu / compression_rate) /(60*60*24*365)
-	#line3=axs[0].plot(np.log10(rho),np.log10(t_ff),'k',label=r'$t_{ff}$')
-	line3=axs[0].plot(np.log10(a.rho*code_units.rho_cu),np.log10(t_comp),'k',label=r'$t_{ff}$')	
+	#compression_rate =ap.k_B.cgs.value*a.temp/(ap.m_p.cgs.value) * np.sqrt(32*ap.G.cgs.value/(3*np.pi)) * (a.rho*code_units.rho_cu)**(3/2)
+	#t_comp=(a.u*code_units.v_cu**2 *a.rho*code_units.rho_cu / compression_rate) /(60*60*24*365)
+	line3=axs[0].plot(np.log10(rho),np.log10(tff),'k',label=r'$t_{ff}$')
+	#line3=axs[0].plot(np.log10(a.rho*code_units.rho_cu),np.log10(t_comp),'k',label=r'$t_{ff}$')	
 
         #create legend patches
 	line1=Line2D([0], [0], color='brown', lw=2)
