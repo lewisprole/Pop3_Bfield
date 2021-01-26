@@ -276,9 +276,9 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
 def IMF_col(dirs,snap,no_bins,name):
         fig,axs=plt.subplots(5,sharex=True)
         plt.subplots_adjust(wspace=0, hspace=0)
-        axs[-1].set_xlabel(r'M [M$_{\odot}$]',fontsize=20)
-        axs[-1].tick_params(axis="x", labelsize=15)
-        axs[2].set_ylabel(r'N$_{\rm M}    $',fontsize=20,rotation=0)
+        axs[-1].set_xlabel(r'M [M$_{\odot}$]',fontsize=11)
+        axs[-1].tick_params(axis="x", labelsize=10)
+        axs[2].set_ylabel(r'N$_{\rm M}    $',fontsize=11,rotation=0)
         axs[2].yaxis.set_label_coords(-0.15,0.3)
         axs[1].yaxis.set_label_coords(-0.08, 0.1)
         #plt.ylabel( r'N$_{sink}$',fontsize=20)
@@ -295,7 +295,7 @@ def IMF_col(dirs,snap,no_bins,name):
                #if a.sinkmass.min()<min_sinkmass:
                    #min_sinkmass=a.sinkmass.min()*code_units.M_cu/ap.M_sun.cgs.value
 
-        min_sinkmass=4/3*np.pi*(1.71E-05*d_cu)**3 *1e12*rho_cu /ap.M_sun.cgs.value
+        min_sinkmass=4/3*np.pi*(1.71E-05*code_units.d_cu)**3 *1e12*code_units.rho_cu /ap.M_sun.cgs.value
         bins=10**np.linspace(np.log10(min_sinkmass),np.log10(max_sinkmass),no_bins)
         for i in range(len(dirs)):
             #f = open('IMF'+str(8+i)+'.txt', "x")
@@ -307,9 +307,9 @@ def IMF_col(dirs,snap,no_bins,name):
             axs[i].set_ylim(0,N.max()+1)
             minmass=np.array([1e8,1e9,1e10,1e11,1e12])[i] *code_units.rho_cu  * 4/3*np.pi * (np.array([0.001376823,0.0004563,0.000152667,5.04801E-05,1.71E-05])[i]*code_units.d_cu)**3 /ap.M_sun.cgs.value
             axs[i].axvline(x=minmass,ymin=0,ymax=1,color='k')
-            axs[i].tick_params(axis="y", labelsize=15)
+            axs[i].tick_params(axis="y", labelsize=10)
             axs[i].set_ylim(0,N.max()+1)
-            axs[i].text(1.22,0.5,rhos[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=12)
+            axs[i].text(1.22,0.5,rhos[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=10)
             #axs[i].get_yticklabels()[0].set_visible(False)
             axs[i].set_yticks([N.max()])
             #axs[i].set_yticks([])
