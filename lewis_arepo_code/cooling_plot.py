@@ -151,7 +151,7 @@ def both(file):
 	axs[0].tick_params(axis="y", labelsize=9,direction="in")
 	axs[0].set_xlabel(r'log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
 	axs[0].set_ylabel(r'log$_{10}$(t [yrs])',fontsize=10,rotation=90)
-	axs[0].set_ylim(np.log10(tff).min()-1,y[-1])
+	axs[0].set_ylim(np.log10(t_cool).min()-1,y[-1])
 	axs[0].set_xticks([-18,-14,-10,-6,-22])
 
 
