@@ -83,7 +83,36 @@ def du_dt(a):
 
 '''|||||||plot heating and cooling vs density|||||||'''
 
-def plot(file1,file2,Rstar):
+
+def plot(file,Rstar):
+	a=arepo_utils.aread(file)
+	heating,cooling =du_dt(a)
+	comp=compression(a)
+
+	HEATING,y,z=np.histogram2d( np.log10(-heating)[~np.isnan(np.log10(-heating))],       np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(-heating))],bins=(800,800))
+	plt.imshow(HEATING/HEATING,cmap='RdYlBu',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
+
+	COMP,y,z=np.histogram2d( np.log10(comp),np.log10(a.rho*code_units.rho_cu),bins=(800,800))
+	plt.imshow(COMP/COMP,cmap='spring',aspect='auto',label=r'$k_B T/m_p \sqrt{\frac{32G\rho}{3\pi}$',extent=[z[0],z[-1],y[-1],y[0]])
+
+	COOLING,y,z=np.histogram2d( np.log10(cooling)[~np.isnan(np.log10(cooling))],  np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(cooling))],  bins=(800,800))
+	plt.imshow(COOLING/COOLING,cmap='winter',aspect='auto',label=r'$\Lambda$',extent=[z[0],z[-1],y[-1],y[0]])
+
+        #TOTHEAT,y,z=np.histogram2d( np.log10(-heating+comp+acc),np.log10(a.rho*code_units.rho_cu),bins=(800,800))
+        #plt.imshow(TOTHEAT/TOTHEAT,cmap='afmhot',aspect='auto',label=r'$\Lambda$',extent=[z[0],z[-1],y[-1],y[0]])
+
+	plt.ylim(y[0],y[-1])
+
+	plt.ylabel(r'erg s$^{-1}$ g $^{-1}$')
+	plt.xlabel(r'$\rho$ [g cm$^{-3}$]')
+
+	line1=Line2D([0], [0], color='brown', lw=2)
+	line3=Line2D([0], [0], color='forestgreen', lw=2)
+	line4=Line2D([0], [0], color='b', lw=2)
+
+	plt.legend([line1,line3,line4],(r'$\Gamma$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G\rho}{3\pi}}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=10,loc='upper left')
+
+def plot_sinks(file1,file2,Rstar):
 	a=arepo_utils.aread(file2)
 	heating,cooling =du_dt(a)
 	comp=compression(a)
@@ -96,7 +125,7 @@ def plot(file1,file2,Rstar):
 	plt.imshow(ACC/ACC,cmap='spring',aspect='auto',label=r'$Gamma_L$',extent=[z[0],z[-1],y[-1],y[0]])
 
 	COMP,y,z=np.histogram2d( np.log10(comp),np.log10(a.rho*code_units.rho_cu),bins=(800,800))
-	plt.imshow(COMP/COMP,cmap='PRGn',aspect='auto',label=r'$k_B T/m_p \sqrt{\frac{32G\rho}{3\pi}$',extent=[z[0],z[-1],y[-1],y[0]])
+	plt.imshow(COMP/COMP,cmap='summer',aspect='auto',label=r'$k_B T/m_p \sqrt{\frac{32G\rho}{3\pi}$',extent=[z[0],z[-1],y[-1],y[0]])
 
 	COOLING,y,z=np.histogram2d( np.log10(cooling)[~np.isnan(np.log10(cooling))],  np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(cooling))],  bins=(800,800))
 	plt.imshow(COOLING/COOLING,cmap='winter',aspect='auto',label=r'$\Lambda$',extent=[z[0],z[-1],y[-1],y[0]])
@@ -110,8 +139,8 @@ def plot(file1,file2,Rstar):
 	plt.xlabel(r'$\rho$ [g cm$^{-3}$]')
 
 	line1=Line2D([0], [0], color='brown', lw=2)
-	line2=Line2D([0], [0], color='indigo', lw=2)
-	line3=Line2D([0], [0], color='fuchsia', lw=2)
+	line2=Line2D([0], [0], color='fuchsia', lw=2)
+	line3=Line2D([0], [0], color='forestgreen', lw=2)
 	line4=Line2D([0], [0], color='b', lw=2)
 	plt.legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G\rho}{3\pi}}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=10,loc='upper left')
 	
