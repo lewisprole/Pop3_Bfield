@@ -8,6 +8,21 @@ from scipy.interpolate import interp1d
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt 
 
+'''||||||||| simple plot showing T vs rho relationship |||||||||||||'''
+def baro(filename):
+	a=arepo_utils.aread(filename)
+	x,y,z=np.histogram2d( np.log10(a.temp),np.log10(a.rho*code_units.rho_cu),bins=(800,800))
+	plt.imshow(x/x,,cmap='spring',aspect='auto',extent=[z[0],z[-1],y[-1],y[0]])
+	plt.ylim(y[0],y[-1])
+	plt.ylabel(r'log$_{10}(T [k])',fontsize=10)
+	plt.xlabel(r'log$_{10}$($\rho$ [g cm$^{-3}$])',fontsize=10)
+	
+	plt.tick_params(axis="x", labelsize=10,direction="in")
+	plt.tick_params(axis="y", labelsize=10,direction="in")
+	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.9)
+
+
+
 
 
 '''||||||| average mass to calculate free-fall time  |||||||'''
@@ -135,14 +150,20 @@ def plot_sinks(file1,file2,Rstar):
 
 	plt.ylim(y[0],y[-1])
 
-	plt.ylabel(r'erg s$^{-1}$ g $^{-1}$')
-	plt.xlabel(r'$\rho$ [g cm$^{-3}$]')
+	plt.ylabel(r'log$_{10}$(erg s$^{-1}$ g $^{-1}$)',fontsize=10)
+	plt.xlabel(r'log$_{10}$($\rho$ [g cm$^{-3}$])',fontsize=10)
 
 	line1=Line2D([0], [0], color='brown', lw=2)
 	line2=Line2D([0], [0], color='fuchsia', lw=2)
 	line3=Line2D([0], [0], color='forestgreen', lw=2)
 	line4=Line2D([0], [0], color='b', lw=2)
 	plt.legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G\rho}{3\pi}}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=10,loc='upper left')
+	plt.tick_params(axis="x", labelsize=10,direction="in")
+	plt.tick_params(axis="y", labelsize=10,direction="in")
+	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.9)
+		
+	
+	
 	
 '''||| plot heating and cooling as functions of density and radial distance |||'''
 
