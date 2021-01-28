@@ -249,7 +249,7 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
                mask=np.where((np.sqrt((y-500)**2+ (x-500)**2) <400))
                cx,cy,cz=CoM(x[mask],y[mask],z[mask],M[mask])
                axs[i,J].scatter(y,x,s=0.5,c='magenta')
-               axs[i,J].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=axs[i,J].transAxes,fontsize=10,color='w')
+               axs[i,J].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=axs[i,J].transAxes,fontsize=9,color='w')
                #crop the image
                #mid=np.where(rho[J]==rho[J].max())
                #if len(mid[0])>1:
@@ -261,13 +261,13 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
                axs[i,J].set_ylim(cx-200,cx+200)
                axs[i,J].set_xlim(cy-200,cy+200)
 
-               axs[i,J].tick_params(axis="x", labelsize=15)
-               axs[i,J].tick_params(axis="y", labelsize=15)
+               axs[i,J].tick_params(axis="x", labelsize=10)
+               axs[i,J].tick_params(axis="y", labelsize=10)
                if i==0:
-                   axs[0,J].set_title(xlabels[J],fontsize=12)
+                   axs[0,J].set_title(xlabels[J],fontsize=9)
                if j==0:
-                   axs[i,0].set_ylabel(ylabels[i],fontsize=12,rotation=85)
-        plt.subplots_adjust(wspace=-0.6, hspace=0)
+                   axs[i,0].set_ylabel(ylabels[i],fontsize=9,rotation=75)
+        plt.subplots_adjust(wspace=-0.735, hspace=0)
         return fig,axs
         
 
