@@ -231,43 +231,46 @@ def grid_plot(dirnames,file_numbers,xlabels,ylabels):
 
 
 def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
-        fig,axs=plt.subplots(int(len(dirnames)),int(len(file_numbers)))
-        
+	fig = plt.figure(figsize=(len(dirnames), len(file_numbers)))
+	grid = ImageGrid(fig, 111,  # similar to subplot(111)
+		nrows_ncols=(5, 4),  # creates 2x2 grid of axes
+		axes_pad=0,
+		cbar_mode="single",  # pad between axes in inch.
+		 ) 
         for i in range(len(dirnames)):
-           rho=prep_image_line(dirnames[i],file_numbers)
+           I=int(len(dirnames) - i -1)
+           rho=prep_image_line(dirnames[I],file_numbers)
            for j in range(len(file_numbers)):
                J=int(len(file_numbers) - j -1)
-               axs[i,J].set_yticks([])
-               axs[i,J].set_xticks([])
+               print(I*len(file_numbers)+J)
+               grid[I*len(file_numbers)+J].set_yticks([])
+               grid[I*len(file_numbers)+J].set_xticks([])
                if i==0:
                     if j==0:
                         vmin=(np.log10( np.sum(rho[J],2) / len(rho[J][:,0,0]) * code_units.rho_cu)).min()
                         vmax=(np.log10( np.sum(rho[J],2) / len(rho[J][:,0,0]) * code_units.rho_cu)).max()
-               axs[i,J].imshow(np.log10( np.sum(rho[J],2) / len(rho[J][:,0,0]) * code_units.rho_cu),cmap='bone',vmin=vmin,vmax=vmax )
                #import the sinks
-               x,y,z,M=read_sink(dirnames[i],file_numbers[J])
+               x,y,z,M=read_sink(dirnames[I],file_numbers[J])
                mask=np.where((np.sqrt((y-500)**2+ (x-500)**2) <400))
                cx,cy,cz=CoM(x[mask],y[mask],z[mask],M[mask])
-               axs[i,J].scatter(y,x,s=0.5,c='magenta')
-               axs[i,J].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=axs[i,J].transAxes,fontsize=9,color='w')
-               #crop the image
-               #mid=np.where(rho[J]==rho[J].max())
-               #if len(mid[0])>1:
-               #    axs[i,J].set_ylim(mid[0][0]-200,mid[0][0]+200)
-               #    axs[i,J].set_xlim(mid[1][0]-200,mid[1][0]+200)
-               #else:
-               #    axs[i,J].set_ylim(mid[0]-200,mid[0]+200)
-               #    axs[i,J].set_xlim(mid[1]-200,mid[1]+200)
-               axs[i,J].set_ylim(cx-200,cx+200)
-               axs[i,J].set_xlim(cy-200,cy+200)
 
-               axs[i,J].tick_params(axis="x", labelsize=10)
-               axs[i,J].tick_params(axis="y", labelsize=10)
-               if i==0:
-                   axs[0,J].set_title(xlabels[J],fontsize=9)
-               if j==0:
-                   axs[i,0].set_ylabel(ylabels[i],fontsize=9,rotation=75)
-        plt.subplots_adjust(wspace=-0.735, hspace=0)
+               data=np.log10( np.sum(rho[J],2) / len(rho[J][:,0,0]) * code_units.rho_cu)
+               im=grid[I*len(file_numbers)+J].imshow(data[int(cx)-200:int(cx)+200,int(cy)-200:int(cy)+200],cmap='bone',vmin=vmin,vmax=vmax)
+
+               mask=np.where((np.sqrt((y-cy)**2+ (x-cx)**2) <200))
+               grid[I*len(file_numbers)+J].scatter(y[mask]-(cy-200),x[mask]-(cx-200),s=0.5,c='magenta')
+               grid[I*len(file_numbers)+J].text(0.75,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=grid[I*len(file_numbers)+J].transAxes,fontsize=5,color='w')
+
+               grid[I*len(file_numbers)+J].tick_params(axis="x", labelsize=5)
+               grid[I*len(file_numbers)+J].tick_params(axis="y", labelsize=5)
+               if I==0:
+                   grid[I*len(file_numbers)+J].set_title(xlabels[J],fontsize=5)
+               if J==0:
+                   grid[I*len(file_numbers)+J].set_ylabel(ylabels[I],fontsize=5,rotation=75)
+	cbar=grid.cbar_axes[0].colorbar(im)
+        cbar.ax.tick_params(labelsize=5)
+        cbar.ax.set_ylabel(r'Log$_{10}$($\rho$ [gcm$^{-3}$])', rotation=270,fontsize=5,labelpad=15)
+        #plt.subplots_adjust(wspace=-0.735, hspace=0)
         return fig,axs
         
 
