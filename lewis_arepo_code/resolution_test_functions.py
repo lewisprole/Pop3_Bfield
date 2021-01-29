@@ -155,8 +155,8 @@ def plot_MN_join(files):
         ax3.legend(fontsize=10,loc='upper left',frameon=False,bbox_to_anchor=(0.99, 1.05))
         ax2.set_xlim(-80,1350)
         ax2.set_ylim(-3,70)
-        ax3.set_xlim(-50,250)
-        ax3.set_ylim(0.5,11)
+        ax3.set_xlim(-50,282)
+        ax3.set_ylim(0.5,13)
         plt.subplots_adjust(left = 0.1,bottom = 0.17,right=0.8)
         
 

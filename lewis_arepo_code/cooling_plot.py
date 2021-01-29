@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 def baro(filename):
 	a=arepo_utils.aread(filename)
 	x,y,z=np.histogram2d( np.log10(a.temp),np.log10(a.rho*code_units.rho_cu),bins=(800,800))
-	plt.imshow(x/x,,cmap='spring',aspect='auto',extent=[z[0],z[-1],y[-1],y[0]])
+	plt.imshow(x/x,cmap='summer',aspect='auto',extent=[z[0],z[-1],y[-1],y[0]])
 	plt.ylim(y[0],y[-1])
-	plt.ylabel(r'log$_{10}(T [k])',fontsize=10)
+	plt.ylabel(r'log$_{10}$(T [k])',fontsize=10)
 	plt.xlabel(r'log$_{10}$($\rho$ [g cm$^{-3}$])',fontsize=10)
 	
 	plt.tick_params(axis="x", labelsize=10,direction="in")

@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 import code_units
 from scipy.stats import binned_statistic
 import arepo_utils
-import astropy.constants as ap 
+import astropy.constants as ap
+from mpl_toolkits.axes_grid1 import ImageGrid 
 
 
 
@@ -231,8 +232,8 @@ def grid_plot(dirnames,file_numbers,xlabels,ylabels):
 
 
 def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
-	fig = plt.figure(figsize=(len(dirnames), len(file_numbers)))
-	grid = ImageGrid(fig, 111,  # similar to subplot(111)
+        fig = plt.figure(figsize=(len(dirnames), len(file_numbers)))
+        grid = ImageGrid(fig, 111,  # similar to subplot(111)
 		nrows_ncols=(5, 4),  # creates 2x2 grid of axes
 		axes_pad=0,
 		cbar_mode="single",  # pad between axes in inch.
@@ -267,12 +268,73 @@ def grid_with_sinks(dirnames,file_numbers,xlabels,ylabels):
                    grid[I*len(file_numbers)+J].set_title(xlabels[J],fontsize=5)
                if J==0:
                    grid[I*len(file_numbers)+J].set_ylabel(ylabels[I],fontsize=5,rotation=75)
-	cbar=grid.cbar_axes[0].colorbar(im)
+        cbar=grid.cbar_axes[0].colorbar(im)
         cbar.ax.tick_params(labelsize=5)
         cbar.ax.set_ylabel(r'Log$_{10}$($\rho$ [gcm$^{-3}$])', rotation=270,fontsize=5,labelpad=15)
         #plt.subplots_adjust(wspace=-0.735, hspace=0)
         return fig,axs
         
+
+
+
+def duel_column(dirs,nos):
+        '''graph for 2 rows of 3 panels, showing 3 resolution criteria performed for 2 sink creation densities'''
+        fig = plt.figure(figsize=(2,3))
+        grid = ImageGrid(fig, 111,  # similar to subplot(111)
+                nrows_ncols=(2, 3),  # creates 2x2 grid of axes
+                axes_pad=(0,0.2),
+                cbar_mode="single",  # pad between axes in inch.
+                 )
+        xlabels='8 cells','16 cells','32 cells'
+        grid[0].set_ylabel(r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$'
+                             '\n'
+                              r't=2500yrs',fontsize=10,labelpad=10)
+        grid[3].set_ylabel(r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$ \n t=350yrs'
+                             '\n'
+                              r't=350yrs',fontsize=10,labelpad=10)
+        for i in range(len(nos)):
+                
+                grid[i].set_title(xlabels[i],fontsize=10)
+
+                rho=read_cube(dirs[1]+'density_grid_'+nos[i])
+                data=np.log10( np.sum(rho,2) / len(rho[:,0,0]) * code_units.rho_cu)
+                x,y,z,M=read_sink(dirs[1],nos[i])
+                mask=np.where((np.sqrt((y-500)**2+ (x-500)**2) <400))
+                cx,cy,cz=CoM(x[mask],y[mask],z[mask],M[mask])
+                cx,cy,cz=int(cx),int(cy),int(cz)
+                vmin,vmax=data.min(),data.max()
+                im= grid[i+3].imshow(data[cx-400:cx+400,cy-400:cy+400],vmin=vmin,vmax=vmax,cmap='bone')
+                mask=np.where((np.sqrt((y-cy)**2+ (x-cx)**2) <400))
+                grid[i+3].scatter(y[mask]-(cy-400),x[mask]-(cx-400),s=0.5,c='magenta')
+                grid[i+3].text(0.8,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=grid[i+3].transAxes,fontsize=10,color='w')
+
+                rho=read_cube(dirs[0]+'density_grid_'+nos[i])
+                data=np.log10( np.sum(rho,2) / len(rho[:,0,0]) * code_units.rho_cu)
+                x,y,z,M=read_sink(dirs[0],nos[i])
+                mask=np.where((np.sqrt((y-500)**2+ (x-500)**2) <400))
+                cx,cy,cz=CoM(x[mask],y[mask],z[mask],M[mask])
+                cx,cy,cz=int(cx),int(cy),int(cz)
+                grid[i].imshow(data[cx-400:cx+400,cy-400:cy+400],vmin=vmin,vmax=vmax,cmap='bone')
+                mask=np.where((np.sqrt((y-cy)**2+ (x-cx)**2) <400))
+                grid[i].scatter(y[mask]-(cy-400),x[mask]-(cx-400),s=0.5,c='magenta')
+                grid[i].set_xlim(0,800)
+                grid[i].set_ylim(800,0)
+                grid[i].text(0.8,0.08,r'N$_{sink}$='+str(len(x)),ha='center', va='center', transform=grid[i].transAxes,fontsize=10,color='w')
+
+                grid[i+3].tick_params(axis="x", labelsize=9)
+                grid[i+3].tick_params(axis="y", labelsize=9)
+                grid[i+3].set_yticks([])
+                grid[i+3].set_xticks([])
+
+                grid[i].tick_params(axis="x", labelsize=9)
+                grid[i].tick_params(axis="y", labelsize=9)
+                grid[i].set_yticks([])
+                grid[i].set_xticks([])
+
+
+                cbar=grid.cbar_axes[0].colorbar(im)
+                cbar.ax.tick_params(labelsize=9)
+                cbar.ax.set_ylabel(r'Log$_{10}$($\rho$ [gcm$^{-3}$])', rotation=270,fontsize=10,labelpad=20)
 
 
 
