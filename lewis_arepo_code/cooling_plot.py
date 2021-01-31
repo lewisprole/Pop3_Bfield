@@ -6,7 +6,8 @@ import code_units
 import astropy.constants as ap
 from scipy.interpolate import interp1d
 from matplotlib.lines import Line2D
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
+from scipy.stats import binned_statistic  
 
 '''||||||||| simple plot showing T vs rho relationship |||||||||||||'''
 def baro(filename):
@@ -58,6 +59,10 @@ def function(tff,rs):
 ''' ||||||||||| compressional heating rate per mass |||||||||||'''
 def compression(a):
 	return ap.k_B.cgs.value * a.temp / ap.m_p.cgs.value * np.sqrt(32*ap.G.cgs.value/(2*np.pi)) * np.sqrt(a.rho*code_units.rho_cu)
+def compression_line(a):
+	rhomin,rhomax=np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu)
+	comp,rhos,z=binned_statistic(a.rho*code_units.rho_cu,ap.k_B.cgs.value * a.temp / ap.m_p.cgs.value * np.sqrt(32*ap.G.cgs.value/(2*np.pi)) * np.sqrt(a.rho*code_units.rho_cu),bins=10**np.linspace(rhomin,rhomax,100))
+	return comp,rhos[1:]
 
 
 '''||||||||| working out the accretion heating rate per mass |||||||||||'''
@@ -102,7 +107,7 @@ def du_dt(a):
 def plot(file,Rstar):
 	a=arepo_utils.aread(file)
 	heating,cooling =du_dt(a)
-	comp=compression(a)
+	comp=compression_line(a)
 
 	HEATING,y,z=np.histogram2d( np.log10(-heating)[~np.isnan(np.log10(-heating))],       np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(-heating))],bins=(800,800))
 	plt.imshow(HEATING/HEATING,cmap='RdYlBu',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
@@ -161,10 +166,59 @@ def plot_sinks(file1,file2,Rstar):
 	plt.tick_params(axis="x", labelsize=10,direction="in")
 	plt.tick_params(axis="y", labelsize=10,direction="in")
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.9)
-		
-	
-	
-	
+
+
+def prep_panel(file1,file2,Rstar,AX):
+	a=arepo_utils.aread(file2)
+	heating,cooling =du_dt(a)
+	comp,rhos=compression_line(a)
+	acc=accretion(file1,file2,Rstar)
+	HEATING,y,z=np.histogram2d( np.log10(-heating)[~np.isnan(np.log10(-heating))],       np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(-heating))],bins=(100,500))
+	AX.imshow(HEATING/HEATING,cmap='RdYlBu',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
+	AX.plot(np.log10(rhos),np.log10(comp),c='indigo')
+	ACC,y,z=np.histogram2d( np.log10(acc),np.log10(a.rho*code_units.rho_cu),bins=(100,500))
+	AX.imshow(ACC/ACC,cmap='spring',aspect='auto',label=r'$Gamma_L$',extent=[z[0],z[-1],y[-1],y[0]])
+	COOLING,y,z=np.histogram2d( np.log10(cooling)[~np.isnan(np.log10(cooling))],  np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(cooling))],  bins=(100,500))
+	AX.imshow(COOLING/COOLING,cmap='winter',aspect='auto',label=r'$\Lambda$',extent=[z[0],z[-1],y[-1],y[0]])
+	AX.set_ylim(y[0],y[-1])
+	AX.tick_params(axis="x", labelsize=9,direction="in")
+	AX.tick_params(axis="y", labelsize=9,direction="in")
+	return z[0],z[-1]
+
+def plot_panels(file1_9,file2_9,file1_11,file2_11,file1_12,file2_12,Rstars):
+	fig,axs=plt.subplots(5,sharex=True)	
+	plt.subplots_adjust(hspace=0,top=0.95,bottom=0.1,right=0.8,left=0.15)
+	X1,X2=prep_panel(file1_12,file2_12,Rstars[4],axs[4])
+	axs[4].set_xlim(X1,X2)
+	axs[4].set_ylim(-16,13)
+	axs[4].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-6}$gcm$^{-3}$',ha='center', va='center', transform=axs[4].transAxes,fontsize=10)
+	x1,x2=prep_panel(file1_11,file2_11,Rstars[3],axs[3])
+	axs[3].set_xlim(X1,X2)
+	axs[3].set_ylim(-16,13)
+	axs[3].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$',ha='center', va='center', transform=axs[3].transAxes,fontsize=10)
+	x1,x2=prep_panel(file1_10,file2_10,Rstars[2],axs[2])
+	axs[2].set_xlim(X1,X2)
+	axs[2].set_ylim(-16,13)
+	axs[2].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-8}$gcm$^{-3}$',ha='center', va='center', transform=axs[2].transAxes,fontsize=10)
+	x1,x2=prep_panel(file1_9,file2_9,Rstars[1],axs[1])
+	axs[1].set_xlim(X1,X2)
+	axs[1].set_ylim(-16,13)
+	axs[1].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-9}$gcm$^{-3}$',ha='center', va='center', transform=axs[1].transAxes,fontsize=10)
+	x1,x2=prep_panel(file1_8,file2_8,Rstars[0],axs[0])
+	axs[0].set_xlim(X1,X2)
+	axs[0].set_ylim(-16,13)
+	axs[0].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$',ha='center', va='center', transform=axs[0].transAxes,fontsize=10)
+	plt.subplots_adjust(top=0.95,bottom=0.05)
+	axs[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
+	axs[2].set_ylabel(r'Log$_{10}$($\frac{\rm du}{\rm dt}$ [erg s$^{-1}$ g$^{-1}]$)')
+	axs[4].set_xlim(-18,-4)
+	line1=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='brown',markeredgecolor='brown')
+	line2=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='fuchsia',markeredgecolor='fuchsia')
+	line3=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='forestgreen',markeredgecolor='forestgreen')
+	line4=Line2D([0], [0], linestyle='none', marker='o',markerfacecolor='b',markeredgecolor='b')
+	axs[0].legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G\rho}{3\pi}}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=1,loc=(0.99,0.1))
+
+
 '''||| plot heating and cooling as functions of density and radial distance |||'''
 
 
