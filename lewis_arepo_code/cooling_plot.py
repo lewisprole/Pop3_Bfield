@@ -85,7 +85,7 @@ def accretion(file1,file2,Rstar):
 '''---> du/dt = de/dt - drho/dt, use continuity equation for drho/dt |||||||'''
 	
 def du_dt(a):
-	drho_dt =  -a.divv * a.rho*code_units.rho_cu
+	drho_dt =  -a.divv*(1/code_units.t_cu) * a.rho*code_units.rho_cu
 	
 	#create args that separate heating and cooling terms in a.cooling
 	heat=np.array([8,9,10,11,12,20,21,22,23,24,25])
@@ -93,7 +93,7 @@ def du_dt(a):
 	
 	#convert cooling rate per volume into cooling rate per mass 
 	for i in range(a.cooling.shape[1]):
-		a.cooling[:,i] = a.cooling[:,i] - drho_dt
+		a.cooling[:,i] =  (a.cooling[:,i] - drho_dt* a.u*code_units.v_cu**2) / (a.rho*code_units.rho_cu)  #a.cooling[:,i] - drho_dt
 
 	#total heating and  cooling rate per mass
 	heat_rate= np.sum(a.cooling[:,heat],1) 
