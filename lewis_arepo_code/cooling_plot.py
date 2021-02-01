@@ -9,7 +9,7 @@ from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 from scipy.stats import binned_statistic  
 
-'''||||||||| simple plot showing T vs rho relationship |||||||||||||'''
+'''|||||||| simple plot showing T vs rho relationship |||||||||||||'''
 def baro(filename):
 	a=arepo_utils.aread(filename)
 	x,y,z=np.histogram2d( np.log10(a.temp),np.log10(a.rho*code_units.rho_cu),bins=(800,800))
