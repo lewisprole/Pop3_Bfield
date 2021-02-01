@@ -26,6 +26,87 @@ def baro(filename):
 
 
 
+'''||||||functions to find volumetric heating rates||||||||||||'''
+
+def compression(a):
+	return ap.k_B.cgs.value * a.temp / ap.m_p.cgs.value * np.sqrt(32*ap.G.cgs.value/(3*np.pi)) * (a.rho*code_units.rho_cu)**(3/2)
+
+def de_dt(a):
+	heat=np.array([8,9,10,11,12,20,21,22,23,24,25])
+	cool=np.array([0,1,2,3,4,6,7,13,14,15,16,17,18,19,26])
+	heating = -np.sum(a.cooling[:,heat],1)
+	cooling =np.sum(a.cooling[:,cool],1)
+	acc=a.cooling[:,-1]
+	return heating,cooling,acc
+
+def cool_plot(file,AX):
+	a=arepo_utils.aread(file)
+	heating,cooling,acc =de_dt(a)
+	comp=compression(a)
+ 	HEATING,y,z=np.histogram2d( np.log10(heating)[~np.isnan(np.log10(heating))],np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(heating))],bins=(500,500))
+ 	AX.imshow(HEATING/HEATING,cmap='RdYlBu',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
+
+	COMP,y,z=np.histogram2d( np.log10(comp),np.log10(a.rho*code_units.rho_cu),bins=(500,500))
+ 	AX.imshow(COMP/COMP,cmap='summer',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
+
+	ACC,y,z=np.histogram2d( np.log10(acc)[~np.isnan(np.log10(acc))],np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(acc))],bins=(500,500))
+	AX.imshow(ACC/ACC,cmap='spring',aspect='auto',label=r'$Gamma_L$',extent=[z[0],z[-1],y[-1],y[0]])
+
+	COOLING,y,z=np.histogram2d( np.log10(cooling)[~np.isnan(np.log10(cooling))],  np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(cooling))],  bins=(500,500))
+	AX.imshow(COOLING/COOLING,cmap='winter',aspect='auto',label=r'$\Lambda$',extent=[z[0],z[-1],y[-1],y[0]])
+	
+	AX.set_ylim(y[0],y[-1])
+	AX.tick_params(axis="x", labelsize=9,direction="in")
+	AX.tick_params(axis="y", labelsize=9,direction="in")
+	AX.set_ylim(y[0],y[-1])
+	return z[0],z[-1]
+
+def pannel_plot(file9,file10,file11,file12):
+	fig,axs=plt.subplots(5,sharex=True)
+	plt.subplots_adjust(hspace=0,top=0.95,bottom=0.1,right=0.8,left=0.15)
+
+	X1,X2=cool_plot(file12,axs[4])
+	axs[4].set_ylim(-16,13)
+	axs[4].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-6}$gcm$^{-3}$',ha='center', va='center', transform=axs[4].transAxes,fontsize=10)
+
+	x1,x2=cool_plot(file11,axs[3])
+	axs[3].set_ylim(-16,13)
+	axs[3].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$',ha='center', va='center', transform=axs[3].transAxes,fontsize=10)
+
+	x1,x2=cool_plot(file10,axs[2])
+	axs[2].set_ylim(-16,13)
+	axs[2].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-8}$gcm$^{-3}$',ha='center', va='center', transform=axs[2].transAxes,fontsize=10)
+
+	x1,x2=cool_plot(file9,axs[1])
+	axs[1].set_ylim(-16,13)
+	axs[1].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-9}$gcm$^{-3}$',ha='center', va='center', transform=axs[1].transAxes,fontsize=10)
+
+	x1,x2=cool_plot(file8,axs[0])
+	axs[0].set_ylim(-16,13)
+	axs[0].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$',ha='center', va='center', transform=axs[0].transAxes,fontsize=10)
+
+	plt.subplots_adjust(top=0.95,bottom=0.05)
+	axs[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
+	axs[2].set_ylabel(r'Log$_{10}$($\frac{\rm de}{\rm dt}$ [erg s$^{-1}$ cm$^{-3}]$)')
+	axs[4].set_xlim(-18,-4)
+	line1=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='brown',markeredgecolor='brown')
+	line2=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='fuchsia',markeredgecolor='fuchsia')
+	line3=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='forestgreen',markeredgecolor='forestgreen')
+	line4=Line2D([0], [0], linestyle='none', marker='o',markerfacecolor='b',markeredgecolor='b')
+	axs[0].legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=1,loc=(0.99,0.1))
+
+
+
+
+
+
+
+
+
+'''||||||FUNCTIONS NOT USED||||||||'''
+
+
+
 '''||||||| average mass to calculate free-fall time  |||||||'''
 
 
@@ -47,7 +128,6 @@ def function(tff,rs):
 	'''interpolate to fit free-fall time back to original data'''
 	f=interp1d(rs,tff,fill_value="extrapolate")
 	return f
-
 
 
 
@@ -81,8 +161,8 @@ def accretion(file1,file2,Rstar):
 	return heating 
 		
 
-''' |||||||| e = rho * u, de/dt = drho/dt + du/dt, we want du/dt (rate per mass)'''
-'''---> du/dt = de/dt - drho/dt, use continuity equation for drho/dt |||||||'''
+''' |||||||| e = rho * u, de/dt = (drho/dt)u + (du/dt)rho, we want du/dt (rate per mass)'''
+'''---> du/dt = [de/dt - (drho/dt)u]/rho, use continuity equation for drho/dt |||||||'''
 	
 def du_dt(a):
 	drho_dt =  -a.divv*(1/code_units.t_cu) * a.rho*code_units.rho_cu

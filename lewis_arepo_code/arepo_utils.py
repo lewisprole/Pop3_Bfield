@@ -252,9 +252,9 @@ def aread(filename):
                         elif(tag=='SGTR'):
                                print('Reading chemical rates')
                                skip = np.fromfile(file,dtype=np.int32,count=1)
-                               buf=np.fromfile(file,dtype=np.double,count=27*ngas)
+                               buf=np.fromfile(file,dtype=np.double,count=28*ngas)
                                skip = np.fromfile(file,dtype=np.int32,count=1)
-                               a.cooling = np.reshape(buf,(-1,27))
+                               a.cooling = np.reshape(buf,(-1,28))
                         else:
                                 print("Skipping through property",tag," with record length", nextblock-8)
                                 dummy = np.fromfile(file,dtype=np.int32,count=(nextblock//4))
