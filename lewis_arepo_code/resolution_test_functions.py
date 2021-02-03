@@ -191,7 +191,97 @@ def velocity_graph(files):
         line5=Line2D([0], [0], color='purple', lw=2)
         plt.legend([line1,line2,line3,line4,line5],(r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'),fontsize=12,frameon=False,markerscale=10)
 
+def vel(files):
+	colors='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	fig,ax=plt.subplots(1)
+	for i in range(len(files)):
+		a=arepo_utils.aread(files[i])
+		v=np.sqrt(a.vx**2+a.vy**2+a.vz**2) *code_units.v_cu/1e5
+		mid=np.where(a.rho==a.rho.max())
+		r=np.sqrt((a.x-a.x[mid])**2+(a.y-a.y[mid])**2+(a.z-a.z[mid])**2) *code_units.d_cu /ap.au.cgs.value
+		vs,rs,z=binned_statistic(r,v,bins=10**np.linspace(np.log10(np.sort(r)[1]),np.log10(r.max()),50))
+		ax.loglog(rs[:-1],vs,colors[i],label=labels[i])
+		ax.legend(fontsize=12,frameon=False)	
+
+		plt.tick_params(axis="x", labelsize=10,direction="in")
+ 		plt.tick_params(axis="y", labelsize=10,direction="in")
+		plt.xlabel('R [AU]',fontsize=11)
+		plt.ylabel(r'$v$ [kms$^{-1}$]',fontsize=11)
+
+'''||||||||||| functions for looking at the largest sink vs time ||||||||||||'''
+
+def write_largest_sink(dirname,start,end,interval,name):
+	if os.path.isfile(name):
+		print("file exists, appending")
+		f=open(name, "a+")
+	else:
+		print("creating new file")
+		f = open(name, "x")
+	num=int((end-start)/interval)
+	counter=0
+	for i in range(num):
+		text_trap = io.StringIO() #prevent massive text output from snapshot reads
+		sys.stdout = text_trap
+		n=snapname(start,i,interval)
+		a=arepo_utils.aread(dirname+'snapshot_'+n)
+		sys.stdout = sys.__stdout__
+	
+			
+		if a.npart[-1]>0:
+				counter+=1
+				M=a.sinkmass.max() * code_units.M_cu / ap.M_sun.cgs.value
+				t=a.time * code_units.t_cu / (60*60*24*365)
+				if counter==1:
+					f.write(str(M)+' '+str(0)+' '+str(t) + '\n')
+					massold=M
+					timeold=t
+				else:
+					accrate= (M-massold) / (t-timeold)
+					f.write(str(M)+' '+str(accrate)+' '+str(t) + '\n')
+					massold=M
+					timeold=t
+		print(str(n)+' :done')
+	f.close()
+	
+	
+	
+def read_largest_sink(txtfile):
+	M=[]
+	acc=[]
+	t=[]
+	with open(txtfile) as f:
+		for line in f.readlines():
+			M.append(line.split()[0])
+			acc.append(line.split()[1])
+			t.append(line.split()[2])
+	return np.asarray(M).astype(float) ,np.asarray(acc).astype(float), np.asarray(t).astype(float)
 
 
 
+def plot_largest_sink(files):
+
+	colors='b','g','r','cyan','Purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+
+	fig,ax =plt.subplots(2,sharex=True)
+	plt.subplots_adjust(hspace=0)
+	for i in range(len(files)):
+		M,acc,t=read_largest_sink(files[i])
+		t0=t[0]
+		acc,T,z=binned_statistic(t,acc,bins=20)
+		ax[0].semilogy(T[1:]-t0,acc,colors[i])
+		ax[1].semilogy(t-t0,M,colors[i],label=labels[i])
+
+	plt.subplots_adjust(left = 0.2,bottom = 0.17,right=0.9)
+	ax[0].tick_params(axis="x", labelsize=10,direction="in")
+	ax[0].tick_params(axis="y", labelsize=10,direction="in")
+	ax[1].tick_params(axis="x", labelsize=10,direction="in")
+	ax[1].tick_params(axis="x", labelsize=10,direction="in")
+	ax[1].set_xlabel('t [yrs]',fontsize=10)
+	ax[0].set_ylabel(r'$\dot {\rm M}_{\rm largest}$ [M$_\odot$ yr$^{-1}$]',fontsize=10)
+	ax[1].set_ylabel(r'M$_{\rm largest}$ [M$_\odot$]',fontsize=10)
+	ax[1].legend(frameon=False,loc='lower right',fontsize=10)
+	#plt.axhline(y=8,color='k')
+	return fig,ax
 
