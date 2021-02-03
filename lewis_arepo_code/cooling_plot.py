@@ -45,25 +45,25 @@ def cool_plot(file,AX):
 	comp=compression(a)
 
 
+	#COOLING,y,z=np.histogram2d( np.log10(cooling)[~np.isnan(np.log10(cooling))],  np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(cooling))],  bins=(500,500))
+	#AX.imshow(COOLING/COOLING,cmap='winter',aspect='auto',label=r'$\Lambda$',extent=[z[0],z[-1],y[-1],y[0]])
+	COOLING,rho,z=binned_statistic(a.rho*code_units.rho_cu,cooling,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
+	AX.loglog(rho[:-1],COOLING,'cyan',linewidth=5)
+
+	#HEATING,y,z=np.histogram2d( np.log10(heating)[~np.isnan(np.log10(heating))],np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(heating))],bins=(500,500))
+	#AX.imshow(HEATING/HEATING,cmap='RdYlBu',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
+	HEATING,rho,z=binned_statistic(a.rho*code_units.rho_cu,heating,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
+	AX.loglog(rho[:-1],HEATING,'r')
+
 	#COMP,y,z=np.histogram2d( np.log10(comp),np.log10(a.rho*code_units.rho_cu),bins=(500,500))
  	#AX.imshow(COMP/COMP,cmap='summer',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
 	COMP,rho,z=binned_statistic(a.rho*code_units.rho_cu,comp,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
-	AX.loglog(rho[:-1],COMP,'forestgreen')
+	AX.loglog(rho[:-1],COMP,'k')
 
 	#ACC,y,z=np.histogram2d( np.log10(acc)[~np.isnan(np.log10(acc))],np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(acc))],bins=(500,500))
 	#AX.imshow(ACC/ACC,cmap='spring',aspect='auto',label=r'$Gamma_L$',extent=[z[0],z[-1],y[-1],y[0]])
 	ACC,rho,z=binned_statistic(a.rho*code_units.rho_cu,acc,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
 	AX.loglog(rho[:-1],ACC,'fuchsia')
-	
-	#HEATING,y,z=np.histogram2d( np.log10(heating)[~np.isnan(np.log10(heating))],np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(heating))],bins=(500,500))
-	#AX.imshow(HEATING/HEATING,cmap='RdYlBu',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
-	HEATING,rho,z=binned_statistic(a.rho*code_units.rho_cu,heating,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
-	AX.loglog(rho[:-1],HEATING,'brown')
-
-	#COOLING,y,z=np.histogram2d( np.log10(cooling)[~np.isnan(np.log10(cooling))],  np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(cooling))],  bins=(500,500))
-	#AX.imshow(COOLING/COOLING,cmap='winter',aspect='auto',label=r'$\Lambda$',extent=[z[0],z[-1],y[-1],y[0]])
-	COOLING,rho,z=binned_statistic(a.rho*code_units.rho_cu,cooling,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
-	AX.loglog(rho[:-1],COOLING,'b')
 	
 	#AX.set_ylim(y[0],y[-1])
 	AX.tick_params(axis="x", labelsize=9,direction="in")
@@ -73,43 +73,50 @@ def cool_plot(file,AX):
 
 def pannel_plot(file8,file9,file10,file11,file12):
 	fig,axs=plt.subplots(5,sharex=True)
-	plt.subplots_adjust(hspace=0,top=0.95,bottom=0.1,right=0.8,left=0.15)
+	plt.subplots_adjust(hspace=0,top=0.95,bottom=0.12,right=0.75,left=0.15)
 
 	#X1,X2=
 	cool_plot(file12,axs[4])
-	axs[4].set_ylim(10**-18,10**18)
+	axs[4].set_ylim(10**-19,10**19)
 	
-	axs[4].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-6}$gcm$^{-3}$',ha='center', va='center', transform=axs[4].transAxes,fontsize=10)
+	axs[4].text(0.18,0.9,r'$\rho_{\rm sink}$=10$^{-6}$gcm$^{-3}$',ha='center', va='center', transform=axs[4].transAxes,fontsize=10)
 
 	#x1,x2=
 	cool_plot(file11,axs[3])
-	axs[3].set_ylim(10**-18,10**18)
-	axs[3].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$',ha='center', va='center', transform=axs[3].transAxes,fontsize=10)
+	axs[3].set_ylim(10**-19,10**19)
+	axs[3].text(0.18,0.88,r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$',ha='center', va='center', transform=axs[3].transAxes,fontsize=10)
 
 	#x1,x2=
 	cool_plot(file10,axs[2])
-	axs[2].set_ylim(10**-18,10**18)
-	axs[2].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-8}$gcm$^{-3}$',ha='center', va='center', transform=axs[2].transAxes,fontsize=10)
+	axs[2].set_ylim(10**-19,10**19)
+	axs[2].text(0.18,0.88,r'$\rho_{\rm sink}$=10$^{-8}$gcm$^{-3}$',ha='center', va='center', transform=axs[2].transAxes,fontsize=10)
 
 	#x1,x2=
 	cool_plot(file9,axs[1])
-	axs[1].set_ylim(10**-18,10**18)
-	axs[1].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-9}$gcm$^{-3}$',ha='center', va='center', transform=axs[1].transAxes,fontsize=10)
+	axs[1].set_ylim(10**-19,10**19)
+	axs[1].text(0.18,0.88,r'$\rho_{\rm sink}$=10$^{-9}$gcm$^{-3}$',ha='center', va='center', transform=axs[1].transAxes,fontsize=10)
 
 	#x1,x2=
 	cool_plot(file8,axs[0])
-	axs[0].set_ylim(10**-18,10**18)
-	axs[0].text(0.82,0.1,r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$',ha='center', va='center', transform=axs[0].transAxes,fontsize=10)
-	axs[0].set_xlim(10**-16,10**-4)
+	axs[0].set_ylim(10**-19,10**19)
+	axs[0].text(0.18,0.88,r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$',ha='center', va='center', transform=axs[0].transAxes,fontsize=10)
+	axs[0].set_xlim(10**-16,10**-3.5)
 
-	plt.subplots_adjust(top=0.95,bottom=0.05)
+
+	axs[0].axvline(x=1e8*rho_cu,linestyle='--',color='k')
+	axs[1].axvline(x=1e9*rho_cu,linestyle='--',color='k')
+	axs[2].axvline(x=1e10*rho_cu,linestyle='--',color='k')
+	axs[3].axvline(x=1e11*rho_cu,linestyle='--',color='k')
+	axs[4].axvline(x=1e12*rho_cu,linestyle='--',color='k')
+
+	#plt.subplots_adjust(top=0.95,bottom=0.05)
 	axs[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
 	axs[2].set_ylabel(r'Log$_{10}$($\frac{\rm de}{\rm dt}$ [erg s$^{-1}$ cm$^{-3}]$)')
-	axs[4].set_xlim(10**(-18),10**(-4))
-	line1=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='brown',markeredgecolor='brown')
+	axs[4].set_xlim(10**(-18),10**(-3.5))
+	line1=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='r',markeredgecolor='r')
 	line2=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='fuchsia',markeredgecolor='fuchsia')
-	line3=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='forestgreen',markeredgecolor='forestgreen')
-	line4=Line2D([0], [0], linestyle='none', marker='o',markerfacecolor='b',markeredgecolor='b')
+	line3=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='k',markeredgecolor='k')
+	line4=Line2D([0], [0], linestyle='none', marker='o',markerfacecolor='cyan',markeredgecolor='cyan')
 	axs[0].legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=1,loc=(0.99,0.1))
 
 
