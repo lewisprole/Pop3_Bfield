@@ -120,10 +120,30 @@ def pannel_plot(file8,file9,file10,file11,file12):
 	axs[0].legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=1,loc=(0.99,0.1))
 
 
+'''|||||||||| functions to plot abundances vs density||||||||||'''
+def abundance(files):
+	colors='r','k','cyan','pink','green','b'
+	fig,axs=plt.subplots(5,sharex=True)
+	plt.subplots_adjust(hspace=0)
+	for i in range(len(files)):
+		a=arepo_utils.aread(files[i])
+		for j in range(a.chem.shape[1]):
+			abund,rho,z=binned_statistic(a.rho*code_units.rho_cu,a.chem[:,j],bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
+			axs[i].loglog(rho[:-1],abund,colors[j])
+			
+			axs[i].set_ylim(1e-49,1e10)
+ 			axs[i].tick_params(axis="x", labelsize=9,direction="in")
+			axs[i].tick_params(axis="y", labelsize=9,direction="in")
 
-
-
-
+	axs[4].set_xlim(1e-16,10**-3.5)
+	axs[0].axvline(x=1e8*code_units.rho_cu,linestyle='--',color='k')
+	axs[1].axvline(x=1e9*code_units.rho_cu,linestyle='--',color='k')
+	axs[2].axvline(x=1e10*code_units.rho_cu,linestyle='--',color='k')
+	axs[3].axvline(x=1e11*code_units.rho_cu,linestyle='--',color='k')
+	axs[4].axvline(x=1e12*code_units.rho_cu,linestyle='--',color='k')
+	axs[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
+	axs[2].set_ylabel(r'$X$',fontsize=10)
+	plt.subplots_adjust(hspace=0,top=0.95,bottom=0.12,right=0.75,left=0.15)
 
 
 

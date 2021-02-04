@@ -145,7 +145,7 @@ def rescale(bx,by,bz,B_target):
 	bz=factor*bz
 	return bx,by,bz 
 	
-def prepare_ICs_Bfield(N,boxsize,xarepo,yarepo,zarepo,strength):
+def prepare_ICs_Bfield(N,forcing_scale,boxsize,turb_type,xarepo,yarepo,zarepo,strength):
 	k,P=magnetic_spectrum(N)
 	As_squared=amplitudes(k,P)
 	Ax,Ay,Az=kspace(k,As_squared,'cross')
