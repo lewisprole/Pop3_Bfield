@@ -72,6 +72,7 @@ def cool_plot(file,AX):
 	#return z[0],z[-1]
 
 def pannel_plot(file8,file9,file10,file11,file12):
+	labels=r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',r'$-\Lambda$'
 	fig,axs=plt.subplots(5,sharex=True)
 	plt.subplots_adjust(hspace=0,top=0.95,bottom=0.12,right=0.75,left=0.15)
 
@@ -113,27 +114,35 @@ def pannel_plot(file8,file9,file10,file11,file12):
 	axs[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
 	axs[2].set_ylabel(r'Log$_{10}$($\frac{\rm de}{\rm dt}$ [erg s$^{-1}$ cm$^{-3}]$)')
 	axs[4].set_xlim(10**(-18),10**(-3.5))
-	line1=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='r',markeredgecolor='r')
-	line2=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='fuchsia',markeredgecolor='fuchsia')
-	line3=Line2D([0], [0], linestyle='none', marker='o', markerfacecolor='k',markeredgecolor='k')
-	line4=Line2D([0], [0], linestyle='none', marker='o',markerfacecolor='cyan',markeredgecolor='cyan')
+	line1=Line2D([0], [0], color='r')#linestyle='none', marker='o', markerfacecolor='r',markeredgecolor='r')
+	line2=Line2D([0], [0], color='fuchsia')#linestyle='none', marker='o', markerfacecolor='fuchsia',markeredgecolor='fuchsia')
+	line3=Line2D([0], [0], color='k')#linestyle='none', marker='o', markerfacecolor='k',markeredgecolor='k')
+	line4=Line2D([0], [0], color='cyan')#linestyle='none', marker='o',markerfacecolor='cyan',markeredgecolor='cyan')
 	axs[0].legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=1,loc=(0.99,0.1))
 
 
 '''|||||||||| functions to plot abundances vs density||||||||||'''
 def abundance(files):
 	colors='r','k','cyan','pink','green','b'
+	labels=r'H$_{\rm 2}$',r'H$^{+}$',r'D$^{+}$','HD',r'He$^{+}$',r'He$^{++}$'
+	texts=r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-6}$gcm$^{-3}$'
 	fig,axs=plt.subplots(5,sharex=True)
 	plt.subplots_adjust(hspace=0)
 	for i in range(len(files)):
 		a=arepo_utils.aread(files[i])
 		for j in range(a.chem.shape[1]):
 			abund,rho,z=binned_statistic(a.rho*code_units.rho_cu,a.chem[:,j],bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
-			axs[i].loglog(rho[:-1],abund,colors[j])
+			if i==0:
+				axs[i].loglog(rho[:-1],abund,colors[j],label=labels[j])
+			else:
+				axs[i].loglog(rho[:-1],abund,colors[j])
 			
 			axs[i].set_ylim(1e-49,1e10)
  			axs[i].tick_params(axis="x", labelsize=9,direction="in")
 			axs[i].tick_params(axis="y", labelsize=9,direction="in")
+
+		axs[i].text(0.2,0.1,texts[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=10)
+		axs[i].set_yticks([1e-41,1e-26,1e-11,1e4])
 
 	axs[4].set_xlim(1e-16,10**-3.5)
 	axs[0].axvline(x=1e8*code_units.rho_cu,linestyle='--',color='k')
@@ -144,7 +153,7 @@ def abundance(files):
 	axs[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
 	axs[2].set_ylabel(r'$X$',fontsize=10)
 	plt.subplots_adjust(hspace=0,top=0.95,bottom=0.12,right=0.75,left=0.15)
-
+	axs[0].legend(fontsize=10,frameon=False,loc=(1.01,-0.25))
 
 
 '''||||||FUNCTIONS NOT USED||||||||'''

@@ -203,9 +203,8 @@ def vel(files):
 		vs,rs,z=binned_statistic(r,v,bins=10**np.linspace(np.log10(np.sort(r)[1]),np.log10(r.max()),50))
 		ax.loglog(rs[:-1],vs,colors[i],label=labels[i])
 		ax.legend(fontsize=12,frameon=False)	
-
 		plt.tick_params(axis="x", labelsize=10,direction="in")
- 		plt.tick_params(axis="y", labelsize=10,direction="in")
+		plt.tick_params(axis="y", labelsize=10,direction="in")
 		plt.xlabel('R [AU]',fontsize=11)
 		plt.ylabel(r'$v$ [kms$^{-1}$]',fontsize=11)
 

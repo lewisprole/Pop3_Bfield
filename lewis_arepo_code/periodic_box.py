@@ -37,7 +37,7 @@ def shifter(a,mask,box_old,zoomzone):
 #filename='/cosma7/data/dp155/dc-prol1/resolution_test/1e8_sink/snapshot_265'
 #filename='/scratch/c.c1521474/resolution_test/merge/1e8_redo/snapshot_042'
 #filename='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_037'
-filename='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_034'
+filename='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_025'
 a=arepo_utils.aread(filename)
 #zoomzone=0.1 
 #zoomzone=1
@@ -45,7 +45,7 @@ a=arepo_utils.aread(filename)
 #zoomzone=0.05
 #zoomzone=0.1
 #zoomzone=0.2
-zoomzone=0.08
+zoomzone=0.1
 box=230.809
 mask=masker(filename,zoomzone)
 x,y,z=shifter(a,mask,box,zoomzone)

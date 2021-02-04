@@ -40,6 +40,7 @@ def amplitudes(k,P):
 	return As_squared 
 
 def kspace(k,As_squared,remove_compressive):
+	print('beginning creating phase space')
 	Ncube=2*len(k) #multiply by 2 because the fft.fftfreq function sets second half of array as a mirror
 	Ax_space=np.zeros((Ncube,Ncube,Ncube))
 	Ay_space=np.zeros((Ncube,Ncube,Ncube))
@@ -48,7 +49,7 @@ def kspace(k,As_squared,remove_compressive):
 	ky,kx,kz=np.meshgrid(ks,ks,ks)
 	kmag=np.sqrt(kx**2+ky**2+kz**2)
 
-
+	print('divide energy between dimensions')
 	#sneaky move to avoid massive loop - flatten arrays and use kmag as the arg for A coefficients 
 	Kflat=kmag.flatten().astype(int) #'int' will make all k magnitudes round down to the lower bin edge = the correct arg (dk=1)
 	Axflat=Ax_space.flatten()
@@ -69,12 +70,12 @@ def kspace(k,As_squared,remove_compressive):
 	Az_space[0,0,0]=0
 
 	
-
+	print('create phase offsets')
 	xphi=np.random.uniform(0,1,(Ncube,Ncube,Ncube))*2*np.pi
 	yphi=np.random.uniform(0,1,(Ncube,Ncube,Ncube))*2*np.pi
 	zphi=np.random.uniform(0,1,(Ncube,Ncube,Ncube))*2*np.pi
 	
-	
+	print('remove compressive modes')
 	if remove_compressive=='dot': #see Lomax 2015 section 2.1.3 (absolute rubbish)
 		dotx=kx*Ax_space / kmag
 		doty=ky*Ay_space / kmag
@@ -94,7 +95,7 @@ def kspace(k,As_squared,remove_compressive):
 
 
 
-
+	print('apply phase offsets')
 	vxk=(Ax_space*(np.cos(xphi)+1j*np.sin(xphi)))
 	vyk=(Ay_space*(np.cos(yphi)+1j*np.sin(yphi)))
 	vzk=(Az_space*(np.cos(zphi)+1j*np.sin(zphi)))
@@ -104,22 +105,22 @@ def kspace(k,As_squared,remove_compressive):
 
 
 def interpolate(bx,by,bz,x,y,z,boxsize):
-        '''take grid point velocities and interpolate them so that velocities can be
-        given anywhere in the cube, apply to the positions of the AREPO cells'''
+	'''take grid point velocities and interpolate them so that velocities can be
+	given anywhere in the cube, apply to the positions of the AREPO cells'''
+	print('beginning interpolation')
+	size=len(bx[:,0,0])
+	side=np.linspace(0,boxsize,size)
 
-        size=len(bx[:,0,0])
-        side=np.linspace(0,boxsize,size)
+	fx=RegularGridInterpolator((side,side,side),bx)
+	Bx=fx((x,y,z))
 
-        fx=RegularGridInterpolator((side,side,side),bx)
-        Bx=fx((x,y,z))
+	fy=RegularGridInterpolator((side,side,side),by)
+	By=fy((x,y,z))
 
-        fy=RegularGridInterpolator((side,side,side),by)
-        By=fy((x,y,z))
+	fz=RegularGridInterpolator((side,side,side),bz)
+	Bz=fz((x,y,z))
 
-        fz=RegularGridInterpolator((side,side,side),bz)
-        Bz=fz((x,y,z))
-
-        return Bx,By,Bz
+	return Bx,By,Bz
 
 
 def real_space(N,n,boxsize):
@@ -135,6 +136,7 @@ def real_space(N,n,boxsize):
 	return bx,by,bz,x,y,z
 
 def rescale(bx,by,bz,B_target):
+	print('beginning rescale')
 	bx=bx-np.mean(bx)
 	by=by-np.mean(by)
 	bz=bz-np.mean(bz)
@@ -161,11 +163,15 @@ def prepare_ICs(N,n,boxsize,xarepo,yarepo,zarepo,strength):
 	k,P=spectrum(N,n)
 	As_squared=amplitudes(k,P)
 	Ax,Ay,Az=kspace(k,As_squared,'cross')
+	print('reverse transform x')
 	bx=np.fft.ifftn(Ax)
+	print('y')
 	by=np.fft.ifftn(Ay)
+	print('z')
 	bz=np.fft.ifftn(Az)
+	print('keeping real')
 	bx,by,bz=bx.real,by.real,bz.real
-	bx,by,bz=interpolate(bx,by,bz,xarepo,yarepo,zarepo,boxsizebx,by,bz=rescale(bx,by,bz,strength))
+	bx,by,bz=interpolate(bx,by,bz,xarepo,yarepo,zarepo,boxsize)
 	bx,by,bz=rescale(bx,by,bz,strength)
 	return bx,by,bz
 
