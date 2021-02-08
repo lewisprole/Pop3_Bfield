@@ -50,6 +50,10 @@ percents=np.array([0.001,0.01,0.1,1,10])
 Btot=Etot*percents/100
 B=np.sqrt(Btot*2/(zoomzone*code_units.d_cu)**3)  #dE_B = 1/2 B^2 dV
 
+bx,by,bz=field_maker.create_nonscaled_field(150,3/2)
+#write the B field (uniform grid) to text file incase we need it later
+read_custom_field.writer('/scratch/c.c1521474/magnetic_zooms/bfield.txt',vx,vy,vz)
+bx,by,bz=field_maker.interpolate(vx,vy,vz,a.x[mask],a.y[mask],a.z[mask],2*zoomzone)
 
 
 n0,n1,n2,n3,n4,n5=a.npart
@@ -79,8 +83,8 @@ scalefactor=1
 dirs='0.001percent','0.01percent','0.1percent','1percent','10percent'
 for j in range(len(dirs)):
 
-
-	bx,by,bz=field_maker.prepare_ICs(300,3/2,zoomzone*2,x[mask],y[mask],z[mask],B[j]/code_units.B_cu)
+	#rescale the b field strength 
+	bx,by,bz=rescale(bx,by,bz,B[j]/code_units.B_cu)
 	
 	sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
 		npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,

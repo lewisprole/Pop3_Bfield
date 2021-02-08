@@ -8,6 +8,7 @@ import code_units
 import astropy.constants as ap
 import os
 from matplotlib.lines import Line2D
+from scipy.stats import binned_statistic
 
 
 def snapname(start,i,interval):
@@ -155,7 +156,7 @@ def plot_MN_join(files):
         ax3.legend(fontsize=10,loc='upper left',frameon=False,bbox_to_anchor=(0.99, 1.05))
         ax2.set_xlim(-80,1350)
         ax2.set_ylim(-3,70)
-        ax3.set_xlim(-50,300)
+        ax3.set_xlim(-50,450)
         ax3.set_ylim(0.5,15)
         plt.subplots_adjust(left = 0.1,bottom = 0.17,right=0.8)
         

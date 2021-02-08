@@ -8,20 +8,23 @@ from scipy.interpolate import interp1d
 from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 from scipy.stats import binned_statistic  
+from matplotlib.colors import LogNorm
 
 '''|||||||| simple plot showing T vs rho relationship |||||||||||||'''
 def baro(filename):
 	a=arepo_utils.aread(filename)
 	x,y,z=np.histogram2d( np.log10(a.temp),np.log10(a.rho*code_units.rho_cu),bins=(800,800))
-	plt.imshow(x/x,cmap='summer',aspect='auto',extent=[z[0],z[-1],y[-1],y[0]])
+	size,y,z=np.histogram2d( np.log10(a.temp),np.log10(a.rho*code_units.rho_cu),weights=(a.mass/a.rho)**(1/3)*code_units.d_cu,bins=(800,800))
+	plt.imshow(size/x,norm=LogNorm(),cmap='summer',aspect='auto',extent=[z[0],z[-1],y[-1],y[0]])
 	plt.ylim(y[0],y[-1])
 	plt.ylabel(r'log$_{10}$(T [k])',fontsize=10)
 	plt.xlabel(r'log$_{10}$($\rho$ [g cm$^{-3}$])',fontsize=10)
-	
 	plt.tick_params(axis="x", labelsize=10,direction="in")
 	plt.tick_params(axis="y", labelsize=10,direction="in")
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.9)
-
+	cbar=plt.colorbar(pad=0)
+	cbar.ax.tick_params(labelsize=10)
+	cbar.ax.set_ylabel('L [cm]', rotation=270,fontsize=10,labelpad=15)
 
 
 
@@ -38,6 +41,22 @@ def de_dt(a):
 	cooling =np.sum(a.cooling[:,cool],1)
 	acc=a.cooling[:,-1]
 	return heating,cooling,acc
+
+
+def individual_components(file):
+	fig,axs=plt.subplots(1)
+	a=arepo_utils.aread(file)
+	heat=np.array([8,9,10,11,12,20,21,22,23,24,25])
+	cool=np.array([0,1,2,3,4,6,7,13,14,15,16,17,18,19,26])
+	signs=np.ones(a.cooling.shape[1]-1)
+	signs[heat]=signs[heat]*-1
+	for i in range(a.cooling.shape[1]-1):
+		rate=a.cooling[:,i]*signs
+		rate,rho,z=binned_statistic(a.rho*code_units.rho_cu,rate,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
+		axs.loglog(rho[:-1],rate,label=str[i])
+	plt.legend(loc=(0.99,0.1))
+
+
 
 def cool_plot(file,AX):
 	a=arepo_utils.aread(file)
@@ -138,7 +157,7 @@ def abundance(files):
 				axs[i].loglog(rho[:-1],abund,colors[j])
 			
 			axs[i].set_ylim(1e-49,1e10)
- 			axs[i].tick_params(axis="x", labelsize=9,direction="in")
+			axs[i].tick_params(axis="x", labelsize=9,direction="in")
 			axs[i].tick_params(axis="y", labelsize=9,direction="in")
 
 		axs[i].text(0.2,0.1,texts[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=10)
