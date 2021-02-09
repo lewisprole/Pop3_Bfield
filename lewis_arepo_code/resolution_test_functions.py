@@ -211,6 +211,16 @@ def vel(files):
 
 '''||||||||||| functions for looking at the largest sink vs time ||||||||||||'''
 
+
+def stromgren(T,Rsink,alpha):
+	v=10**np.linspace(15,20,100) #visible to 
+	plank=2*ap.h.cgs.value*v**3/ap.c.cgs.value**2 *1/(np.exp(ap.h.cgs.value*v/(ap.k_B.cgs.value*T))-1)
+	dv=np.zeros_like(v)
+	dv[1:]=v[1:]-v[:-1]
+	N=sum(4*np.pi * plank*dv /(ap.h.cgs.value*v) * 4*np.pi*Rsink**2)
+	Rsphere=(N * 3/(4*np.pi*n**2*alpha))**(1/3)
+
+
 def write_largest_sink(dirname,start,end,interval,name):
 	if os.path.isfile(name):
 		print("file exists, appending")
