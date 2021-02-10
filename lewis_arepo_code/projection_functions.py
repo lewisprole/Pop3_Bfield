@@ -343,7 +343,7 @@ def duel_column(dirs,nos):
 
 
 
-def IMF_col(dirs,snap,no_bins,name):
+def IMF_col(dirs,snap,no_bins):
         fig,axs=plt.subplots(5,sharex=True)
         plt.subplots_adjust(wspace=0, hspace=0)
         axs[-1].set_xlabel(r'M [M$_{\odot}$]',fontsize=11)
@@ -376,7 +376,7 @@ def IMF_col(dirs,snap,no_bins,name):
             #axs[i].legend(fontsize=12,frameon=False,loc='upper right')
             axs[i].set_ylim(0,N.max()+1)
             minmass=np.array([1e8,1e9,1e10,1e11,1e12])[i] *code_units.rho_cu  * 4/3*np.pi * (np.array([0.001376823,0.0004563,0.000152667,5.04801E-05,1.71E-05])[i]*code_units.d_cu)**3 /ap.M_sun.cgs.value
-            axs[i].axvline(x=minmass,ymin=0,ymax=1,color='k')
+            axs[i].axvline(x=minmass,ymin=0,ymax=1,color='k',linestyle='--')
             axs[i].tick_params(axis="y", labelsize=10)
             axs[i].set_ylim(0,N.max()+1)
             axs[i].text(1.22,0.5,rhos[i],ha='center', va='center', transform=axs[i].transAxes,fontsize=10)
