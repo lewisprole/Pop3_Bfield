@@ -63,8 +63,8 @@ def plot_MN(files):
 	Nmax=0
 	fig,axs=plt.subplots(2,sharex=True)
 	plt.subplots_adjust(wspace=0, hspace=0)
-	colors='b','g','r','cyan'
-	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$'
+	colors='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
 	for i in range(len(files)):
 		N,M,t=txtread(files[i])
 		if i==0:
@@ -74,17 +74,17 @@ def plot_MN(files):
 		if N.max()>Nmax:
 			Nmax=N.max()
 
-	axs[1].set_xlabel(r'$t \ [yrs]$',fontsize=20)
-	axs[0].set_ylabel(r'$N_{sinks}$',fontsize=20)
-	axs[1].set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=20)
+	axs[1].set_xlabel(r'$t \ [yrs]$',fontsize=10)
+	axs[0].set_ylabel(r'$N_{sinks}$',fontsize=10)
+	axs[1].set_ylabel(r'$\sum M_{sink} \ [M_{\odot}]$',fontsize=10)
 	axs[0].set_yticks(np.arange(1,Nmax+2,2))
-	axs[1].tick_params(axis="x", labelsize=15,direction="in")
-	axs[0].tick_params(axis="x", labelsize=15,direction="in")
-	axs[0].tick_params(axis="y", labelsize=15,direction="in")
-	axs[1].tick_params(axis="y", labelsize=15,direction="in")
-	axs[0].legend(fontsize=12,loc='upper left',frameon=False,bbox_to_anchor=(0.99, 1))
+	axs[1].tick_params(axis="x", labelsize=10,direction="in")
+	axs[0].tick_params(axis="x", labelsize=10,direction="in")
+	axs[0].tick_params(axis="y", labelsize=10,direction="in")
+	axs[1].tick_params(axis="y", labelsize=10,direction="in")
+	axs[1].legend(fontsize=10,loc='lower right',frameon=False)#,bbox_to_anchor=(0.99, 1))
 	axs[1].set_xlim(-80,1350)
-	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
+	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.9)
 
 def plot_MNjeans(files1and2):
         Nmax=0
