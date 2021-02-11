@@ -192,6 +192,10 @@ def velocity_graph(files):
         line5=Line2D([0], [0], color='purple', lw=2)
         plt.legend([line1,line2,line3,line4,line5],(r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'),fontsize=12,frameon=False,markerscale=10)
 
+
+
+'''||||||||||| radial graphs |||||||||||'''
+
 def vel(files):
 	colors='b','g','r','cyan','purple'
 	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
@@ -208,6 +212,56 @@ def vel(files):
 		plt.tick_params(axis="y", labelsize=10,direction="in")
 		plt.xlabel('R [AU]',fontsize=11)
 		plt.ylabel(r'$v$ [kms$^{-1}$]',fontsize=11)
+
+def weighted_average(x,y,weight,bins):
+	vals=np.zeros(len(bins)-1)
+	for i in range(len(bins)-1):
+		mask=np.where((x>=bins[i]) & (x<bins[i+1]))
+		if len(mask[0])>0:
+			weighted=sum(y[mask]*weight[mask])/sum(weight[mask])
+			vals[i]=weighted
+		else:
+			vals[i]=np.nan
+	return vals
+
+def radial(files):
+	colors='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	fig,ax=plt.subplots(4,sharex=True)
+	plt.subplots_adjust(hspace=0,top=0.95,bottom=0.12,right=0.7,left=0.12)
+	for i in range(len(files)):
+		a=arepo_utils.aread(files[-1-i])
+		v=np.sqrt(a.vx**2+a.vy**2+a.vz**2) *code_units.v_cu/1e5
+		midx,midy,midz=a.sinkx[np.where(a.sinkmass==a.sinkmass.max())],a.sinky[np.where(a.sinkmass==a.sinkmass.max())],a.sinkz[np.where(a.sinkmass==a.sinkmass.max())]
+		r=np.sqrt((a.x-midx)**2+(a.y-midy)**2+(a.z-midz)**2) *code_units.d_cu /ap.au.cgs.value
+	
+		rs=10**np.linspace(np.log10(np.sort(r)[1]),np.log10(r.max()),50)
+		rhos=weighted_average(r, a.rho*code_units.rho_cu, a.mass/a.rho, rs)
+		vs=weighted_average(r, v, a.mass/a.rho, rs)
+		Ts=weighted_average(r, a.temp, a.mass/a.rho, rs)
+		size=weighted_average(r, ((a.mass/a.rho)**(1/3))*code_units.d_cu, a.mass/a.rho, rs)
+
+
+		ax[0].loglog(rs[:-1],rhos,colors[-1-i],label=labels[-1-i])
+		ax[1].loglog(rs[:-1],vs,colors[-1-i])
+		ax[2].semilogx(rs[:-1], Ts,colors[-1-i])
+		ax[3].loglog(rs[:-1], size,colors[-1-i])
+	for i in range(4):
+		ax[i].tick_params(axis="x", labelsize=10,direction="in")
+		ax[i].tick_params(axis="y", labelsize=10,direction="in")
+	ax[0].set_ylabel(r'$\rho$ [gcm$^{-3}$]',fontsize=10)
+	ax[1].set_ylabel(r'v [kms$^{-1}$]',fontsize=10)
+	ax[2].set_ylabel('T [K]',fontsize=10)
+	ax[3].set_ylabel('L [cm]',fontsize=10)
+	ax[3].set_xlabel('R [cm]',fontsize=10)
+
+	line1=Line2D([0], [0], color='b', lw=2)
+	line2=Line2D([0], [0], color='g', lw=2)
+	line3=Line2D([0], [0], color='r', lw=2)
+	line4=Line2D([0], [0], color='cyan', lw=2)
+	line5=Line2D([0], [0], color='purple', lw=2)
+	ax[0].legend([line1,line2,line3,line4,line5],(r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'),fontsize=10,frameon=False,markerscale=10,loc=(1.01,-0.4))
+
 
 '''||||||||||| functions for looking at the largest sink vs time ||||||||||||'''
 

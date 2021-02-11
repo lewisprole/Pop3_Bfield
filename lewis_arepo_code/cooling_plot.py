@@ -51,9 +51,9 @@ def individual_components(file):
 	signs=np.ones(a.cooling.shape[1]-1)
 	signs[heat]=signs[heat]*-1
 	for i in range(a.cooling.shape[1]-1):
-		rate=a.cooling[:,i]*signs
+		rate=a.cooling[:,i]*signs[i]
 		rate,rho,z=binned_statistic(a.rho*code_units.rho_cu,rate,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
-		axs.loglog(rho[:-1],rate,label=str[i])
+		axs.loglog(rho[:-1],rate,label=str(i))
 	plt.legend(loc=(0.99,0.1))
 
 
