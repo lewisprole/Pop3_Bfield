@@ -9,6 +9,7 @@ import astropy.constants as ap
 import os
 from matplotlib.lines import Line2D
 from scipy.stats import binned_statistic
+from scipy.interpolate import interp1d
 
 
 def snapname(start,i,interval):
@@ -263,17 +264,142 @@ def radial(files):
 	ax[0].legend([line1,line2,line3,line4,line5],(r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'),fontsize=10,frameon=False,markerscale=10,loc=(1.01,-0.4))
 
 
+
+
+
+
+
+
+
+'''||||||||||| Stromgren sphere function - 1 time use kinda thing ||||||||||||'''
+
+
+
+def read_Hirano2014(txtfile):
+	r=[]
+	M=[]        
+	with open(txtfile) as f:
+		for line in f.readlines():
+			M.append(line.split()[0])
+			r.append(line.split()[1])
+	return np.asarray(M).astype(float) ,np.asarray(r).astype(float)
+
+def plot_Hirano2014():
+	fig,ax=plt.subplots(1)
+	M1,r1=read_Hirano2014('P1_curve.txt')
+	ax.loglog(M1,r1,'r',label='P1')
+	M2,r2=read_Hirano2014('P2_curve.txt')
+	ax.loglog(M2,r2,'b',label='P2')
+	M3,r3=read_Hirano2014('P3_curve.txt')
+	ax.loglog(M3,r3,'k',label='P3')
+	ax.tick_params(axis="x", labelsize=10,direction="in",which='both')
+	ax.tick_params(axis="y", labelsize=10,direction="in",which='both')
+	plt.ylabel(r'R [R$_\odot$]',fontsize=10)	
+	plt.xlabel(r'M [M$_\odot$]',fontsize=10)
+	plt.legend(fontsize=10,frameon=False)
+
+def stromgren():
+	'''Im doing this one in regular units because its monday'''
+	fig,ax=plt.subplots(3,sharex=True)
+	plt.subplots_adjust(hspace=0)
+	colors='b','g','r','cyan','purple'
+
+
+	#import the data from Hirano2014 
+	M1,r1=read_Hirano2014('P1_curve.txt')
+	f1=interp1d(M1,r1)
+
+	M2,r2=read_Hirano2014('P2_curve.txt')
+	f2=interp1d(M2,r2)
+
+	M3,r3=read_Hirano2014('P3_curve.txt')
+	f3=interp1d(M3,r3)
+
+	times=np.array([200,400,600,800])
+	alpha=2.6e-13
+
+
+	Rsphere600=np.array([])
+	Rs600=np.array([f3(25),f2(18),f2(13),f1(8),f1(8)]) * ap.R_sun.value
+	Ms600=np.array([25,18,13,8,8]) * ap.M_sun.value
+	acc600=np.array([6e-3,2e-2,6e-3,1e-2,1e-2]) * ap.M_sun.value /(60*60*24*365)
+	L600=ap.G.value * acc600 *Ms600 / Rs600
+	T600=(L600/(4*np.pi * Rs600**2*ap.sigma_sb.value))**(1/4)
+
+
+	Rsphere400=np.array([])
+	Rs400=np.array([f3(21),f2(14),f2(9),f1(7),f1(7)]) * ap.R_sun.value
+	Ms400=np.array([21,14,9,7,7]) * ap.M_sun.value
+	acc400= np.array([2e-2,2e-2,1e-2,4e-3,1e-3])* ap.M_sun.value /(60*60*24*365)
+	L400=ap.G.value * acc400 *Ms400 / Rs400
+	T400=(L400/(4*np.pi * Rs400**2*ap.sigma_sb.value))**(1/4)
+	
+
+	Rsphere200=np.array([])
+	Rs200=np.array([f3(16),f2(9),f2(6),f1(5.5),f1(5.5)]) * ap.R_sun.value
+	Ms200=np.array([16,9,6,5.5,5.5]) * ap.M_sun.value
+	acc200= np.array([3e-2,2e-2,2e-2,5e-3,5e-3])* ap.M_sun.value /(60*60*24*365)
+	L200=ap.G.value * acc200 *Ms200 / Rs200
+	T200=(L200/(4*np.pi * Rs200**2*ap.sigma_sb.value))**(1/4)
+
+	Rsphere800=np.array([])
+	Rs800=np.array([f3(28),f2(19),f2(14),f1(8.5),f1(8.5)]) * ap.R_sun.value
+	Ms800=np.array([28,19,14,8.5,8.5]) * ap.M_sun.value
+	acc800= np.array([7e-3,4e-3,7e-3,7e-3,7e-3])* ap.M_sun.value /(60*60*24*365)
+	L800=ap.G.value * acc800 *Ms800 / Rs800
+	T800=(L800/(4*np.pi * Rs800**2*ap.sigma_sb.value))**(1/4)
+
+
+	n=np.array([1e8,1e9,1e10,1e11,1e12])*code_units.rho_cu/ap.m_p.cgs.value   #allowed to be in cgs because alpha is 
+
+
+	for i in range(5):
+		v=10**np.linspace(np.log10(3.28e15),20,100) #visible to 
+		plank600=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T600[i]))-1)
+		dv=np.zeros_like(v)
+		dv[1:]=v[1:]-v[:-1]
+		N600=sum(4*np.pi * plank600*dv /(ap.h.value*v) * 4*np.pi*Rs600[i]**2)
+		Rsphere600=np.append(Rsphere600,(N600 * 3/(4*np.pi*n[i]**2*alpha))**(1/3) /100) #no cgs allowed
+
+		plank400=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T400[i]))-1)		
+		N400=sum(4*np.pi * plank400*dv /(ap.h.value*v) * 4*np.pi*Rs400[i]**2)
+		Rsphere400=np.append(Rsphere400,(N400 * 3/(4*np.pi*n[i]**2*alpha))**(1/3) /100)
+
+		plank200=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T200[i]))-1)
+		N200=sum(4*np.pi * plank200*dv /(ap.h.value*v) * 4*np.pi*Rs200[i]**2)
+		Rsphere200=np.append(Rsphere200,(N200 * 3/(4*np.pi*n[i]**2*alpha))**(1/3) /100)
+
+		plank800=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T800[i]))-1)
+		N800=sum(4*np.pi * plank800*dv /(ap.h.value*v) * 4*np.pi*Rs800[i]**2)
+		Rsphere800=np.append(Rsphere800,(N800 * 3/(4*np.pi*n[i]**2*alpha))**(1/3) /100)
+
+	for i in range(5):
+		linestyle='solid'
+		if i==4:
+			linestyle='--'
+		ax[0].plot(times,np.array([Rs200[i],Rs400[i],Rs600[i],Rs800[i]])/ap.M_sun.value,color=colors[i],linestyle=linestyle,marker='o')
+
+		#ax[1].plot(times,np.array([L200[i],L400[i],L600[i],L800[i]])/ap.L_sun.value,color=colors[i])
+
+		ax[1].plot(times,np.array([T200[i],T400[i],T600[i],T800[i]]),color=colors[i],linestyle=linestyle,marker='o')
+
+		ax[2].semilogy(times,np.array([Rsphere200[i],Rsphere400[i],Rsphere600[i],Rsphere800[i]])/ap.R_sun.cgs.value,color=colors[i],linestyle=linestyle,marker='o')
+		if i==4:
+			ax[0].plot(times[:2],np.array([Rs200[i],Rs400[i]])/ap.M_sun.value,color=colors[i])
+			ax[1].plot(times[:2],np.array([T200[i],T400[i]]),color=colors[i])
+			ax[2].semilogy(times[:2],np.array([Rsphere200[i],Rsphere400[i]])/ap.R_sun.cgs.value,color=colors[i])
+	for i in range(3):
+		ax[i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+		ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
+	ax[2].set_xlabel('t [yrs]',fontsize=10)
+	ax[0].set_ylabel(r'R$_\star$ [R$_{\odot}$]',fontsize=10)
+	ax[1].set_ylabel('T [K]',fontsize=10)
+	ax[2].set_ylabel(r'R$_S$ [R$_{\odot}$]',fontsize=10)
+			
+
+
+
 '''||||||||||| functions for looking at the largest sink vs time ||||||||||||'''
-
-
-def stromgren(T,Rsink,alpha):
-	v=10**np.linspace(15,20,100) #visible to 
-	plank=2*ap.h.cgs.value*v**3/ap.c.cgs.value**2 *1/(np.exp(ap.h.cgs.value*v/(ap.k_B.cgs.value*T))-1)
-	dv=np.zeros_like(v)
-	dv[1:]=v[1:]-v[:-1]
-	N=sum(4*np.pi * plank*dv /(ap.h.cgs.value*v) * 4*np.pi*Rsink**2)
-	Rsphere=(N * 3/(4*np.pi*n**2*alpha))**(1/3)
-
 
 def write_largest_sink(dirname,start,end,interval,name):
 	if os.path.isfile(name):
@@ -332,9 +458,16 @@ def plot_largest_sink(files):
 	plt.subplots_adjust(hspace=0)
 	for i in range(len(files)):
 		M,acc,t=read_largest_sink(files[i])
+		#if i==0:	
 		t0=t[0]
-		acc,T,z=binned_statistic(t,acc,bins=20)
-		ax[0].semilogy(T[1:]-t0,acc,colors[i])
+		if i==0:
+			bins=np.linspace(t0,t.max(),200)
+		acc,T,z=binned_statistic(t,acc,bins=bins)
+		interval=5
+		#if i==4:
+		#	interval=10
+		#mask=np.where(acc[1::interval]>0)
+		ax[0].semilogy(T[:-1]-t0,acc,colors[i])
 		ax[1].semilogy(t-t0,M,colors[i],label=labels[i])
 
 	plt.subplots_adjust(left = 0.2,bottom = 0.17,right=0.9)
@@ -349,3 +482,18 @@ def plot_largest_sink(files):
 	#plt.axhline(y=8,color='k')
 	return fig,ax
 
+
+def MMdot(files):
+	for i in range(5):
+		colors='b','g','r','cyan','Purple'
+		labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+		M,acc,t=read_largest_sink(files[i])
+		acc,M,b=binned_statistic(M,acc,bins=10**np.linspace(0,2,20))
+		mask=np.where(acc>0)
+		plt.loglog(M[:-1][mask],acc[mask],c=colors[i])
+	plt.axhline(y=0.004,color='k',linestyle='--')
+	plt.axhline(y=0.04,color='k',linestyle='--')
+	plt.tick_params(axis="x", labelsize=10,direction="in")
+	plt.tick_params(axis="y", labelsize=10,direction="in")
+	plt.ylabel(r'$\rm \dot M_{\rm largest}}$ [M$_\odot$yr$^{-1}$]',fontsize=10)
+	plt.xlabel(r'M [M$_\odot$]',fontsize=10)

@@ -3,6 +3,8 @@ import arepo_utils
 import arepo_input_writer
 import field_maker
 import code_units
+import read_custom_field
+import matplotlib.pyplot as plt 
 
 def masker(name,zoomzone):
 	'''creates a mask giving the cells within a cube of length 2*zoomzone, to be used as 
@@ -34,9 +36,9 @@ def shifter(a,box_old,zoomzone):
 	
 	
 	
-filename='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_025'
+filename='/scratch/c.c1521474/magnetic_zooms/initial_collapse/snapshot_238'
 a=arepo_utils.aread(filename)
-zoomzone=0.1
+zoomzone=5
 box=230.809
 mask=masker(filename,zoomzone)
 x,y,z=shifter(a,box,zoomzone)
@@ -46,14 +48,18 @@ print(min(x[mask]),max(x[mask]),min(y[mask]),max(y[mask]),min(z[mask]),max(z[mas
 
 v=np.sqrt((a.vx[mask])**2 + (a.vy[mask])**2+(a.vz[mask])**2) *code_units.v_cu
 Etot=sum(0.5*a.mass[mask]*code_units.M_cu *v**2)
-percents=np.array([0.001,0.01,0.1,1,10])
-Btot=Etot*percents/100
+ratios=np.array([0,1e-3,1e-2,1e-1])
+Btot=Etot*ratios
 B=np.sqrt(Btot*2/(zoomzone*code_units.d_cu)**3)  #dE_B = 1/2 B^2 dV
 
-bx,by,bz=field_maker.create_nonscaled_field(150,3/2)
+bx,by,bz=field_maker.prepare_ICs_Bfield(300,box*code_units.d_cu,zoomzone*code_units.d_cu,'burgers')
 #write the B field (uniform grid) to text file incase we need it later
-read_custom_field.writer('/scratch/c.c1521474/magnetic_zooms/bfield.txt',vx,vy,vz)
-bx,by,bz=field_maker.interpolate(vx,vy,vz,a.x[mask],a.y[mask],a.z[mask],2*zoomzone)
+read_custom_field.writer('/scratch/c.c1521474/magnetic_zooms/bfield.txt',bx,by,bz)
+bx,by,bz=field_maker.interpolate(bx,by,bz,x[mask],y[mask],z[mask],2*zoomzone)
+plt.figure()
+im,binx,biny=np.histogram2d(x[mask],y[mask],weights=bx,bins=(300,300))
+im1,binx,biny=np.histogram2d(x[mask],y[mask],bins=(300,300))
+plt.imshow(im/im1)
 
 
 n0,n1,n2,n3,n4,n5=a.npart
@@ -80,11 +86,15 @@ flag_dp=1
 flag_1pt=0
 scalefactor=1
 
-dirs='0.001percent','0.01percent','0.1percent','1percent','10percent'
+dirs='0','1e-3','1e-2','1e-1'
 for j in range(len(dirs)):
 
 	#rescale the b field strength 
-	bx,by,bz=rescale(bx,by,bz,B[j]/code_units.B_cu)
+	if B[j]==0:
+		bx=np.zeros_like(x[mask])
+		bx,by,bz=bx,bx,bx
+	else:
+		bx,by,bz=field_maker.rescale(bx,by,bz,B[j]/code_units.B_cu)
 	
 	sofar=arepo_input_writer.header(sofar,npart,massarr,time,redshift,flag_sfr,flag_feedback,
 		npartTotal,flag_cooling,num_files,boxsize,cos1,cos2,
@@ -102,7 +112,7 @@ for j in range(len(dirs)):
 	sofar=arepo_input_writer.tag_block(sofar,a.divb[mask],'DIVB','d',1)
 	sofar=arepo_input_writer.tag_block(sofar,a.divbalt[mask],'DVBA','d',1)
 	sofar=arepo_input_writer.tag_block(sofar,a.psi[mask],'BPSI','d',1)
-	sofar=arepo_input_writer.tag_block(sofar,a.dednerv[mask],'VDED','d',1)
+#	sofar=arepo_input_writer.tag_block(sofar,a.dednerv[mask],'VDED','d',1)
 	#chemical species slightly trickier to prepare
 	chem=np.zeros((a.chem.shape[1],len(a.chem[:,0][mask])))
 	for i in range(a.chem.shape[1]):
@@ -110,6 +120,6 @@ for j in range(len(dirs)):
 	sofar=arepo_input_writer.tag_block(sofar,chem,'CHEM','d',int(a.chem.shape[1]))
 	sofar=arepo_input_writer.tag_block(sofar,a.gamma[mask],'GAMM','d',1)
 	sofar=arepo_input_writer.tag_block(sofar,a.divv[mask],'DIVV','d',1)
-	saveloc='/scratch/c.c1521474/magnetic_zooms/'+dirs[j]+'/arepo_input.dat'
+	saveloc='/scratch/c.c1521474/magnetic_zooms/1e11/'+dirs[j]+'/arepo_input.dat'
 	arepo_input_writer.writer(sofar,saveloc)
 
