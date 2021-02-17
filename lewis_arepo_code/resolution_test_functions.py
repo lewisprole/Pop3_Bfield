@@ -377,7 +377,7 @@ def stromgren():
 		linestyle='solid'
 		if i==4:
 			linestyle='--'
-		ax[0].plot(times,np.array([Rs200[i],Rs400[i],Rs600[i],Rs800[i]])/ap.M_sun.value,color=colors[i],linestyle=linestyle,marker='o')
+		ax[0].plot(times,np.array([Rs200[i],Rs400[i],Rs600[i],Rs800[i]])/ap.R_sun.value,color=colors[i],linestyle=linestyle,marker='o')
 
 		#ax[1].plot(times,np.array([L200[i],L400[i],L600[i],L800[i]])/ap.L_sun.value,color=colors[i])
 
@@ -385,7 +385,7 @@ def stromgren():
 
 		ax[2].semilogy(times,np.array([Rsphere200[i],Rsphere400[i],Rsphere600[i],Rsphere800[i]])/ap.R_sun.cgs.value,color=colors[i],linestyle=linestyle,marker='o')
 		if i==4:
-			ax[0].plot(times[:2],np.array([Rs200[i],Rs400[i]])/ap.M_sun.value,color=colors[i])
+			ax[0].plot(times[:2],np.array([Rs200[i],Rs400[i]])/ap.R_sun.value,color=colors[i])
 			ax[1].plot(times[:2],np.array([T200[i],T400[i]]),color=colors[i])
 			ax[2].semilogy(times[:2],np.array([Rsphere200[i],Rsphere400[i]])/ap.R_sun.cgs.value,color=colors[i])
 	for i in range(3):
