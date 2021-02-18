@@ -298,6 +298,11 @@ def plot_Hirano2014():
 	plt.xlabel(r'M [M$_\odot$]',fontsize=10)
 	plt.legend(fontsize=10,frameon=False)
 
+
+
+	
+
+
 def stromgren():
 	'''Im doing this one in regular units because its monday'''
 	fig,ax=plt.subplots(3,sharex=True)
@@ -315,7 +320,7 @@ def stromgren():
 	M3,r3=read_Hirano2014('P3_curve.txt')
 	f3=interp1d(M3,r3)
 
-	times=np.array([200,400,600,800])
+	times=np.array([200,400,600,800,1000])
 	alpha=2.6e-13
 
 
@@ -349,6 +354,13 @@ def stromgren():
 	L800=ap.G.value * acc800 *Ms800 / Rs800
 	T800=(L800/(4*np.pi * Rs800**2*ap.sigma_sb.value))**(1/4)
 
+	Rsphere1000=np.array([])
+	Rs1000=np.array([f3(28.6),f2(19.5),f2(15.2)]) * ap.R_sun.value
+	Ms1000=np.array([28.6,19.5,15.2]) * ap.M_sun.value
+	acc1000= 5e-3* ap.M_sun.value /(60*60*24*365)
+	L1000=ap.G.value * acc1000 *Ms1000 / Rs1000
+	T1000=(L1000/(4*np.pi * Rs1000**2*ap.sigma_sb.value))**(1/4)
+
 
 	n=np.array([1e8,1e9,1e10,1e11,1e12])*code_units.rho_cu/ap.m_p.cgs.value   #allowed to be in cgs because alpha is 
 
@@ -372,18 +384,26 @@ def stromgren():
 		plank800=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T800[i]))-1)
 		N800=sum(4*np.pi * plank800*dv /(ap.h.value*v) * 4*np.pi*Rs800[i]**2)
 		Rsphere800=np.append(Rsphere800,(N800 * 3/(4*np.pi*n[i]**2*alpha))**(1/3) /100)
+		if i<3:
+			plank1000=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T1000[i]))-1)
+			N1000=sum(4*np.pi * plank1000*dv /(ap.h.value*v) * 4*np.pi*Rs1000[i]**2)
+			Rsphere1000=np.append(Rsphere1000,(N1000 * 3/(4*np.pi*n[i]**2*alpha))**(1/3) /100)
+	for i in range(2):
+		T1000=np.append(T1000,np.nan)
+		Rs1000=np.append(Rs1000,np.nan)
+		Rsphere1000=np.append(Rsphere1000,np.nan)
 
 	for i in range(5):
 		linestyle='solid'
 		if i==4:
 			linestyle='--'
-		ax[0].plot(times,np.array([Rs200[i],Rs400[i],Rs600[i],Rs800[i]])/ap.R_sun.value,color=colors[i],linestyle=linestyle,marker='o')
+		ax[0].plot(times,np.array([Rs200[i],Rs400[i],Rs600[i],Rs800[i],Rs1000[i]])/ap.R_sun.value,color=colors[i],linestyle=linestyle,marker='o')
 
 		#ax[1].plot(times,np.array([L200[i],L400[i],L600[i],L800[i]])/ap.L_sun.value,color=colors[i])
 
-		ax[1].plot(times,np.array([T200[i],T400[i],T600[i],T800[i]]),color=colors[i],linestyle=linestyle,marker='o')
+		ax[1].plot(times,np.array([T200[i],T400[i],T600[i],T800[i],T1000[i]]),color=colors[i],linestyle=linestyle,marker='o')
 
-		ax[2].semilogy(times,np.array([Rsphere200[i],Rsphere400[i],Rsphere600[i],Rsphere800[i]])/ap.R_sun.cgs.value,color=colors[i],linestyle=linestyle,marker='o')
+		ax[2].semilogy(times,np.array([Rsphere200[i],Rsphere400[i],Rsphere600[i],Rsphere800[i],Rsphere1000[i]])/ap.R_sun.cgs.value,color=colors[i],linestyle=linestyle,marker='o')
 		if i==4:
 			ax[0].plot(times[:2],np.array([Rs200[i],Rs400[i]])/ap.R_sun.value,color=colors[i])
 			ax[1].plot(times[:2],np.array([T200[i],T400[i]]),color=colors[i])
@@ -395,6 +415,10 @@ def stromgren():
 	ax[0].set_ylabel(r'R$_\star$ [R$_{\odot}$]',fontsize=10)
 	ax[1].set_ylabel('T [K]',fontsize=10)
 	ax[2].set_ylabel(r'R$_S$ [R$_{\odot}$]',fontsize=10)
+
+	ax[2].set_ylim(5e-14,2e-5)
+	ax[1].set_ylim(1500,8500)
+	ax[0].set_ylim(0,700)
 			
 
 
@@ -497,3 +521,63 @@ def MMdot(files):
 	plt.tick_params(axis="y", labelsize=10,direction="in")
 	plt.ylabel(r'$\rm \dot M_{\rm largest}}$ [M$_\odot$yr$^{-1}$]',fontsize=10)
 	plt.xlabel(r'M [M$_\odot$]',fontsize=10)
+
+
+
+
+
+def stromgren_spheres(files):
+
+	fig,ax=plt.subplots(5,sharex=True)
+	plt.subplots_adjust(hspace=0,left=0.15,right=0.7)	
+	colors='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	
+	M1,r1=read_Hirano2014('P1_curve.txt')
+	f1=interp1d(M1,r1,fill_value='extrapolate')
+	M2,r2=read_Hirano2014('P2_curve.txt')
+	f2=interp1d(M2,r2,fill_value='extrapolate')
+	M3,r3=read_Hirano2014('P3_curve.txt')
+	f3=interp1d(M3,r3,fill_value='extrapolate')
+
+	times=np.array([200,400,600,800,1000])
+	alpha=2.6e-13
+	n=np.array([1e8,1e9,1e10,1e11,1e12])*code_units.rho_cu/ap.m_p.cgs.value #ok this one needs to be cgs becasue of alpha 
+	for i in range(len(files)):
+		M,acc,t=read_largest_sink(files[i])
+		if i==len(files)-1:
+			M,acc,t=M[0::5],acc[0::5],t[0::5]
+		if i==0:
+			rs=f3(M) *ap.R_sun.value
+		if (i>0) & (i<3):
+			rs=f2(M) *ap.R_sun.value
+		if i>2:
+			rs=f1(M) *ap.R_sun.value
+		M=M*ap.M_sun.value
+		acc=acc*ap.M_sun.value/(60*60*24*365)
+		L=ap.G.value * acc *M / rs
+		T=(L/(4*np.pi * rs**2*ap.sigma_sb.value))**(1/4)	
+
+
+		v=10**np.linspace(np.log10(3.28e15),20,100) #Lynman to xray
+		dv=np.zeros_like(v)
+		dv[1:]=v[1:]-v[:-1]
+		Rsphere=np.array([])
+		for j in range(len(T)):
+			plank=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T[j]))-1)
+			N=sum(4*np.pi * plank*dv /(ap.h.value*v) * 4*np.pi*rs[j]**2)
+			Rsphere=np.append(Rsphere,(N * 3/(4*np.pi*n[i]**2*alpha))**(1/3) /100) #no cgs allowed
+		mask=np.where(acc>0)
+		ax[0].semilogy(t[mask]-t[0],acc[mask]/(ap.M_sun.value/(60*60*24*365)),color=colors[i],label=labels[i])
+		ax[1].semilogy(t-t[0],M/ap.M_sun.value,color=colors[i])
+		ax[2].plot(t-t[0],rs/ap.R_sun.value,color=colors[i])
+		ax[3].plot(t-t[0],T,color=colors[i])
+		ax[4].semilogy(t-t[0],Rsphere/ap.R_sun.cgs.value,colors[i])
+	ax[0].legend(fontsize=10,frameon=False,markerscale=10,loc=(1.01,-0.4))
+	ax[0].set_ylabel(r'$\rm \dot M$ [M$_\odot$yr$^{-1}$]',fontsize=10)
+	ax[1].set_ylabel(r'M [M$_\odot$]',fontsize=10)
+	ax[2].set_ylabel(r'R$_\star$ [R$_\odot$]',fontsize=10)
+	ax[3].set_ylabel('T [K]',fontsize=10)
+	ax[4].set_ylabel(r'R$_S$ [R$_\odot$]',fontsize=10)
+	ax[4].set_xlabel('t [yrs]')
+
