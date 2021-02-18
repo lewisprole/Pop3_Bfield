@@ -529,7 +529,7 @@ def MMdot(files):
 def stromgren_spheres(files):
 
 	fig,ax=plt.subplots(5,sharex=True)
-	plt.subplots_adjust(hspace=0,left=0.15,right=0.7)	
+	plt.subplots_adjust(hspace=0,left=0.15,right=0.7,top=0.95,bottom=0.08)	
 	colors='b','g','r','cyan','purple'
 	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
 	
@@ -573,7 +573,7 @@ def stromgren_spheres(files):
 		ax[2].plot(t-t[0],rs/ap.R_sun.value,color=colors[i])
 		ax[3].plot(t-t[0],T,color=colors[i])
 		ax[4].semilogy(t-t[0],Rsphere/ap.R_sun.cgs.value,colors[i])
-	ax[0].legend(fontsize=10,frameon=False,markerscale=10,loc=(1.01,-0.4))
+	ax[0].legend(fontsize=10,frameon=False,markerscale=10,loc=(1.01,-0.2))
 	ax[0].set_ylabel(r'$\rm \dot M$ [M$_\odot$yr$^{-1}$]',fontsize=10)
 	ax[1].set_ylabel(r'M [M$_\odot$]',fontsize=10)
 	ax[2].set_ylabel(r'R$_\star$ [R$_\odot$]',fontsize=10)
