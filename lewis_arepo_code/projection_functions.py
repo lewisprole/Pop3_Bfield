@@ -357,7 +357,7 @@ def IMF_col(dirs,snap,no_bins):
         for i in range(len(dirs)):
             a=arepo_utils.aread(dirs[i]+str(snap[i]))
             if i==0:
-                max_sinkmass=a.sinkmass.max()*code_units.M_cu/ap.M_sun.cgs.value
+                max_sinkmass=a.sinkmass.max()*code_units.M_cu/ap.M_sun.cgs.value +1
                 #min_sinkmass=a.sinkmass.min()*code_units.M_cu/ap.M_sun.cgs.value
             else:
                if a.sinkmass.max()>max_sinkmass:

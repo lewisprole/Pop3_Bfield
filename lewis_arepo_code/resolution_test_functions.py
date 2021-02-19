@@ -512,7 +512,7 @@ def MMdot(files):
 		colors='b','g','r','cyan','Purple'
 		labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
 		M,acc,t=read_largest_sink(files[i])
-		acc,M,b=binned_statistic(M,acc,bins=10**np.linspace(0,2,20))
+		acc,M,b=binned_statistic(M,acc,bins=10**np.linspace(0,2,100))
 		mask=np.where(acc>0)
 		plt.loglog(M[:-1][mask],acc[mask],c=colors[i])
 	plt.axhline(y=0.004,color='k',linestyle='--')
@@ -546,7 +546,7 @@ def stromgren_spheres(files):
 	for i in range(len(files)):
 		M,acc,t=read_largest_sink(files[i])
 		if i==len(files)-1:
-			M,acc,t=M[0::5],acc[0::5],t[0::5]
+			M,acc,t=M[0::3],acc[0::3],t[0::3]
 		if i==0:
 			rs=f3(M) *ap.R_sun.value
 		if (i>0) & (i<3):
