@@ -281,6 +281,14 @@ def aread(filename):
             a.sinkvz = a.vz[a.idsink]
             a.sinkmass = a.mass[a.idsink]
             a.sinkid = a.partid[a.idsink]
+            if (igot_pot == 1):
+                a.sinkpotential=a.potential[a.idsink]
+            if (igot_accel == 1):
+                a.sinkaccelx=a.accel[a.idsink,0]
+                a.sinkaccely=a.accel[a.idsink,1]
+                a.sinkaccelz=a.accel[a.idsink,2]
+            if (igot_soft == 1):
+                a.sinksoftening=a.softening[a.idsink]
 
         #
         # now remove the sinks from the other arrays (so pos, vel, mass, id etc have

@@ -123,11 +123,11 @@ def pannel_plot(file8,file9,file10,file11,file12):
 	axs[0].set_xlim(10**-16,10**-3.5)
 
 
-	axs[0].axvline(x=1e8*rho_cu,linestyle='--',color='k')
-	axs[1].axvline(x=1e9*rho_cu,linestyle='--',color='k')
-	axs[2].axvline(x=1e10*rho_cu,linestyle='--',color='k')
-	axs[3].axvline(x=1e11*rho_cu,linestyle='--',color='k')
-	axs[4].axvline(x=1e12*rho_cu,linestyle='--',color='k')
+	axs[0].axvline(x=1e8*code_units.rho_cu,linestyle='--',color='k')
+	axs[1].axvline(x=1e9*code_units.rho_cu,linestyle='--',color='k')
+	axs[2].axvline(x=1e10*code_units.rho_cu,linestyle='--',color='k')
+	axs[3].axvline(x=1e11*code_units.rho_cu,linestyle='--',color='k')
+	axs[4].axvline(x=1e12*code_units.rho_cu,linestyle='--',color='k')
 
 	#plt.subplots_adjust(top=0.95,bottom=0.05)
 	axs[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
