@@ -161,36 +161,36 @@ def advanced_histogram(file,ax):
 	heating,cooling,acc =de_dt(a)
 	comp=compression(a)
 
-	im,x,y=np.histogram2d(np.log10(cooling),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,10,200),np.linspace(-18,-4,200)))
+	im,x,y=np.histogram2d(np.log10(cooling),np.log10(a.rho*code_units.rho_cu),bins=(np.linspace(-20,10,150),np.linspace(-18,-4,150)))
 	im[np.where(im==0)]=np.nan
 	#ax.imshow(im,cmap="Blues",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
 	#ax.contourf(im,[1,im.max()],colors='blue',extent=[y[0],y[-1],x[0],x[-1]],alpha=0.5,label=r'$-\Lambda$')
 	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=B,extent=[y[0],y[-1],x[0],x[-1]],label=r'$-\Lambda$',zorder=1)
 
-	im,x,y=np.histogram2d(np.log10(heating),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
+	im,x,y=np.histogram2d(np.log10(heating),np.log10(a.rho*code_units.rho_cu),bins=(np.linspace(-20,11,150),np.linspace(-18,-4,150)))
 	im[np.where(im==0)]=np.nan
 	#ax.imshow(im,cmap="Reds",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
 	#ax.contourf(im,[1,im.max()],colors='red',extent=[y[0],y[-1],x[0],x[-1]],alpha=0.5,label=r'$\Gamma$')
 	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=R,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma$',zorder=2)
 
-	im,x,y=np.histogram2d(np.log10(cooling),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
+	im,x,y=np.histogram2d(np.log10(cooling),np.log10(a.rho*code_units.rho_cu),bins=(np.linspace(-20,11,150),np.linspace(-18,-4,150)))
 	ax.contour(im,[1,im.max()],colors='blue',extent=[y[0],y[-1],x[0],x[-1]],label=r'$-\Lambda$',zorder=3)
 	
 
-	im,x,y=np.histogram2d(np.log10(acc),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
+	im,x,y=np.histogram2d(np.log10(acc),np.log10(a.rho*code_units.rho_cu),bins=(np.linspace(-20,11,150),np.linspace(-18,-4,150)))
 	im[np.where(im==0)]=np.nan
 	#ax.imshow(im,cmap="Purples",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
 	#ax.contourf(im,[1,im.max()],colors='magenta',extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma_{\rm L}$')
 	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=G,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma_{\rm L}$',zorder=4)
 
-	im,x,y=np.histogram2d(np.log10(comp),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
+	im,x,y=np.histogram2d(np.log10(comp),np.log10(a.rho*code_units.rho_cu),bins=(np.linspace(-20,11,150),np.linspace(-18,-4,150)))
 	im[np.where(im==0)]=np.nan
 	#ax.contourf(im,[1,im.max()],colors='black',extent=[y[0],y[-1],x[0],x[-1]],label=r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$')
 	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=Gr,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',zorder=5)
 
 def multi_advanced_histogram(files):
 	fig,ax=plt.subplots(5,sharex=True)
-	plt.subplots_adjust(hspace=0,left=0.1,right=0.7,bottom=0.1,top=0.9)
+	plt.subplots_adjust(hspace=0,left=0.15,right=0.75,bottom=0.1,top=0.9)
 	labels=r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-6}$gcm$^{-3}$'
 	for i in range(5):
 		advanced_histogram(files[i],ax[i])
