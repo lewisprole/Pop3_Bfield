@@ -165,28 +165,28 @@ def advanced_histogram(file,ax):
 	im[np.where(im==0)]=np.nan
 	#ax.imshow(im,cmap="Blues",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
 	#ax.contourf(im,[1,im.max()],colors='blue',extent=[y[0],y[-1],x[0],x[-1]],alpha=0.5,label=r'$-\Lambda$')
-	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=B,extent=[y[0],y[-1],x[0],x[-1]],label=r'$-\Lambda$')
+	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=B,extent=[y[0],y[-1],x[0],x[-1]],label=r'$-\Lambda$',zorder=1)
 
 	im,x,y=np.histogram2d(np.log10(heating),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
 	im[np.where(im==0)]=np.nan
 	#ax.imshow(im,cmap="Reds",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
 	#ax.contourf(im,[1,im.max()],colors='red',extent=[y[0],y[-1],x[0],x[-1]],alpha=0.5,label=r'$\Gamma$')
-	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=R,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma$')
+	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=R,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma$',zorder=2)
 
 	im,x,y=np.histogram2d(np.log10(cooling),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
-	ax.contour(im,[1,im.max()],colors='blue',extent=[y[0],y[-1],x[0],x[-1]],label=r'$-\Lambda$')
+	ax.contour(im,[1,im.max()],colors='blue',extent=[y[0],y[-1],x[0],x[-1]],label=r'$-\Lambda$',zorder=3)
 	
 
 	im,x,y=np.histogram2d(np.log10(acc),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
 	im[np.where(im==0)]=np.nan
 	#ax.imshow(im,cmap="Purples",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
 	#ax.contourf(im,[1,im.max()],colors='magenta',extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma_{\rm L}$')
-	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=G,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma_{\rm L}$')
+	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=G,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma_{\rm L}$',zorder=4)
 
 	im,x,y=np.histogram2d(np.log10(comp),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
 	im[np.where(im==0)]=np.nan
 	#ax.contourf(im,[1,im.max()],colors='black',extent=[y[0],y[-1],x[0],x[-1]],label=r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$')
-	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=Gr,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$')
+	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=Gr,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',zorder=5)
 
 def multi_advanced_histogram(files):
 	fig,ax=plt.subplots(5,sharex=True)
@@ -197,13 +197,14 @@ def multi_advanced_histogram(files):
 		ax[i].text(0.18,0.88,labels[i],ha='center', va='center', transform=ax[i].transAxes,fontsize=10)
 		ax[i].tick_params(axis="x", labelsize=9,direction="in")
 		ax[i].tick_params(axis="y", labelsize=9,direction="in")
+		ax[i].set_yticks([-16,-8,0,8])
 	ax[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
 	ax[2].set_ylabel(r'Log$_{10}$($\frac{\rm de}{\rm dt}$ [erg s$^{-1}$ cm$^{-3}]$)')
-	ax[0].axvline(x=1e8*code_units.rho_cu,linestyle='--',color='k')
-	ax[1].axvline(x=1e9*code_units.rho_cu,linestyle='--',color='k')
-	ax[2].axvline(x=1e10*code_units.rho_cu,linestyle='--',color='k')
-	ax[3].axvline(x=1e11*code_units.rho_cu,linestyle='--',color='k')
-	ax[4].axvline(x=1e12*code_units.rho_cu,linestyle='--',color='k')
+	#ax[0].axvline(x=1e8*code_units.rho_cu,linestyle='--',color='k')
+	#ax[1].axvline(x=1e9*code_units.rho_cu,linestyle='--',color='k')
+	#ax[2].axvline(x=1e10*code_units.rho_cu,linestyle='--',color='k')
+	#ax[3].axvline(x=1e11*code_units.rho_cu,linestyle='--',color='k')
+	#ax[4].axvline(x=1e12*code_units.rho_cu,linestyle='--',color='k')
 	line1=Line2D([0], [0], color='r')#linestyle='none', marker='o', markerfacecolor='r',markeredgecolor='r')
 	line2=Line2D([0], [0], color='g')#linestyle='none', marker='o', markerfacecolor='fuchsia',markeredgecolor='fuchsia')
 	line3=Line2D([0], [0], color='k')#linestyle='none', marker='o', markerfacecolor='k',markeredgecolor='k'line4=Line2D([0], [0], color='b')#linestyle='none', marker='o',markerfacecolor='cyan',markeredgecolor='cyan')
