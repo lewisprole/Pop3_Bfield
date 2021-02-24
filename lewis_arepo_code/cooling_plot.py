@@ -9,6 +9,7 @@ from matplotlib.lines import Line2D
 import matplotlib.pyplot as plt
 from scipy.stats import binned_statistic  
 from matplotlib.colors import LogNorm
+import matplotlib as mpl
 
 '''|||||||| simple plot showing T vs rho relationship |||||||||||||'''
 def baro(filename):
@@ -66,22 +67,22 @@ def cool_plot(file,AX):
 
 	#COOLING,y,z=np.histogram2d( np.log10(cooling)[~np.isnan(np.log10(cooling))],  np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(cooling))],  bins=(500,500))
 	#AX.imshow(COOLING/COOLING,cmap='winter',aspect='auto',label=r'$\Lambda$',extent=[z[0],z[-1],y[-1],y[0]])
-	COOLING,rho,z=binned_statistic(a.rho*code_units.rho_cu,cooling,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
+	COOLING,rho,z=binned_statistic(a.rho*code_units.rho_cu,cooling,statistic='median',bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
 	AX.loglog(rho[:-1],COOLING,'cyan',linewidth=5)
 
 	#HEATING,y,z=np.histogram2d( np.log10(heating)[~np.isnan(np.log10(heating))],np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(heating))],bins=(500,500))
 	#AX.imshow(HEATING/HEATING,cmap='RdYlBu',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
-	HEATING,rho,z=binned_statistic(a.rho*code_units.rho_cu,heating,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
+	HEATING,rho,z=binned_statistic(a.rho*code_units.rho_cu,heating,statistic='median',bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
 	AX.loglog(rho[:-1],HEATING,'r')
 
 	#COMP,y,z=np.histogram2d( np.log10(comp),np.log10(a.rho*code_units.rho_cu),bins=(500,500))
  	#AX.imshow(COMP/COMP,cmap='summer',aspect='auto',label=r'$-\Gamma$',extent=[z[0],z[-1],y[-1],y[0]])
-	COMP,rho,z=binned_statistic(a.rho*code_units.rho_cu,comp,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
+	COMP,rho,z=binned_statistic(a.rho*code_units.rho_cu,comp,statistic='median',bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
 	AX.loglog(rho[:-1],COMP,'k')
 
 	#ACC,y,z=np.histogram2d( np.log10(acc)[~np.isnan(np.log10(acc))],np.log10(a.rho*code_units.rho_cu)[~np.isnan(np.log10(acc))],bins=(500,500))
 	#AX.imshow(ACC/ACC,cmap='spring',aspect='auto',label=r'$Gamma_L$',extent=[z[0],z[-1],y[-1],y[0]])
-	ACC,rho,z=binned_statistic(a.rho*code_units.rho_cu,acc,bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
+	ACC,rho,z=binned_statistic(a.rho*code_units.rho_cu,acc,statistic='median',bins = 10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50))
 	AX.loglog(rho[:-1],ACC,'fuchsia')
 	
 	#AX.set_ylim(y[0],y[-1])
@@ -137,7 +138,81 @@ def pannel_plot(file8,file9,file10,file11,file12):
 	line2=Line2D([0], [0], color='fuchsia')#linestyle='none', marker='o', markerfacecolor='fuchsia',markeredgecolor='fuchsia')
 	line3=Line2D([0], [0], color='k')#linestyle='none', marker='o', markerfacecolor='k',markeredgecolor='k')
 	line4=Line2D([0], [0], color='cyan')#linestyle='none', marker='o',markerfacecolor='cyan',markeredgecolor='cyan')
-	axs[0].legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=1,loc=(0.99,0.1))
+	axs[0].legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=1,loc=(1,0.1))
+
+
+
+def advanced_histogram(file,ax):
+
+	#edit cmaps 
+	cmap = mpl.cm.Blues(np.linspace(0,1,20))
+	B = mpl.colors.ListedColormap(cmap[10:,:-1])
+
+	cmap = mpl.cm.Reds(np.linspace(0,1,20))
+	R = mpl.colors.ListedColormap(cmap[10:,:-1])
+
+	cmap = mpl.cm.Greens(np.linspace(0,1,20))
+	G = mpl.colors.ListedColormap(cmap[10:,:-1])
+
+	cmap = mpl.cm.Greys(np.linspace(0,1,20))
+	Gr = mpl.colors.ListedColormap(cmap[10:,:-1])
+
+	a=arepo_utils.aread(file)
+	heating,cooling,acc =de_dt(a)
+	comp=compression(a)
+
+	im,x,y=np.histogram2d(np.log10(cooling),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,10,200),np.linspace(-18,-4,200)))
+	im[np.where(im==0)]=np.nan
+	#ax.imshow(im,cmap="Blues",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
+	#ax.contourf(im,[1,im.max()],colors='blue',extent=[y[0],y[-1],x[0],x[-1]],alpha=0.5,label=r'$-\Lambda$')
+	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=B,extent=[y[0],y[-1],x[0],x[-1]],label=r'$-\Lambda$')
+
+	im,x,y=np.histogram2d(np.log10(heating),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
+	im[np.where(im==0)]=np.nan
+	#ax.imshow(im,cmap="Reds",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
+	#ax.contourf(im,[1,im.max()],colors='red',extent=[y[0],y[-1],x[0],x[-1]],alpha=0.5,label=r'$\Gamma$')
+	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=R,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma$')
+
+	im,x,y=np.histogram2d(np.log10(cooling),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
+	ax.contour(im,[1,im.max()],colors='blue',extent=[y[0],y[-1],x[0],x[-1]],label=r'$-\Lambda$')
+	
+
+	im,x,y=np.histogram2d(np.log10(acc),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
+	im[np.where(im==0)]=np.nan
+	#ax.imshow(im,cmap="Purples",alpha=0.5,aspect='auto',extent=[y[0],y[-1],x[-1],x[0]]),plt.ylim(x[0],x[-1])
+	#ax.contourf(im,[1,im.max()],colors='magenta',extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma_{\rm L}$')
+	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=G,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\Gamma_{\rm L}$')
+
+	im,x,y=np.histogram2d(np.log10(comp),np.log10(a.rho*rho_cu),bins=(np.linspace(-20,11,200),np.linspace(-18,-4,200)))
+	im[np.where(im==0)]=np.nan
+	#ax.contourf(im,[1,im.max()],colors='black',extent=[y[0],y[-1],x[0],x[-1]],label=r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$')
+	ax.contourf(im,[1,2,5,10,50,100,250,500,1000],extend='max',cmap=Gr,extent=[y[0],y[-1],x[0],x[-1]],label=r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$')
+
+def multi_advanced_histogram(files):
+	fig,ax=plt.subplots(5,sharex=True)
+	plt.subplots_adjust(hspace=0,left=0.1,right=0.7,bottom=0.1,top=0.9)
+	labels=r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-6}$gcm$^{-3}$'
+	for i in range(5):
+		advanced_histogram(files[i],ax[i])
+		ax[i].text(0.18,0.88,labels[i],ha='center', va='center', transform=ax[i].transAxes,fontsize=10)
+		ax[i].tick_params(axis="x", labelsize=9,direction="in")
+		ax[i].tick_params(axis="y", labelsize=9,direction="in")
+	ax[4].set_xlabel(r'Log$_{10}(\rho$ [gcm$^{-3}$])',fontsize=10)
+	ax[2].set_ylabel(r'Log$_{10}$($\frac{\rm de}{\rm dt}$ [erg s$^{-1}$ cm$^{-3}]$)')
+	ax[0].axvline(x=1e8*code_units.rho_cu,linestyle='--',color='k')
+	ax[1].axvline(x=1e9*code_units.rho_cu,linestyle='--',color='k')
+	ax[2].axvline(x=1e10*code_units.rho_cu,linestyle='--',color='k')
+	ax[3].axvline(x=1e11*code_units.rho_cu,linestyle='--',color='k')
+	ax[4].axvline(x=1e12*code_units.rho_cu,linestyle='--',color='k')
+	line1=Line2D([0], [0], color='r')#linestyle='none', marker='o', markerfacecolor='r',markeredgecolor='r')
+	line2=Line2D([0], [0], color='g')#linestyle='none', marker='o', markerfacecolor='fuchsia',markeredgecolor='fuchsia')
+	line3=Line2D([0], [0], color='k')#linestyle='none', marker='o', markerfacecolor='k',markeredgecolor='k'line4=Line2D([0], [0], color='b')#linestyle='none', marker='o',markerfacecolor='cyan',markeredgecolor='cyan')
+	line4=Line2D([0], [0], color='b')#linestyle='none', marker='o',markerfacecolor='cyan',markeredgecolor='cyan')
+	ax[0].legend([line1,line2,line3,line4],(r'$\Gamma$',r'$\Gamma_L$',r'$\frac{k_B T}{m_p} \sqrt{\frac{32G}{3\pi}}$($\rho$)$^{3/2}$',r'$-\Lambda$'),fontsize=10,frameon=False,markerscale=1,loc=(1,0.1))
+
+
+
+
 
 
 '''|||||||||| functions to plot abundances vs density||||||||||'''
