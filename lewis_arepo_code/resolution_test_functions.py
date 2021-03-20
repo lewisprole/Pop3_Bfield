@@ -581,3 +581,50 @@ def stromgren_spheres(files):
 	ax[4].set_ylabel(r'R$_S$ [R$_\odot$]',fontsize=10)
 	ax[4].set_xlabel('t [yrs]')
 
+
+''' MHD functions '''
+
+
+def MHD_compare(files_noMHD,files_uniform,files_MHD):
+	fig,ax=plt.subplots(1,3,sharey=True)
+	plt.subplots_adjust(wspace=0)
+	colors='g','r','cyan'
+	ax[0].set_ylabel(r'N$_{\rm sinks}$',fontsize=11)
+	for i in range(len(files_noMHD)):
+		N,M,t=txtread(files_noMHD[i])
+		ax[i].plot((t-t[0])*code_units.t_cu/(60*60*24*365),N,color='pink')
+		N,M,t=txtread(files_MHD[i])
+		ax[i].plot((t-t[0])*code_units.t_cu/(60*60*24*365),N,color='red')
+		N,M,t=txtread(files_uniform[i])
+		ax[i].plot((t-t[0])*code_units.t_cu/(60*60*24*365),N,color='Crimson')
+		
+		ax[i].set_xlabel('t [yrs]',fontsize=11)
+		ax[i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+		ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
+
+def Bfield_plot(files,sink):
+	fig,ax=plt.subplots(2,sharex=True)
+	plt.subplots_adjust(hspace=0)
+	colors='cyan','r','g'
+	labels=r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$'
+	for i in range(len(files)):	
+		a=arepo_utils.aread(files[i])
+		B=np.sqrt(a.bfield[:,0]**2+ a.bfield[:,1]**2 + a.bfield[:,2]**2)
+		#if a.npart[-1]>0:
+			#midx=a.sinkx[np.where(a.sinkmass==a.sinkmass.max())]
+			#midy=a.sinky[np.where(a.sinkmass==a.sinkmass.max())]
+			#midz=a.sinkz[np.where(a.sinkmass==a.sinkmass.max())]
+			#r=np.sqrt((a.x-midx)**2+(a.y-midy)**2+(a.z-midz)**2)
+		#else:
+			#mid = np.where(a.rho==a.rho.max())	
+			#r=np.sqrt((a.x-a.x[mid])**2+(a.y-a.y[mid])**2+(a.z-a.z[mid])**2)
+		B,rho,y=binned_statistic(a.rho*code_units.rho_cu,B*code_units.B_cu,bins=10**np.linspace(np.log10(a.rho.min()*code_units.rho_cu),np.log10(a.rho.max()*code_units.rho_cu),50),statistic='median')
+		ax[0].loglog(rho[:-1],B*code_units.B_cu,color=colors[i])	
+		ax[1].loglog(rho[:-1],B*code_units.B_cu/rho[:-1]**(2/3),color=colors[i])
+		#B,r,y=binned_statistic(r,B,bins=10**np.linspace(np.log10(np.sort(r)[1]),np.log10(r.max()),50))
+		#ax.loglog(r[:-1]*code_units.d_cu,B*code_units.B_cu)
+	ax[1].loglog(rho[:-1],rho[:-1]**0.05*2e3,'k')
+	ax[0].set_ylabel('B [G]')
+	ax[1].set_ylabel(r'B/$\rho^{2/3}$')
+	ax[1].set_xlabel(r'$\rho$ [gcm$^{-3}$]')
+

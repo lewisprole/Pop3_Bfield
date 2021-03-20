@@ -6,7 +6,7 @@ import arepo_input_writer
 
 
 
-filename='/scratch/c.c1521474/resolution_test/merge/1e12_redo/snapshot_495'
+filename='/scratch/c.c1521474/resolution_test/MHD/1e10MHD/snapshot_100'
 a=arepo_utils.aread(filename)
 
 
@@ -61,7 +61,8 @@ sofar=arepo_input_writer.tag_block(sofar,(a.bfield[:,0],a.bfield[:,1],a.bfield[:
 sofar=arepo_input_writer.tag_block(sofar,a.divb,'DIVB','d',1)
 sofar=arepo_input_writer.tag_block(sofar,a.divbalt,'DVBA','d',1)
 sofar=arepo_input_writer.tag_block(sofar,a.psi,'BPSI','d',1)
-sofar=arepo_input_writer.tag_block(sofar,a.dednerv,'VDED','d',1)
+#sofar=arepo_input_writer.tag_block(sofar,a.dednerv,'VDED','d',1) #may need to add this back in - look at snapshot to know 
+
 #chemical species slightly trickier to prepare
 chem=np.zeros((a.chem.shape[1],len(a.chem[:,0])))
 for i in range(a.chem.shape[1]):
@@ -70,7 +71,7 @@ sofar=arepo_input_writer.tag_block(sofar,chem,'CHEM','d',int(a.chem.shape[1]))
 sofar=arepo_input_writer.tag_block(sofar,a.gamma,'GAMM','d',1)
 sofar=arepo_input_writer.tag_block(sofar,a.divv,'DIVV','d',1)
 
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/merge/1e12_redo/thermal/snapshot_495')
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/MHD/1e10MHD/snapshot_100')
 
 
 

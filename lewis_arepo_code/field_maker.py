@@ -206,3 +206,18 @@ def create_nonscaled_field(N,n):
 	print('keeping real')
 	bx,by,bz=bx.real,by.real,bz.real
 	return bx,by,bz
+
+def create_nonscaled_Bfield(N,n):
+	k,P=spectrum(N,n)
+	As_squared=amplitudes(k,P)
+	Ax,Ay,Az=kspace(k,As_squared,'dot')
+	print('reverse transform x')
+	bx=np.fft.ifftn(Ax)
+	print('y')
+	by=np.fft.ifftn(Ay)
+	print('z')
+	bz=np.fft.ifftn(Az)
+	print('keeping real')
+	bx,by,bz=bx.real,by.real,bz.real
+	return bx,by,bz
+

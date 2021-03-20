@@ -255,6 +255,10 @@ def aread(filename):
                                buf=np.fromfile(file,dtype=np.double,count=28*ngas)
                                skip = np.fromfile(file,dtype=np.int32,count=1)
                                a.cooling = np.reshape(buf,(-1,28))
+                        elif(tag=='COMP'):
+                               skip = np.fromfile(file,dtype=np.int32,count=1)
+                               a.compressional=np.fromfile(file,dtype=np.double,count=ngas)
+                               skip = np.fromfile(file,dtype=np.int32,count=1)
                         else:
                                 print("Skipping through property",tag," with record length", nextblock-8)
                                 dummy = np.fromfile(file,dtype=np.int32,count=(nextblock//4))

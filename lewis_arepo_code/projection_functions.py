@@ -101,7 +101,7 @@ def create_spectrum(velfile,boxsize,subtract):
         dk=ks1[1]-ks1[0]
         energy1=av1*4*np.pi*ks1[:-1]**2 *dk
 
-        return ks1[1:],energy1
+        return ks1[:-1],energy1
 
 
 

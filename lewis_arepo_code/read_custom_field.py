@@ -1,16 +1,36 @@
 import numpy as np 
-
+import struct
 
 def writer(filename,bx,by,bz):
 	print('writing')
-	array=np.hstack(( bx.ravel(),by.ravel(),bz.ravel() )).ravel()
-	np.savetxt(filename, array, fmt="%s")
+	nx,ny,nz=struct.pack('i',len(bx[:,0,0])),struct.pack('i',len(bx[0,:,0])),struct.pack('i',len(bx[0,0,:]))
+	sofar=nx+ny+nz
+	
+	blockx = struct.pack('d'*len(bx[:,0,0])**3,*bx.reshape(len(bx[:,0,0])**3))
+	blocky = struct.pack('d'*len(by[0,:,0])**3,*by.reshape(len(by[0,:,0])**3))
+	blockz = struct.pack('d'*len(bz[0,0,:])**3,*bz.reshape(len(bz[0,0,:])**3))
+	sofar=sofar+blockx+blocky+blockz
+	f= open(filename,"w+b")
+	f.write(sofar)
 
-def reader(filename,N):
+def reader(filename):
 	print('reading')
-	N=N*2
-	data=np.loadtxt(filename)
-	vx=data[:N**3].reshape(N,N,N)
-	vy=data[N**3:2*N**3].reshape(N,N,N)
-	vz=data[2*N**3:3*N**3].reshape(N,N,N)
-	return vx,vy,vz
+	with open(filename, mode='rb') as file:
+		data = file.read()
+	nx=struct.unpack('i',data[0:4])
+	ny=struct.unpack('i',data[4:8])
+	nz=struct.unpack('i',data[8:12])
+	nx,ny,nz=nx[0],ny[0],nz[0]
+	print('shape: '+str(nx)+' '+str(ny)+' '+str(nz))
+
+	start=12
+	bx=struct.unpack('d'*nx**3,data[start:start+nx**3*8])
+	start=start+nx**3*8
+	by=struct.unpack('d'*ny**3,data[start:start+ny**3*8])
+	start=start+ny**3*8
+	bz=struct.unpack('d'*nz**3,data[start:start+nz**3*8])
+
+	bx=np.asarray(bx).reshape(nx,nx,nx)
+	by=np.asarray(by).reshape(ny,ny,ny)
+	bz=np.asarray(bz).reshape(nz,nz,nz)
+	return bx,by,bz

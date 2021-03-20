@@ -224,8 +224,10 @@ def plotter(n,n_bg,r,x_size,y_size,z_size):
     ax.scatter3D(x,y,z, s=1,cmap='Reds')
 
 
-
-#plotter(1000,1000,100,1000,1000,1000)
-#x,y,z=spherical_cloud(5000,5000,100,1000,1000,1000)
-#x=x,y,z
-#ids=np.linspace(1,1001,1001).astype(int)
+def uniform_spray(N,x_size,y_size,z_size):
+    '''sprays in background particles'''
+    midx,midy,midz=int(x_size/2),int(y_size/2),int(z_size/2)
+    xs=np.random.uniform(low=(0),high=(x_size),size=N)
+    ys=np.random.uniform(low=(0),high=(y_size),size=N)
+    zs=np.random.uniform(low=(0),high=(z_size),size=N)
+    return xs,ys,zs
