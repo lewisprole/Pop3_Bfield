@@ -484,16 +484,18 @@ def plot_largest_sink(files):
 		M,acc,t=read_largest_sink(files[i])
 		#if i==0:	
 		t0=t[0]
-		if i==0:
-			bins=np.linspace(t0,t.max(),200)
-		acc,T,z=binned_statistic(t,acc,bins=bins)
-		interval=5
-		#if i==4:
-		#	interval=10
+		#if i==0:
+		#	bins=np.linspace(t0,t.max(),200)
+		#acc,T,z=binned_statistic(t,acc,bins=bins)
+		#interval=5
+		T=t
+		if i==4:
+			T=T[0::3][np.where(acc[0::3]>0)]
+			acc=acc[0::3][np.where(acc[0::3]>0)]
 		#mask=np.where(acc[1::interval]>0)
-		ax[0].semilogy(T[:-1]-t0,acc,colors[i])
+		ax[0].semilogy(T-t0,acc,colors[i])
 		ax[1].semilogy(t-t0,M,colors[i],label=labels[i])
-
+	
 	plt.subplots_adjust(left = 0.2,bottom = 0.17,right=0.9)
 	ax[0].tick_params(axis="x", labelsize=10,direction="in")
 	ax[0].tick_params(axis="y", labelsize=10,direction="in")
