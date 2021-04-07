@@ -106,6 +106,7 @@ def hist_pannel(files):
 		t,r,x,y,z=read_sinkfile(files[-1-i])
 		r=np.asarray(r).astype(float)*code_units.d_cu/ap.au.cgs.value
 		if i==0:
-			bins=np.linspace(0,r.max(),50)
+			bins=10**np.linspace(np.log10(np.sort(r)[1]),np.log10(r.max()*2),100)
 		axs[-1-i].hist(r,bins=bins,color=colors[-1-i])
+	axs[0].set_xscale('log')
 	axs[len(files)-1].set_xlabel(r'r$_{\rm min}$ [AU]')
