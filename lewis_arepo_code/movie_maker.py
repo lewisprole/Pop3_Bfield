@@ -35,7 +35,7 @@ def plot_save(dirname,imnames,nos,imx1,imx2,imy1,imz1,outdir):
 		n=snapname(nos[-i-1])
 		im=prep(dirname+imnames+n)
 		im=im*code_units.rho_cu
-		x,y,z=sink_pos(dirname+'snapshot_'+n,1000,imx1,imx2,imy1,imz1)
+		x,y,z=sink_pos(dirname+'snapshot_'+n,500,imx1,imx2,imy1,imz1)
 		if i==0:
 			vmin=(np.log10(im).min())
 			vmax=(np.log10(im).max())
@@ -43,8 +43,8 @@ def plot_save(dirname,imnames,nos,imx1,imx2,imy1,imz1,outdir):
 		cbar=plt.colorbar(image,pad=0)
 		plt.text(1200,600,r'log$_{10}$( $\rho$ [gcm$^{-3}] )$', rotation=270)
 		ax.scatter(y,x,c='royalblue',s=1)
-		ax.set_ylim(0,1000)
-		ax.set_xlim(0,1000)
+		ax.set_ylim(0,500)
+		ax.set_xlim(0,500)
 		ax.set_aspect('equal')
 		ax.set_yticks([])
 		ax.set_xticks([])
