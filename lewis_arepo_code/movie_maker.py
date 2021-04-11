@@ -7,7 +7,7 @@ import code_units
 def prep(name):
 	data=projection_functions.read_cube(name)
 	N=len(data[:,:,0])
-	im=np.sum(data,2)/N
+	im=np.sum(data,1)/N
 	return im
 
 def snapname(no):
@@ -42,12 +42,15 @@ def plot_save(dirname,imnames,nos,imx1,imx2,imy1,imz1,outdir):
 		image=ax.imshow(np.log10(im),vmin=vmin,vmax=vmax,cmap='afmhot')
 		cbar=plt.colorbar(image,pad=0)
 		plt.text(1200,600,r'log$_{10}$( $\rho$ [gcm$^{-3}] )$', rotation=270)
-		ax.scatter(y,x,c='royalblue',s=1)
+		ax.scatter(z,x,c='royalblue',s=1)
 		ax.set_ylim(0,500)
 		ax.set_xlim(0,500)
+		#ax.set_yticklabels((np.array([0,100,200,300,400,500])*(imx2-imx1)/500*code_units.d_cu/ap.au.cgs.value).astype(int))
+		#ax.set_yticklabels((np.array([0,100,200,300,400,500])*(imx2-imx1)/500*code_units.d_cu/ap.au.cgs.value).astype(int))
 		ax.set_aspect('equal')
 		ax.set_yticks([])
 		ax.set_xticks([])
+		ax.set_xlabel('400AU')
 		plt.savefig(outdir+n+'.png')
 		plt.close('all')
 	
