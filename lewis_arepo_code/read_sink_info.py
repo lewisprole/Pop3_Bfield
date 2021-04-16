@@ -4,6 +4,8 @@ import struct
 import code_units
 import astropy.constants as ap 
 
+'''first couple of functions are for getting sink info when they newly form'''
+
 
 def readsink(filename,savefile,timemax):
 	with open(filename, mode='rb') as file:
@@ -42,12 +44,10 @@ def readsink(filename,savefile,timemax):
 					mass=np.array([])
 
 					for j in range(Nsinks_old):
-						#print('checking old ids')
 						#read in sink ids from the last iteration
 						id_position = n_old + 8 + 4 + 8*14 #skip over the header and pos/vel/accel
 						id_old=struct.unpack('q',data[id_position + (j*bits_sink) : id_position + (j*bits_sink) + 8])
 						ids_old=np.append(ids_old,id_old)
-					#print('old ids' + str(ids_old))
 
 					for j in range(Nsinks):
 						#print('reading current sink data')
@@ -58,7 +58,7 @@ def readsink(filename,savefile,timemax):
 						vx=np.append(vx,struct.unpack('d',data[start+8*3:start + 8*4]))
 						vy=np.append(vy,struct.unpack('d',data[start+8*4:start + 8*5]))
 						vz=np.append(vz,struct.unpack('d',data[start+8*5:start + 8*6]))
-						mass=np.append(mass,struct.unpack('d',data[start+8*10:start + 8*11]))
+						mass=np.append(mass,struct.unpack('d',data[start+8*9:start + 8*10]))
 					
 						id_position = n + 8 + 4 + 14*8 + (j*bits_sink)
 						id_new=struct.unpack('q',data[id_position  : id_position  + 8])
@@ -157,3 +157,92 @@ def energy_check(files):
 		Nbound=len(V[np.where(0.5*M*V**2 < ap.G.cgs.value*M*M1/R)])
 		Nfree=len(V)-Nbound
 		print('file '+str(-1-i)+': '+str(Nbound)+' bound, '+str(Nfree)+' free.')
+
+
+
+
+
+
+
+
+'''next couple of funtions are for getting all sink info at all times'''
+
+def get_all_info(sink_info_files,savefile):
+	sink_space = np.zeros((100, 3, 10000))
+	for filename in sink_info_files: 
+		with open(filename, mode='rb') as file:
+			data = file.read()
+		bits_sink= 8*14 + 8 + 4*3 + 4 #that 4 at the end... not sure what it is... think its a buffer... =32 every time
+		X=[]
+		n=0
+		i=0
+		mass_old=np.array([])
+		ids_old=np.array([])
+		while (n<len(data)):
+			t=struct.unpack('d',data[n:n+8])[0]
+			Nsinks=struct.unpack('i',data[n+8:n+12])[0]
+
+			ids_keep=np.array([])
+			mass_keep=np.array([])
+			ids=np.array([])
+			mass=np.array([])
+			for j in range(Nsinks):
+				start = n + 8 + 4 + (j*bits_sink)
+				ids=np.append(ids,struct.unpack('q',data[start+8*14:start + 8*15]))
+				mass=np.append(mass,struct.unpack('d',data[start+8*9:start + 8*10]))
+			
+			
+			#begin storing the info... only read this if you really need to...
+			#storage shape is 100,3,100
+			#the first dimension allows for 100 possible sinks
+			#second dimension gives mass, accretion rate and time
+			#third dimension progresses the data in time (10000 time slots)
+
+					
+				if ids[j] not in sink_space[:,0,0]: #going to put the info into the sink space array, each sink gets its own 2D array shape (3,10000)
+					I=0 #I is the arg of possible sink spaces in sink_space
+					marker=0
+					while marker==0:					
+						if sink_space[I,0,0]==0: #found an unoccupied 2D array
+							sink_space[I,0,0]=ids[j] #left with 2D array, first row contains id and number of entries
+							sink_space[I,1,0]=2
+						
+							sink_space[I,0,1]=mass[j] #second row onwards contains the entries of mass + accretion rate 
+							sink_space[I,1,1]=0 #initial accretion = 0 bc no previous data 
+							sink_space[I,2,1]=t 
+							marker=1 #let the loop stop looking fo a space 
+						I+=1
+
+				if ids[j] in sink_space[:,0,0]:
+					arg = np.where(sink_space[:,0,0]==ids[j])[0][0]
+					entry = int(sink_space[arg,1,0])
+				
+					sink_space[arg,0,entry] = mass[j]
+				
+					sink_space[arg,1,entry] = mass[j] - (sink_space[arg,0,entry-1]) / (t - sink_space[arg,2,entry-1])
+					sink_space[arg,2,entry]=t
+					sink_space[arg,1,0]+=1 #update how long the list is 
+
+				#ok the storing is done, I hope
+					
+				ids_old = ids
+				mass_old = mass
+		
+			n  = n + 8 + 4 + Nsinks*bits_sink
+			i+=1
+
+	#time to read sink_space and plot it
+	fig,ax=plt.subplots(1)
+#	fig1,ax1=plt.subplots(1)
+	for i in range(len(sink_space[:,0,0])-1):
+		if sink_space[i,0,0]>0:
+			ids=sink_space[i,0,0]
+			number=int(sink_space[i,1,0])
+			mass=sink_space[i,0,1:number+1] * code_units.M_cu / ap.M_sun.cgs.value
+			acc=sink_space[i,1,1:number+1] * code_units.M_cu / ap.M_sun.cgs.value / (code_units.t_cu / (60*60*24*365))
+			t=sink_space[i,2,1:number+1] * (code_units.t_cu / (60*60*24*365))
+			mask=np.where(acc>0)
+			ax.loglog(t,mass,label=int(ids))
+	ax.legend(fontsize=6,loc=(1,-0.2))
+	plt.subplots_adjust(right=0.75)
+
