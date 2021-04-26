@@ -586,6 +586,24 @@ def stromgren_spheres(files):
 
 ''' MHD functions '''
 
+def hydro_checkcrop(files_crop,files_big):
+	fig,ax=plt.subplots(1,3,sharey=True)
+	plt.subplots_adjust(wspace=0)
+	colors='b','g','r'
+	titles=r'10$^{-10}$gcm$^{-3}$',r'10$^{-7}$gcm$^{-3}$',r'10$^{-8}$gcm$^{-3}$'
+	ax[0].set_ylabel(r'N$_{\rm sinks}$',fontsize=11)
+	for i in range(len(files_crop)):
+		N,M,t=txtread(files_crop[i])
+		ax[i].plot((t-t[0])*code_units.t_cu/(60*60*24*365),N,color=colors[i],label='crop')
+		N,M,t=txtread(files_big[i])
+		ax[i].plot((t-t[0])*code_units.t_cu/(60*60*24*365),N,linestyle='--',color=colors[i],label='full')
+		ax[i].set_xlabel('t [yrs]',fontsize=11)
+		ax[i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+		ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
+		ax[i].legend(fontsize=10,frameon=False,loc='upper left')
+		ax[i].set_title(titles[i],fontsize=10)
+		
+
 
 def MHD_compare(files_noMHD,files_uniform,files_MHD):
 	fig,ax=plt.subplots(1,3,sharey=True)
