@@ -3,6 +3,64 @@ import matplotlib.pyplot as plt
 import struct
 import code_units
 import astropy.constants as ap 
+import os
+
+def allfiles(dirname):
+	'''takes all files in directory and orders them based on order of ending 3 number string'''
+	files=os.listdir(dirname)
+	files_new=np.array([])
+	nos=np.array([])
+	for i in range(len(files)):
+		no=files[i][-3:]
+		if no[0]==0: #get rid of zeros e.g. '001' -> '1'
+			no=no[1:]
+			if no[0]==0:
+				no=no[1:]
+		no=int(no)
+		nos=np.append(nos,no)
+	args=np.argsort(nos) #rearrange list 
+	for i in range(len(args)):
+		files_new=np.append(files_new,files[args[i]])
+	return files_new
+
+
+
+def Nsinks(dirname):
+	files = allfiles(dirname)
+	Nsinks_old =0 
+	T=np.array([])
+	N=np.array([])
+	for i in range(len(files)):
+		
+		with open(dirname+files[i], mode='rb') as file:
+			data = file.read()
+		bits_sink= 8*14 + 8 + 4*3 + 4
+		n=0
+		while (n<len(data)):
+			t=struct.unpack('d',data[n:n+8])[0]
+			Nsinks=struct.unpack('i',data[n+8:n+12])[0]
+			if Nsinks != Nsinks_old:
+				if len(T>0):
+					while t<T[-1]:
+						T=np.delete(T,len(T)-1)
+						T=np.delete(T,len(T)-1)
+						N=np.delete(N,len(N)-1)
+						N=np.delete(N,len(N)-1)
+				N=np.append(N,Nsinks_old) #line to the right 
+				N=np.append(N,Nsinks)     #and vertically up
+				T=np.append(T,t)
+				T=np.append(T,t)
+				Nsinks_old = Nsinks 
+			n  = n + 8 + 4 + Nsinks*bits_sink
+	return T,N
+
+def Nsink_plot(dirnames):
+	colors='b','g','r','cyan','purple'
+	for i in range(len(dirnames)):
+		t,N=Nsinks(dirnames[i])
+		plt.plot(t,N,color=colors[i])
+	plt.show()
+
 
 '''first couple of functions are for getting sink info when they newly form'''
 
@@ -178,9 +236,13 @@ def get_all_info(sink_info_files,savefile):
 		i=0
 		mass_old=np.array([])
 		ids_old=np.array([])
+		entries=0
 		while (n<len(data)):
 			t=struct.unpack('d',data[n:n+8])[0]
 			Nsinks=struct.unpack('i',data[n+8:n+12])[0]
+			entries+=1
+			if entries == 1:
+				t0=t
 
 			ids_keep=np.array([])
 			mass_keep=np.array([])
@@ -219,7 +281,7 @@ def get_all_info(sink_info_files,savefile):
 				
 					sink_space[arg,0,entry] = mass[j]
 				
-					sink_space[arg,1,entry] = mass[j] - (sink_space[arg,0,entry-1]) / (t - sink_space[arg,2,entry-1])
+					sink_space[arg,1,entry] = (mass[j] - sink_space[arg,0,entry-1]) / (t-sink_space[arg,2,entry-1])
 					sink_space[arg,2,entry]=t
 					sink_space[arg,1,0]+=1 #update how long the list is 
 
@@ -234,15 +296,18 @@ def get_all_info(sink_info_files,savefile):
 	#time to read sink_space and plot it
 	fig,ax=plt.subplots(1)
 #	fig1,ax1=plt.subplots(1)
+	starttime=sink_space[0,2,1]
 	for i in range(len(sink_space[:,0,0])-1):
 		if sink_space[i,0,0]>0:
 			ids=sink_space[i,0,0]
 			number=int(sink_space[i,1,0])
 			mass=sink_space[i,0,1:number+1] * code_units.M_cu / ap.M_sun.cgs.value
 			acc=sink_space[i,1,1:number+1] * code_units.M_cu / ap.M_sun.cgs.value / (code_units.t_cu / (60*60*24*365))
-			t=sink_space[i,2,1:number+1] * (code_units.t_cu / (60*60*24*365))
+			t=(sink_space[i,2,1:number+1]-starttime) * (code_units.t_cu / (60*60*24*365)) 
 			mask=np.where(acc>0)
-			ax.loglog(t,mass,label=int(ids))
-	ax.legend(fontsize=6,loc=(1,-0.2))
-	plt.subplots_adjust(right=0.75)
+			ax.loglog(mass[np.where(acc>0)],acc[np.where(acc>0)],label=int(ids))
+#	ax.legend(fontsize=6,loc=(1,-0.2))
+#	plt.subplots_adjust(right=0.75)
+	ax.tick_params(axis="x", labelsize=10,direction="in",which='both')
+	ax.tick_params(axis="y", labelsize=10,direction="in",which='both')
 
