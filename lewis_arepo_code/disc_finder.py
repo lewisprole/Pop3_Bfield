@@ -133,18 +133,38 @@ def get_disc(a,rho_sink,accradius,zoomzone):
 		rho_old=rho_sink
 		marker=0
 		j=0
-		while marker<10:
-			if j<len(bound[angle]):
-				if a.rho[bound][angle][args[j]]>rho_old/5:
+		Qs=np.array([])
+		while marker==0:
+		#for j in range(len(args)):
+			if j<len(args):
+				if j==0:
+					rho_av=a.rho[bound][angle][args[j]]
 					sinks[i].append(bound[angle][args[j]])
-					rho_old=a.rho[bound][angle][args[j]]
-					marker=0
+				
 				else:
-					marker+=1
+					if r[angle][args[j]]<0.001*code_units.d_cu:
+						if a.rho[bound][angle][args[j]]>rho_av/10:
+							sinks[i].append(bound[angle][args[j]])
+							#plt.plot(r[angle][args[j]],a.rho[bound][angle][args[j]],'.',c='k')
+							rho_av=np.mean(a.rho[sinks[i]])
+							#plt.plot(r[angle][args[j]],rho_av,'.',c='k')
+							c_s=np.sqrt(ap.k_B.cgs.value * a.temp[bound][angle][args[j]]/ap.m_p.cgs.value)
+							surface_density = a.mass[bound][angle][args[j]]*code_units.M_cu / ((a.mass[bound][angle][args[j]]/a.rho[bound][angle][args[j]])**(1/3)*code_units.d_cu)**2
+							#units get weird, r needs to be AU, G base units, M in solar masses, gives time in years 
+							period = np.sqrt(4*np.pi**2 * (r[angle][args[j]]/ap.au.cgs.value)**3 / (ap.G.value*a.sinkmass[i]*code_units.M_cu/ap.M_sun.cgs.value)) * (60*60*24*365)
+							frequency = 2*np.pi/period 
+							Q=c_s*frequency/(np.pi*ap.G.cgs.value*surface_density)
+							Qs=np.append(Qs,Q)
+							#print(len(sinks[i]),len(Qs))
+						if a.rho[bound][angle][args[j]] < rho_av/10000:
+							marker=1
+							print('density break')
+				j+=1
 			else:
-				marker=101
-			j+=1
-
+				marker=1
+					
+		R=np.sqrt((a.x[sinks[i]]-a.sinkx[i])**2+(a.y[sinks[i]]-a.sinky[i])**2+(a.z[sinks[i]]-a.sinkz[i])**2)
+		plt.plot(R[1:],Qs,'.')
 
 
 
