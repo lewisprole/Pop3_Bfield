@@ -62,7 +62,7 @@ def graph(files_merge1,snapshot_merge1,files_nomerge1,snapshot_nomerge1,files_me
 			flat=np.sum(rho,2)/len(rho[:,:,0])
 			ax_nomerge.imshow(np.log10(flat),cmap='magma',vmin=vmin,vmax=vmax)
 
-	plt.subplots_adjust(hspace=0,wspace=-0.89)
+	plt.subplots_adjust(hspace=0,wspace=-0.9)
 	axs=ax1,ax2,ax3,ax4,ax5,ax6,ax7,ax8,ax9,ax10,ax11,ax12
 	for ax in axs:
 		ax.set_yticks([])
