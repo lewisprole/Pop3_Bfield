@@ -34,8 +34,11 @@ def shifter(a,box_old,zoomzone):
 	znew=a.z+zshift
 	return xnew,ynew,znew 
 	
-	
-filenames='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_021','/scratch/c.c1521474/resolution_test/merge/1e10/snapshot_021','/scratch/c.c1521474/resolution_test/merge/1e9/snapshot_021'
+#filenames for the first MHD set 	
+#filenames='/scratch/c.c1521474/resolution_test/merge/1e11/snapshot_021','/scratch/c.c1521474/resolution_test/merge/1e10/snapshot_021','/scratch/c.c1521474/resolution_test/merge/1e9/snapshot_021'
+
+#filesnames for second MHD set 
+filenames='/scratch/c.c1521474/resolution_test/seed4/1e10/snapshot_023','/scratch/c.c1521474/resolution_test/seed4/1e9/snapshot_023','/scratch/c.c1521474/resolution_test/seed4/1e8/snapshot_023'
 for W in range(len(filenames)):
 	a=arepo_utils.aread(filenames[W])
 	zoomzone=0.5
@@ -60,7 +63,7 @@ for W in range(len(filenames)):
 		bx,by,bz=field_maker.create_nonscaled_Bfield(200,3/2)
 
 		#write the B field (uniform grid) to text file incase we need it later
-		read_custom_field.writer('/scratch/c.c1521474/resolution_test/MHD/bfield.txt',bx,by,bz)
+		read_custom_field.writer('/scratch/c.c1521474/resolution_test/MHD2/bfield.txt',bx,by,bz) #change this dirname for each set! 
 	
 	Bx,By,Bz=field_maker.interpolate(bx,by,bz,x[mask],y[mask],z[mask],2*zoomzone)
 
@@ -89,7 +92,7 @@ for W in range(len(filenames)):
 	scalefactor=1
 	
 
-	dirnames='1e11','1e10','1e9'
+	dirnames='1e10','1e9','1e8'
 	variants='/','MHD/','_uniform/'
 	for V in range(3):
 		#rescale the b field strength 
@@ -128,6 +131,6 @@ for W in range(len(filenames)):
 		sofar=arepo_input_writer.tag_block(sofar,a.gamma[mask],'GAMM','d',1)
 		sofar=arepo_input_writer.tag_block(sofar,a.divv[mask],'DIVV','d',1)
 		sofar=arepo_input_writer.tag_block(sofar,a.peak[mask],'PEAK','i',1)
-		saveloc='/scratch/c.c1521474/resolution_test/MHD/'+dirnames[W]+variants[V]+'arepo_input.dat'
+		saveloc='/scratch/c.c1521474/resolution_test/MHD2/'+dirnames[W]+variants[V]+'arepo_input.dat'
 		arepo_input_writer.writer(sofar,saveloc)
 
