@@ -26,40 +26,117 @@ def allfiles(dirname):
 
 
 def Nsinks(dirname):
+	'''cycle starts wih double: time, int: Nsinks, then...
+	doubles: 3pos, 3vel, 3accel, mass, FormationMass, FormationTime, AccretionRate, TimeOld =14
+	long long ID, ints: HomeTask, Index, FormationOrder
+	so sink mass starts at (8+4 + 8*9) bits, then every N(8*14 + 8 + 4*3 + 4) where N is the Number of sinks cycled through so far'''
+	#first get all the sink_particle_info files into the right order
 	files = allfiles(dirname)
 	Nsinks_old =0 
 	T=np.array([])
 	N=np.array([])
+	M=np.array([])
 	for i in range(len(files)):
-		
 		with open(dirname+files[i], mode='rb') as file:
 			data = file.read()
 		bits_sink= 8*14 + 8 + 4*3 + 4
 		n=0
-		while (n<len(data)):
+		cycles=0
+		while (n<len(data)): #n is bits read so far
 			t=struct.unpack('d',data[n:n+8])[0]
 			Nsinks=struct.unpack('i',data[n+8:n+12])[0]
+			
+			#get sink masses
+			m=0 #cumulative mass of all sinks
+			for j in range(Nsinks):
+				start = n + 8 + 4 + (j*bits_sink)
+				m+=struct.unpack('d',data[start+8*9:start + 8*10])[0]
+
+			#update arrays if Nsink changes
 			if Nsinks != Nsinks_old:
-				if len(T>0):
-					while t<T[-1]:
-						T=np.delete(T,len(T)-1)
-						T=np.delete(T,len(T)-1)
-						N=np.delete(N,len(N)-1)
-						N=np.delete(N,len(N)-1)
+				
+				marker=0
+				while marker == 0: #delete anything overlapping from last file 
+					if len(T)>0:
+						if t<T[-1]:
+							print('overlap '+files[i]+' and '+files[i-1])
+							T=np.delete(T,len(T)-1)
+							N=np.delete(N,len(N)-1)
+							M=np.delete(M,len(M)-1)
+						else:
+							marker=1
+					else:
+						marker=1
+				#and update lists 
 				N=np.append(N,Nsinks_old) #line to the right 
 				N=np.append(N,Nsinks)     #and vertically up
 				T=np.append(T,t)
 				T=np.append(T,t)
-				Nsinks_old = Nsinks 
+				M=np.append(M,m)
+				M=np.append(M,m)
+				Nsinks_old = Nsinks
+
+			#also update arrays every 10 cycles through the sink file (needed to track mass)
+			if cycles>0:
+				if Nsinks>0:
+					if cycles/10==int(cycles/10):
+						N=np.append(N,Nsinks)
+						T=np.append(T,t)
+						M=np.append(M,m)
+
+
 			n  = n + 8 + 4 + Nsinks*bits_sink
-	return T,N
+			cycles+=1
+				
+	return T,N,M
 
 def Nsink_plot(dirnames):
+	fig,ax=plt.subplots(2,sharex=True)
+	plt.subplots_adjust(hspace=0)
 	colors='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
 	for i in range(len(dirnames)):
-		t,N=Nsinks(dirnames[i])
-		plt.plot(t,N,color=colors[i])
+		t,N,M=Nsinks(dirnames[i])
+		if i==0:
+			t0=t[0]
+		ax[0].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i],label=labels[i])
+		ax[1].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i])
+	ax[0].tick_params(axis="x", labelsize=10,direction="in",which='both')
+	ax[0].tick_params(axis="y", labelsize=10,direction="in",which='both')
+	ax[1].tick_params(axis="y", labelsize=10,direction="in",which='both')
+	ax[1].tick_params(axis="x", labelsize=10,direction="in",which='both')
+	ax[1].set_xlabel('t [yrs]')
+	ax[0].set_ylabel(r'N$_{\rm sinks}$')
+	ax[1].set_ylabel(r'M [M$_\odot$]')
+	ax[0].legend(frameon=False,loc='upper right',fontsize=10)
 	plt.show()
+
+
+def Nsink_MHD(dirnames):
+	fig,ax=plt.subplots(ncols=3,nrows=2,sharey='row',sharex='col')
+	plt.subplots_adjust(wspace=0,hspace=0)
+	colors='aquamarine','royalblue','Crimson'
+	labels='hydro',r'k$^{3/2}$','uniform'
+	titles=r'10$^{-10}$gcm$^{-3}$',r'10$^{-9}$gcm$^{-3}$',r'10$^{-8}$gcm$^{-3}$'
+	for i in range(len(dirnames)):
+		t,N,M=Nsinks(dirnames[i]+'/sink_particle_info/')
+		t0=t[0]
+		ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[0],label=labels[0])
+		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[0])
+		t,N,M=Nsinks(dirnames[i]+'MHD/sink_particle_info/')
+		ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[1],label=labels[1])
+		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[1])
+		t,N,M=Nsinks(dirnames[i]+'_uniform/sink_particle_info/')
+		ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[2],label=labels[2])
+		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[2])
+		ax[1,i].set_xlabel('t [yrs]')
+		ax[1,i].set_xlim(-10,2500)
+		ax[0,i].set_title(titles[i])
+	ax[0,0].legend(frameon=False,loc='lower right',fontsize=10)
+	ax[0,0].set_ylabel(r'N$_{\rm sinks}$')
+	ax[1,0].set_ylabel(r'M [M$_\odot$]')
+	
+	
 
 
 '''first couple of functions are for getting sink info when they newly form'''
@@ -236,13 +313,9 @@ def get_all_info(sink_info_files,savefile):
 		i=0
 		mass_old=np.array([])
 		ids_old=np.array([])
-		entries=0
 		while (n<len(data)):
 			t=struct.unpack('d',data[n:n+8])[0]
 			Nsinks=struct.unpack('i',data[n+8:n+12])[0]
-			entries+=1
-			if entries == 1:
-				t0=t
 
 			ids_keep=np.array([])
 			mass_keep=np.array([])
@@ -281,7 +354,7 @@ def get_all_info(sink_info_files,savefile):
 				
 					sink_space[arg,0,entry] = mass[j]
 				
-					sink_space[arg,1,entry] = (mass[j] - sink_space[arg,0,entry-1]) / (t-sink_space[arg,2,entry-1])
+					sink_space[arg,1,entry] = mass[j] - (sink_space[arg,0,entry-1]) / (sink_space[arg,2,entry-1]-t)
 					sink_space[arg,2,entry]=t
 					sink_space[arg,1,0]+=1 #update how long the list is 
 
@@ -296,18 +369,15 @@ def get_all_info(sink_info_files,savefile):
 	#time to read sink_space and plot it
 	fig,ax=plt.subplots(1)
 #	fig1,ax1=plt.subplots(1)
-	starttime=sink_space[0,2,1]
 	for i in range(len(sink_space[:,0,0])-1):
 		if sink_space[i,0,0]>0:
 			ids=sink_space[i,0,0]
 			number=int(sink_space[i,1,0])
 			mass=sink_space[i,0,1:number+1] * code_units.M_cu / ap.M_sun.cgs.value
 			acc=sink_space[i,1,1:number+1] * code_units.M_cu / ap.M_sun.cgs.value / (code_units.t_cu / (60*60*24*365))
-			t=(sink_space[i,2,1:number+1]-starttime) * (code_units.t_cu / (60*60*24*365)) 
+			t=sink_space[i,2,1:number+1] * (code_units.t_cu / (60*60*24*365))
 			mask=np.where(acc>0)
-			ax.loglog(mass[np.where(acc>0)],acc[np.where(acc>0)],label=int(ids))
-#	ax.legend(fontsize=6,loc=(1,-0.2))
-#	plt.subplots_adjust(right=0.75)
-	ax.tick_params(axis="x", labelsize=10,direction="in",which='both')
-	ax.tick_params(axis="y", labelsize=10,direction="in",which='both')
+			ax.loglog(t,mass,label=int(ids))
+	ax.legend(fontsize=6,loc=(1,-0.2))
+	plt.subplots_adjust(right=0.75)
 
