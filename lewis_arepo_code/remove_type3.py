@@ -6,7 +6,7 @@ import arepo_input_writer
 
 
 
-filename='/scratch/c.c1521474/resolution_test/MHD/1e10MHD/snapshot_100'
+filename='/scratch/c.c1521474/resolution_test/MHD2/1e10MHD/snapshot_122_original'
 a=arepo_utils.aread(filename)
 
 
@@ -70,8 +70,8 @@ for i in range(a.chem.shape[1]):
 sofar=arepo_input_writer.tag_block(sofar,chem,'CHEM','d',int(a.chem.shape[1]))
 sofar=arepo_input_writer.tag_block(sofar,a.gamma,'GAMM','d',1)
 sofar=arepo_input_writer.tag_block(sofar,a.divv,'DIVV','d',1)
-
-arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/MHD/1e10MHD/snapshot_100')
+sofar=arepo_input_writer.tag_block(sofar,a.peak,'PEAK','i',1)
+arepo_input_writer.writer(sofar,'/scratch/c.c1521474/resolution_test/MHD2/1e10MHD/snapshot_122')
 
 
 

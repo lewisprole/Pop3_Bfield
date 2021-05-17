@@ -1,0 +1,2 @@
+Qs,T,IDS,Nsinks,Nsinkst=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',45,155,10,1.71E-05,0.005,0.0002,0.0001)
+Qs,T,IDS,Nsinks,Nsinkst=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',195,355,10,1.71E-05,0.01,0.005,0.001)

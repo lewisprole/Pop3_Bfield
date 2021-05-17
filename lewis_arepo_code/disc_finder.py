@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 import sink_mask
 import code_units 
 import arepo_utils
+import astropy.constants as ap
+from matplotlib.colors import LogNorm
+import read_sink_info  
 
 
 def another_try(a,rho_sink,zoomzone):
@@ -50,14 +53,17 @@ def another_try(a,rho_sink,zoomzone):
 
 
 
-def fifty_close(a,accradius,sinki):
+def fifty_close(a,sinkx,sinky,sinkz,accradius):
 	'''look at 50 cells closest to sink
 	assume that cells in disk have higher ratio of rotational velocity to total velocity 
 	take the unit vector of the rotational velocity to be a rod through the disk
 	return the rotational velocity unit vector
 	'''
-	r=np.sqrt((a.x-a.sinkx[sinki])**2+(a.y-a.sinky[sinki])**2+(a.z-a.sinkz[sinki])**2) *code_units.d_cu
+	r=np.sqrt((a.x-sinkx)**2+(a.y-sinky)**2+(a.z-sinkz)**2) *code_units.d_cu
 	mask=np.where(r<accradius*2 *code_units.d_cu)[0] #new
+	if len(mask)<50:
+		r_args=np.argsort(r)
+		mask=r_args[:50] #50 close lol
 	args=np.argsort(r[mask]) #new
 	#mask=args[0:50]
 	RATIO=np.array([])
@@ -69,7 +75,7 @@ def fifty_close(a,accradius,sinki):
 		#I=mask[i]
 	for i in range(len(args)):
 		I=mask[args[i]]
-		rvec=np.array([ a.x[I]-a.sinkx[sinki], a.y[I]-a.sinky[sinki], a.z[I]-a.sinkz[sinki] ]) *code_units.d_cu
+		rvec=np.array([ a.x[I]-sinkx, a.y[I]-sinky, a.z[I]-sinkz]) *code_units.d_cu
 		vvec=np.array([ a.vx[I], a.vy[I], a.vz[I] ]) * code_units.v_cu
 		cross1 = vvec[1] * rvec[2] - vvec[2] * rvec[1]
 		cross2 = -vvec[0] * rvec[2] + vvec[2] * rvec[0]
@@ -93,81 +99,247 @@ def fifty_close(a,accradius,sinki):
 
 	return vector 
 
-def get_disc(a,rho_sink,accradius,zoomzone):
-
-	sinks=[] #create array for each of the sinks, holds index of cells in their disc 
+def combine_binaries(a,merge_length,accradius):
+	#mergers 
+	merge=np.linspace(0,a.npart[-1]-1,a.npart[-1]).astype(int) #args of array correspond to the sinki
 	for i in range(a.npart[-1]):
+		if merge[i]==i:
+			r=np.sqrt((a.sinkx[i]-a.sinkx)**2+(a.sinky[i]-a.sinky)**2+(a.sinkz[i]-a.sinkz)**2)
+			to_merge=np.where(r<merge_length)[0]
+			if len(to_merge)>0:
+				for j in range(len(to_merge)): #any sinks previously merging with to_merge[j] are now going to i 
+					merge[np.where(merge==to_merge[j])]=i
+	logged=np.array([])
+	sinkx=np.array([])
+	sinky=np.array([])
+	sinkz=np.array([])
+	sinkmass=np.array([])
+	sinkvx=np.array([])
+	sinkvy=np.array([])
+	sinkvz=np.array([])
+	ids=np.array([])
+	vectors=[]
+	for i in range(len(merge)):
+		if merge[i] not in logged:
+			combine=np.where(merge==merge[i])[0]
+			ids=np.append(ids,a.sinkid[combine][np.where(a.sinkmass[combine]==a.sinkmass[combine].max())])
+			x=sum(a.sinkmass[combine]*a.sinkx[combine])/sum(a.sinkmass[combine])
+			y=sum(a.sinkmass[combine]*a.sinky[combine])/sum(a.sinkmass[combine])
+			z=sum(a.sinkmass[combine]*a.sinkz[combine])/sum(a.sinkmass[combine])
+			mass=sum(a.sinkmass[combine])
+			vx=sum(a.sinkvx[combine])
+			vy=sum(a.sinkvy[combine])
+			vz=sum(a.sinkvz[combine])
+	
+			sinkx=np.append(sinkx,x)
+			sinky=np.append(sinky,y)
+			sinkz=np.append(sinkz,z)
+			sinkmass=np.append(sinkmass,mass)
+			sinkvx=np.append(sinkvx,vx)
+			sinkvy=np.append(sinkvy,vy)
+			sinkvz=np.append(sinkvz,vz)
+			logged=np.append(logged,merge[i])
+
+			#sort the vectors 
+			vecx=np.array([])
+			vecy=np.array([])
+			vecz=np.array([])
+			for j in range(len(combine)):
+				vector=fifty_close(a,a.sinkx[combine][j],a.sinky[combine][j],a.sinkz[combine][j],accradius)
+				vecx=np.append(vecx,vector[0])
+				vecy=np.append(vecy,vector[1])
+				vecz=np.append(vecz,vector[2])
+			vector=np.array([np.mean(vecx),np.mean(vecy),np.mean(vecz)])
+			vectors.append(vector)
+				
+
+	return sinkx,sinky,sinkz,sinkmass,sinkvx,sinkvy,sinkvz,ids,vectors
+		
+def radial_Q(vector,rvec,temp,mass,Msink):
+	r=np.sqrt((rvec[0])**2+(rvec[1])**2+(rvec[2])**2)
+	vector_mag=np.sqrt((vector[0])**2+(vector[1])**2+(vector[2])**2)
+	h=(vector[0]*rvec[0] + vector[1]*rvec[1] + vector[2]*rvec[2])/vector_mag
+	rs=np.linspace(r.min(),r.max(),50)
+	Q=np.array([])
+	for i in range(len(rs)-1):	
+		mask=np.where((r>rs[i]) & (r<rs[i+1]))
+		if len(mask[0])>0:
+			dr=rs[i+1]-rs[i]
+			dA=2*np.pi*rs[i] *dr
+			c_s=np.mean(np.sqrt(ap.k_B.cgs.value * temp[mask]/ap.m_p.cgs.value))
+			surface=np.sum(mass[mask]) /dA
+			period=2*np.pi *np.sqrt(rs[i]**3 /(ap.G.cgs.value*Msink))
+			frequency=1/period 
+			Q=np.append(Q,c_s*frequency/(np.pi*ap.G.cgs.value*surface))
+		else:
+			Q=np.append(Q,np.nan)
+	return Q,rs
+
+		
+		
+		
+def get_disc(a,accradius,zoomzone,maxsize,merge_length):
+	'''First merge the sinks that are part of the same disc, set by merge_length.
+	Within radius maxsize of each sink, energy check to see what is gravitationally bound.
+	Find vector through the disc using the rotational velocity vector.
+	Filter out particles above 45deg from plane of disc.
+	Filer out particles below 1/10th of running mean density of disc.
+	Calculate radial profile of Toomr parameter Q.
+	Return minimum Q, time, and lead sink ID of the disc (to track the disc between snapshots)'''
+	
+	Qmins=np.array([])
+	sinkx,sinky,sinkz,sinkmass,sinkvx,sinkvy,sinkvz,ids,vectors=combine_binaries(a,merge_length,accradius) #merging 
+	#print(1)
+	sinks=[] #create array for each of the sinks, holds index of cells in their disc 
+	for i in range(len(sinkmass)):
 		sinks.append([])
 
 	bound_to=np.ones(len(a.x)) * -1 #array of -1's, to be set to the sinki of the sink they are bound to
 	mask=sink_mask.sinkmask(a,zoomzone)[0] #only do this in the very central region of the simulation box 
 	M=a.mass * code_units.M_cu
-	Msink=a.sinkmass *code_units.M_cu
+	Msink=sinkmass *code_units.M_cu
+	#print(2)
 	for i in range(len(a.x[mask])): #loop through cells to find who they are bound to 
-		r=np.sqrt((a.x[mask[i]]-a.sinkx)**2+(a.y[mask[i]]-a.sinky)**2+(a.z[mask[i]]-a.sinkz)**2) *code_units.d_cu #to all sinks
+		r=np.sqrt((a.x[mask[i]]-sinkx)**2+(a.y[mask[i]]-sinky)**2+(a.z[mask[i]]-sinkz)**2) *code_units.d_cu #to all sinks
 		forces=ap.G.cgs.value * M[mask[i]] * Msink  /r #grav force to all sinks
 		vmag=np.sqrt(a.vx[mask[i]]**2+a.vy[mask[i]]**2+a.vz[mask[i]]**2) *code_units.v_cu
-		sink_index=np.where(forces==forces.max())[0]
-		if 0.5 * M[mask[i]] *vmag**2 < forces.max(): #if it's bound,check it's in circular motion
-			rvec=np.array([(a.x[mask[i]]-a.sinkx[sink_index]),(a.y[mask[i]]-a.sinky[sink_index]),(a.z[mask[i]]-a.sinkz[sink_index])]) *code_units.d_cu
-			vvec=np.array([a.x[mask[i]],a.y[mask[i]],a.z[mask[i]]]) *code_units.v_cu
-			cross1 = vvec[1] * rvec[2] - vvec[2] * rvec[1]
-			cross2 = -vvec[0] * rvec[2] + vvec[2] * rvec[0]
-			cross3 = vvec[0] * rvec[1] - vvec[1] * rvec[0]
-			vrot = 1/r[sink_index] * np.sqrt(cross1**2+cross2**2+cross3**2) #velocity perpendicular to r (to sink)
-			if vrot>0.5*vmag: #more than half the velocity is circular	
-				bound_to[mask[i]]=sink_index #index of the sink they are bound to
 
-	for i in range(int(a.npart[-1])): #loop through each sink
-		vector=fifty_close(a,accradius,i) #find vector through the disc 
+		found_sink=0
+		j=0
+		order=np.argsort(forces)
+		while found_sink==0: #only bother assigning it to the sink if it's within the max disc radius
+			if r[order[-1-j]] <= maxsize*code_units.d_cu:
+				sink_index=order[-1-j]
+				found_sink=1
+			j+=1
+			if j>len(order)-1:
+				found_sink=1
+				sink_index=-1
+			
+		if sink_index>-1:
+			if 0.5 * M[mask[i]] *vmag**2 < 1.5*forces[sink_index]: #if it's bound,check it's in circular motion
+				#rvec=np.array([(a.x[mask[i]]-a.sinkx[sink_index]),(a.y[mask[i]]-a.sinky[sink_index]),(a.z[mask[i]]-a.sinkz[sink_index])]) *code_units.d_cu
+				#vvec=np.array([a.x[mask[i]],a.y[mask[i]],a.z[mask[i]]]) *code_units.v_cu
+				#cross1 = vvec[1] * rvec[2] - vvec[2] * rvec[1]
+				#cross2 = -vvec[0] * rvec[2] + vvec[2] * rvec[0]
+				#cross3 = vvec[0] * rvec[1] - vvec[1] * rvec[0]
+				#vrot = 1/r[sink_index] * np.sqrt(cross1**2+cross2**2+cross3**2) #velocity perpendicular to r (to sink)
+				#if vrot>0.5*vmag: #more than half the velocity is circular	
+				bound_to[mask[i]]=sink_index #index of the sink they are bound to
+	#print(3)
+	#fig1,ax1=plt.subplots(1)
+	#for i in range(len(sinkmass)):
+	#	bound=np.where(bound_to==i)[0]
+	#	ax1.scatter(a.x[bound],a.y[bound],s=1)
+	#print(4)
+	fig2,ax2=plt.subplots(1)
+	X,Y,Z=np.histogram2d( a.y[mask],a.x[mask],bins=(500,500))
+	Size,Y,Z=np.histogram2d( a.y[mask],a.x[mask],weights=(a.rho[mask])*code_units.rho_cu,bins=(500,500))
+	ax2.imshow(np.log10(Size/X),cmap='magma',aspect='auto',extent=[Z[0],Z[-1],Y[-1],Y[0]])
+	#print(5)
+	#arepo_utils.arepoimage(a.x[mask],a.y[mask],a.rho[mask])
+	#fig3,ax3=plt.subplots(1)
+	for i in range(len(sinkmass)): #loop through each sink
+		print('sinking')
+		vector=vectors[i]#fifty_close(a,sinkx[i],sinky[i],sinkz[i],accradius) #find vector through the disc 
 		bound=np.where(bound_to==i)[0]
-		dx=(a.x[bound]-a.sinkx[i]) *code_units.d_cu
-		dy=(a.y[bound]-a.sinky[i]) *code_units.d_cu
-		dz=(a.z[bound]-a.sinkz[i]) *code_units.d_cu
+		dx=(a.x[bound]-sinkx[i]) *code_units.d_cu
+		dy=(a.y[bound]-sinky[i]) *code_units.d_cu
+		dz=(a.z[bound]-sinkz[i]) *code_units.d_cu
 		r=np.sqrt(dx**2+dy**2+dz**2)
 		vecmag=np.sqrt(vector[0]**2 + vector[1]**2 +vector[2]**2)
 		costheta = (vector[0]*dx +  vector[1]*dy +  vector[2]*dz) / r / vecmag
-		angle=np.where(abs(costheta)<0.5)[0]
+		angle=np.where(np.arccos(costheta)>0.5*np.pi/4)[0]
 		
 		args=np.argsort(r[angle])
-		rho_old=rho_sink
 		marker=0
 		j=0
-		Qs=np.array([])
+		#find disc cells 
 		while marker==0:
-		#for j in range(len(args)):
 			if j<len(args):
 				if j==0:
 					rho_av=a.rho[bound][angle][args[j]]
 					sinks[i].append(bound[angle][args[j]])
 				
 				else:
-					if r[angle][args[j]]<0.001*code_units.d_cu:
-						if a.rho[bound][angle][args[j]]>rho_av/10:
+					if r[angle][args[j]]<maxsize*code_units.d_cu:
+						if a.rho[bound][angle][args[j]]>rho_av/20:
 							sinks[i].append(bound[angle][args[j]])
-							#plt.plot(r[angle][args[j]],a.rho[bound][angle][args[j]],'.',c='k')
 							rho_av=np.mean(a.rho[sinks[i]])
-							#plt.plot(r[angle][args[j]],rho_av,'.',c='k')
-							c_s=np.sqrt(ap.k_B.cgs.value * a.temp[bound][angle][args[j]]/ap.m_p.cgs.value)
-							surface_density = a.mass[bound][angle][args[j]]*code_units.M_cu / ((a.mass[bound][angle][args[j]]/a.rho[bound][angle][args[j]])**(1/3)*code_units.d_cu)**2
-							#units get weird, r needs to be AU, G base units, M in solar masses, gives time in years 
-							period = np.sqrt(4*np.pi**2 * (r[angle][args[j]]/ap.au.cgs.value)**3 / (ap.G.value*a.sinkmass[i]*code_units.M_cu/ap.M_sun.cgs.value)) * (60*60*24*365)
-							frequency = 2*np.pi/period 
-							Q=c_s*frequency/(np.pi*ap.G.cgs.value*surface_density)
-							Qs=np.append(Qs,Q)
-							#print(len(sinks[i]),len(Qs))
-						if a.rho[bound][angle][args[j]] < rho_av/10000:
-							marker=1
-							print('density break')
 				j+=1
 			else:
 				marker=1
-					
-		R=np.sqrt((a.x[sinks[i]]-a.sinkx[i])**2+(a.y[sinks[i]]-a.sinky[i])**2+(a.z[sinks[i]]-a.sinkz[i])**2)
-		plt.plot(R[1:],Qs,'.')
+		print('toomring')
+		#calculate Toomr parameter 
+		if len(sinks[i])>0:
+			rvec=np.array([a.x[sinks[i]]-sinkx[i] , a.y[sinks[i]]-sinky[i], a.z[sinks[i]]-sinkz[i] ])*code_units.d_cu
+			Qs,R=radial_Q(vector,rvec,a.temp[sinks[i]],a.mass[sinks[i]]*code_units.M_cu,sinkmass[i]*code_units.M_cu)
+			#R=np.sqrt((a.x[sinks[i]]-a.sinkx[i])**2+(a.y[sinks[i]]-a.sinky[i])**2+(a.z[sinks[i]]-a.sinkz[i])**2)
+			#ax3.semilogy(R[:-1]/ap.au.cgs.value,Qs,'.')
+			ax2.scatter(a.x[sinks[i]],a.y[sinks[i]],s=0.1)
+			if len(Qs[~np.isnan(Qs)])>0:
+				Qmins=np.append(Qmins,Qs[~np.isnan(Qs)].min())
+			else:	
+				Qmins=np.append(Qmins,np.nan)
+		else:
+			Qmins=np.append(Qmins,np.nan)
+		
+	print(6)
+	#ax3.axhline(y=1,c='k'),plt.xlabel('R [AU]'),plt.ylabel('Q')
+	ax2.plot(a.sinkx,a.sinky,'x',c='k')
+	ax2.plot(sinkx,sinky,'o',c='k')
+
+	return Qmins,ids,a.time
 
 
 
+def Q_time(dirname,start,end,interval,accradius,zoomzone,maxsize,merge_length):
+	Qs=[]
+	T=[]
+	IDS=np.array([])
+	#Nsinks=np.array([])
+	#Nsinkst=np.array([])
+	for i in range(int((end-start)/interval)):
+		n=str(start+i*interval)
+		if (start+i*interval)<100:
+			n='0'+str(start+i*interval)
+			if (start+i*interval)<10:
+				n='00'+str(start+i*interval)
+		a=arepo_utils.aread(dirname+'/snapshot_'+n)
+		#if i==0:
+			#t0=a.time
+		#	Nsink=a.npart[-1]
+		Qmins,ids,t=get_disc(a,accradius,zoomzone,maxsize,merge_length)
+		for j in range(len(Qmins)):
+			if ids[j] not in IDS:
+				IDS=np.append(IDS,ids[j])
+				Qs.append([])
+				T.append([])
+				index=len(IDS)-1
+				Qs[index].append(Qmins[j])
+				T[index].append(t)
+			else:
+				index=np.where(IDS==ids[j])[0][0]
+				Qs[index].append(Qmins[j])
+				T[index].append(t)
+		#if a.npart[-1]>Nsink:
+		#	Nsinks=np.append(Nsinks,a.npart[-1])
+		#	Nsinkst=np.append(Nsinkst,t)
+		#Nsink=a.npart[-1]
+	sinktime,N,M=read_sink_info.Nsinks(dirname+'/sink_particle_info/')
+	plt.figure()
+	Nsink=N[0]
+	t0=sinktime[0]
+	for i in range(len(sinktime)):
+		if N[i]>Nsink:
+			plt.axvline(x=(sinktime[i]-t0)*code_units.t_cu/(60*60*24*365),c='k')
+		Nsink=N[i]
+	for i in range(len(Qs)):
+ 		plt.semilogy((T[i]-t0)*code_units.t_cu/(60*60*24*365),Qs[i])
+		
+	return Qs,T,IDS
+		
+''' and so ends the useful part of this script'''		
 
 
 

@@ -103,6 +103,39 @@ def create_spectrum(velfile,boxsize,subtract):
 
         return ks1[:-1],energy1
 
+def create_spectrum_zeropad(velfile,zeropad):
+	'''reads cube, fft, creates power spectrum, please give boxsize in cm
+	subtract='yes' for radial profile subtraction '''
+	print('reading')
+	bx,by,bz,x,y,z=read_3cube(velfile)
+	Nold=len(bx[:,:,0])
+	Nnew=Nold+2*zeropad
+	vx=np.zeros((Nnew,Nnew,Nnew))
+	vy=np.zeros((Nnew,Nnew,Nnew))
+	vz=np.zeros((Nnew,Nnew,Nnew))
+	vx[zeropad:Nnew-zeropad,zeropad:Nnew-zeropad,zeropad:Nnew-zeropad]=bx
+	vy[zeropad:Nnew-zeropad,zeropad:Nnew-zeropad,zeropad:Nnew-zeropad]=by
+	vz[zeropad:Nnew-zeropad,zeropad:Nnew-zeropad,zeropad:Nnew-zeropad]=bz
+
+	print('fft')
+	Ax=np.fft.fftn(vx)
+	Ay=np.fft.fftn(vy)
+	Az=np.fft.fftn(vz)
+	A=np.sqrt(abs(Ax)**2+abs(Ay)**2+abs(Az)**2)
+
+	print('exploring k space')
+	Ncube=int(len(A[0,0,:]))
+	k=np.fft.fftfreq(Ncube)*Ncube
+	kx,ky,kz=np.meshgrid(k,k,k)
+	K=np.sqrt(kx**2+ky**2+kz**2)
+	print('spectra')
+	print('summing energies')
+	bins=np.linspace(1,int(K.max()),int(K.max()))
+	av1,ks1,args=binned_statistic(K.flatten(),abs(A/Ncube**3).flatten()**2,bins=bins)
+	dk=ks1[1]-ks1[0]
+	energy1=av1*4*np.pi*ks1[:-1]**2 *dk
+
+	return ks1[:-1],energy1
 
 
 def write_txt(velfile,boxsize,subtract,name):
@@ -387,3 +420,17 @@ def IMF_col(dirs,snap,no_bins):
             plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
         return fig,axs
 
+
+def magnetic_spectrum(files,length,zeropad):
+	plt.figure()
+	colors='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$'
+	for i in range(len(files)):
+		k,P=create_spectrum_zeropad(files[i],zeropad)
+		plt.loglog(length/((length+2*zeropad)/k),P,color=colors[i],label=labels[i])
+	plt.plot(length/((length+2*zeropad)/k),(length/((length+2*zeropad)/k))**(3/2)*P[0]*3,linestyle='--',c='k')
+	plt.legend(frameon=False)
+	plt.xlabel('cycles per box length')
+	plt.ylabel(r'P$_{\rm B}$')
+
+	

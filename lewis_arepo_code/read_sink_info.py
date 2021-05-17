@@ -4,6 +4,7 @@ import struct
 import code_units
 import astropy.constants as ap 
 import os
+plt.ion()
 
 def allfiles(dirname):
 	'''takes all files in directory and orders them based on order of ending 3 number string'''
@@ -109,6 +110,7 @@ def Nsink_plot(dirnames):
 	ax[0].set_ylabel(r'N$_{\rm sinks}$')
 	ax[1].set_ylabel(r'M [M$_\odot$]')
 	ax[0].legend(frameon=False,loc='upper right',fontsize=10)
+	ax[0].set_ylim(0,N.max()+1)
 	plt.show()
 
 
@@ -122,17 +124,17 @@ def Nsink_MHD(dirnames):
 		t,N,M=Nsinks(dirnames[i]+'/sink_particle_info/')
 		t0=t[0]
 		ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[0],label=labels[0])
-		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[0])
+		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[0],label=labels[0])
 		t,N,M=Nsinks(dirnames[i]+'MHD/sink_particle_info/')
 		ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[1],label=labels[1])
-		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[1])
+		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[1],label=labels[1])
 		t,N,M=Nsinks(dirnames[i]+'_uniform/sink_particle_info/')
 		ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[2],label=labels[2])
-		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[2])
+		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[2],label=labels[2])
 		ax[1,i].set_xlabel('t [yrs]')
 		ax[1,i].set_xlim(-10,2500)
 		ax[0,i].set_title(titles[i])
-	ax[0,0].legend(frameon=False,loc='lower right',fontsize=10)
+	ax[1,2].legend(frameon=False,loc='lower right',fontsize=10)
 	ax[0,0].set_ylabel(r'N$_{\rm sinks}$')
 	ax[1,0].set_ylabel(r'M [M$_\odot$]')
 	

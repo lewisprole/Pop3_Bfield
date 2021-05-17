@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 from scipy.stats import binned_statistic
 import code_units 
+import astropy.constants as ap
 
 '''note to self:
 wanted 2000 years of free-fall time
