@@ -232,10 +232,12 @@ def get_disc(a,accradius,zoomzone,maxsize,merge_length):
 	#	bound=np.where(bound_to==i)[0]
 	#	ax1.scatter(a.x[bound],a.y[bound],s=1)
 	#print(4)
-	fig2,ax2=plt.subplots(1)
-	X,Y,Z=np.histogram2d( a.y[mask],a.x[mask],bins=(500,500))
-	Size,Y,Z=np.histogram2d( a.y[mask],a.x[mask],weights=(a.rho[mask])*code_units.rho_cu,bins=(500,500))
-	ax2.imshow(np.log10(Size/X),cmap='magma',aspect='auto',extent=[Z[0],Z[-1],Y[-1],Y[0]])
+
+	#fig2,ax2=plt.subplots(1)
+	#X,Y,Z=np.histogram2d( a.y[mask],a.x[mask],bins=(500,500))
+	#Size,Y,Z=np.histogram2d( a.y[mask],a.x[mask],weights=(a.rho[mask])*code_units.rho_cu,bins=(500,500))
+	#ax2.imshow(np.log10(Size/X),cmap='magma',aspect='auto',extent=[Z[0],Z[-1],Y[-1],Y[0]])
+
 	#print(5)
 	#arepo_utils.arepoimage(a.x[mask],a.y[mask],a.rho[mask])
 	#fig3,ax3=plt.subplots(1)
@@ -276,7 +278,7 @@ def get_disc(a,accradius,zoomzone,maxsize,merge_length):
 			Qs,R=radial_Q(vector,rvec,a.temp[sinks[i]],a.mass[sinks[i]]*code_units.M_cu,sinkmass[i]*code_units.M_cu)
 			#R=np.sqrt((a.x[sinks[i]]-a.sinkx[i])**2+(a.y[sinks[i]]-a.sinky[i])**2+(a.z[sinks[i]]-a.sinkz[i])**2)
 			#ax3.semilogy(R[:-1]/ap.au.cgs.value,Qs,'.')
-			ax2.scatter(a.x[sinks[i]],a.y[sinks[i]],s=0.1)
+			#ax2.scatter(a.x[sinks[i]],a.y[sinks[i]],s=0.1)
 			if len(Qs[~np.isnan(Qs)])>0:
 				Qmins=np.append(Qmins,Qs[~np.isnan(Qs)].min())
 			else:	
@@ -286,8 +288,8 @@ def get_disc(a,accradius,zoomzone,maxsize,merge_length):
 		
 	print(6)
 	#ax3.axhline(y=1,c='k'),plt.xlabel('R [AU]'),plt.ylabel('Q')
-	ax2.plot(a.sinkx,a.sinky,'x',c='k')
-	ax2.plot(sinkx,sinky,'o',c='k')
+	#ax2.plot(a.sinkx,a.sinky,'x',c='k')
+	#ax2.plot(sinkx,sinky,'o',c='k')
 
 	return Qmins,ids,a.time
 
@@ -327,17 +329,34 @@ def Q_time(dirname,start,end,interval,accradius,zoomzone,maxsize,merge_length):
 		#	Nsinkst=np.append(Nsinkst,t)
 		#Nsink=a.npart[-1]
 	sinktime,N,M=read_sink_info.Nsinks(dirname+'/sink_particle_info/')
-	plt.figure()
+	#plt.figure()
 	Nsink=N[0]
 	t0=sinktime[0]
-	for i in range(len(sinktime)):
-		if N[i]>Nsink:
-			plt.axvline(x=(sinktime[i]-t0)*code_units.t_cu/(60*60*24*365),c='k')
-		Nsink=N[i]
+	#for i in range(len(sinktime)):
+	#	if N[i]>Nsink:
+	#		plt.axvline(x=(sinktime[i]-t0)*code_units.t_cu/(60*60*24*365),c='k')
+	#	Nsink=N[i]
 	for i in range(len(Qs)):
- 		plt.semilogy((T[i]-t0)*code_units.t_cu/(60*60*24*365),Qs[i])
+ 		plt.semilogy((T[i]-t0)*code_units.t_cu/(60*60*24*365),Qs[i],c='k')
+	
 		
 	return Qs,T,IDS
+	
+def Qjoin():
+	sinktime,N,M=read_sink_info.Nsinks('/scratch/c.c1521474/resolution_test/merge/1e12_redo/'+'/sink_particle_info/')
+	Nsink=N[0]
+	t0=sinktime[0]
+	plt.figure()
+	for i in range(len(sinktime)):
+		if N[i]>Nsink:
+			plt.axvline(x=(sinktime[i]-t0)*code_units.t_cu/(60*60*24*365),c='r')
+		Nsink=N[i]
+	Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',45,155,10,1.71E-05,0.005,0.0002,0.0001)
+	Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',195,355,10,1.71E-05,0.01,0.005,0.001)
+	Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',355,545,10,1.71E-05,0.013,0.005,0.001)	
+	plt.xlabel('t [yr]')
+	plt.ylabel('Q')
+	
 		
 ''' and so ends the useful part of this script'''		
 
