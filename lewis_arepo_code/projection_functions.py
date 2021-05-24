@@ -228,6 +228,33 @@ def read_sink(dirname,sink_number):
         
         return np.asarray(x),np.asarray(y),np.asarray(z),np.asarray(M)
 
+
+def simple_grid(dirs1,dirs2,dirs3,nums1,nums2,nums3):
+	fig,ax=plt.subplots(ncols=5,nrows=3)
+	for i in range(len(dirs1)):
+		
+		rho=read_cube(dirs1[i]+'/density_grid_'+str(nums1[i]))
+		x,y,z,M=read_sink(dirs1[i]+'/',str(nums1[i]))
+		ax[0,i].imshow(np.log10(np.sum(rho,1)),cmap='bone')
+		ax[0,i].scatter(z,x,s=0.5,c='magenta')
+
+		rho=read_cube(dirs2[i]+'/density_grid_'+str(nums2[i]))
+		x,y,z,M=read_sink(dirs2[i]+'/',str(nums2[i]))
+		ax[1,i].imshow(np.log10(np.sum(rho,1)),cmap='bone')
+		ax[1,i].scatter(z,x,s=0.5,c='magenta')
+
+		rho=read_cube(dirs3[i]+'/density_grid_'+str(nums3[i]))
+		x,y,z,M=read_sink(dirs3[i]+'/',str(nums3[i]))
+		ax[2,i].imshow(np.log10(np.sum(rho,1)),cmap='bone')
+		ax[2,i].scatter(z,x,s=0.5,c='magenta')
+		
+		for j in range(3):
+			ax[j,i].set_xlim(0,500)
+			ax[j,i].set_ylim(0,500)
+			ax[j,i].set_yticks([])
+			ax[j,i].set_xticks([])
+	plt.subplots_adjust(hspace=0,wspace=0)
+
 def CoM(x,y,z,M):
         X=sum(x*M)/sum(M)
         Y=sum(y*M)/sum(M)

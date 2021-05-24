@@ -101,15 +101,15 @@ def Nsink_plot(dirnames):
 		if i==0:
 			t0=t[0]
 		ax[0].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[i],label=labels[i])
-		ax[1].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i])
+		ax[1].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[i],label=labels[i])
 	ax[0].tick_params(axis="x", labelsize=10,direction="in",which='both')
 	ax[0].tick_params(axis="y", labelsize=10,direction="in",which='both')
 	ax[1].tick_params(axis="y", labelsize=10,direction="in",which='both')
 	ax[1].tick_params(axis="x", labelsize=10,direction="in",which='both')
-	ax[1].set_xlabel('t [yrs]')
+	ax[1].set_xlabel('t [yr]')
 	ax[0].set_ylabel(r'N$_{\rm sinks}$')
 	ax[1].set_ylabel(r'M [M$_\odot$]')
-	ax[0].legend(frameon=False,loc='upper right',fontsize=10)
+	ax[1].legend(frameon=False,loc='lower right',fontsize=10)
 	ax[0].set_ylim(0,N.max()+1)
 	plt.show()
 
@@ -131,15 +131,120 @@ def Nsink_MHD(dirnames):
 		t,N,M=Nsinks(dirnames[i]+'_uniform/sink_particle_info/')
 		ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[2],label=labels[2])
 		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[2],label=labels[2])
-		ax[1,i].set_xlabel('t [yrs]')
+		ax[1,i].set_xlabel('t [yr]')
 		ax[1,i].set_xlim(-10,2500)
 		ax[0,i].set_title(titles[i])
 	ax[1,2].legend(frameon=False,loc='lower right',fontsize=10)
 	ax[0,0].set_ylabel(r'N$_{\rm sinks}$')
 	ax[1,0].set_ylabel(r'M [M$_\odot$]')
 	
-	
+def IMF(dirname,t_goal):
+	files = allfiles(dirname)
+	Nsinks_old =0
+	M=np.array([])
+	t_old=-1
+	for i in range(len(files)):
+		if len(M)==0:
+			with open(dirname+files[i], mode='rb') as file:
+				data = file.read()
+			bits_sink= 8*14 + 8 + 4*3 + 4
+			n=0
+			cycles=0
+			while (n<len(data)): #n is bits read so far
+				t=struct.unpack('d',data[n:n+8])[0]
+				Nsinks=struct.unpack('i',data[n+8:n+12])[0]
 
+				if t<t_old: #sometimes this happens when the sink files overlap
+					t_old=t
+
+				if abs(t-t_goal) > abs(t_old-t_goal): #reached the time goal
+					for j in range(Nsinks):
+						start = n + 8 + 4 + (j*bits_sink)
+						M=np.append(M,struct.unpack('d',data[start+8*9:start + 8*10]))
+					n=len(data)
+
+				t_old=t
+				n  = n + 8 + 4 + Nsinks*bits_sink
+				cycles+=1
+	return M
+
+def IMF_plot(dirnames,t_goal_yrs):
+
+	T,N,M=Nsinks(dirnames[0])
+	t0=T[0]
+	t_goal=(t_goal_yrs*60*60*24*365/code_units.t_cu)+t0
+	m_min=1e12 * 4/3*np.pi*(1.71E-05)**3
+	colors='b','g','r','cyan','purple'
+	minmass=np.array([1e8,1e9,1e10,1e11,1e12]) *code_units.rho_cu  * 4/3*np.pi * (np.array([0.001376823,0.0004563,0.000152667,5.04801E-05,1.71E-05])*code_units.d_cu)**3 /ap.M_sun.cgs.value
+	fig,ax=plt.subplots(len(dirnames),sharex=True)
+	plt.subplots_adjust(hspace=0)
+	for i in range(len(dirnames)):
+		M=IMF(dirnames[i],t_goal)
+		print(M)
+		if i==0:
+			m_max=M.max()*1.2
+			bins = 10**np.linspace(np.log10(m_min),np.log10(m_max),100)
+		ax[i].hist(M,bins,color=colors[i])
+		#ax[i].axvline(x=minmass[i],ymin=0,ymax=1,color='k',linestyle='--')
+		ax[i].set_xscale('log')
+	ax[len(dirnames)-1].set_xlabel(r'M [M$_{\odot}$]')
+	ax[int(len(dirnames)/2)].set_ylabel(r'N$_{\rm M}$             ',rotation=0)
+
+
+
+def largest_sink(dirname):
+	files = allfiles(dirname)
+	M=np.array([])
+	ACC=np.array([])
+	T=np.array([])
+	for i in range(len(files)):
+		with open(dirname+files[i], mode='rb') as file:
+			data = file.read()
+		bits_sink= 8*14 + 8 + 4*3 + 4
+		n=0
+		cycles=0
+		while (n<len(data)): #n is bits read so far
+			#if cycles/interval==int(cycles/interval):
+			t=struct.unpack('d',data[n:n+8])[0]
+			T=np.append(T,t)
+
+			Nsinks=struct.unpack('i',data[n+8:n+12])[0]
+			mass=np.array([])			
+			for j in range(Nsinks):
+				start = n + 8 + 4 + (j*bits_sink)
+				mass=np.append(mass,struct.unpack('d',data[start+8*9:start + 8*10]))
+			
+			M=np.append(M,mass.max())
+			if cycles==0:
+				ACC=np.append(ACC,0)
+			else:
+				acc=(mass.max()-mass_old) / (t-t_old)
+				ACC=np.append(ACC,acc)
+			t_old=t
+			mass_old=mass.max()
+			n  = n + (8 + 4 + Nsinks*bits_sink) 
+			cycles+=1
+	return T,M,ACC
+
+def largest_plot(dirnames,interval):
+	colors='b','g','r','cyan','purple'
+	fig,ax=plt.subplots(2,sharex=True)
+	plt.subplots_adjust(hspace=0)
+	ax[1].set_ylabel(r'$\dot {\rm M}_{\rm largest}$ [M$_\odot$ yr$^{-1}$]',fontsize=10)
+	ax[0].set_ylabel(r'M$_{\rm largest}$ [M$_\odot$]',fontsize=10)
+	ax[1].set_xlabel('t [yr]',fontsize=10)
+	for i in range(len(dirnames)):
+		T,M,ACC=largest_sink(dirnames[i])
+		if i==0:
+			t0=T[0]
+		T=(T-t0)*code_units.t_cu/(60*60*24*365)
+		ax[0].semilogy(T,M,c=colors[i])
+		T=T[1::interval]
+		ACC=ACC[1::interval] /code_units.t_cu
+		ax[1].semilogy(T[np.where(ACC>0)],ACC[np.where(ACC>0)],c=colors[i])
+
+			
+				
 
 '''first couple of functions are for getting sink info when they newly form'''
 
