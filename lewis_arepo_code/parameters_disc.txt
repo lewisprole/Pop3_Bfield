@@ -1,3 +1,12 @@
+
+Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e8_redo/',43,143,5,0.001376823,0.01,0.0025,0.0001)
+
+Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e9/',43,143,5,0.001376823,0.01,0.0025,0.0001)
+
+Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e10/',43,143,5,0.001376823,0.01,0.0025,0.0005)
+
+Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e11/',43,143,5,0.001376823,0.01,0.0025,0.0005)
+
 Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',45,155,10,1.71E-05,0.005,0.0002,0.0001)
 Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',195,355,10,1.71E-05,0.01,0.005,0.001)
 Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',355,545,10,1.71E-05,0.013,0.005,0.001)

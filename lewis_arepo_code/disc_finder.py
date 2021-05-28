@@ -169,7 +169,7 @@ def radial_Q(vector,rvec,temp,mass,Msink):
 			c_s=np.mean(np.sqrt(ap.k_B.cgs.value * temp[mask]/ap.m_p.cgs.value))
 			surface=np.sum(mass[mask]) /dA
 			period=2*np.pi *np.sqrt(rs[i]**3 /(ap.G.cgs.value*Msink))
-			frequency=1/period 
+			frequency=2*np.pi/period 
 			Q=np.append(Q,c_s*frequency/(np.pi*ap.G.cgs.value*surface))
 		else:
 			Q=np.append(Q,np.nan)
@@ -208,13 +208,13 @@ def get_disc(a,accradius,zoomzone,maxsize,merge_length):
 		j=0
 		order=np.argsort(forces)
 		while found_sink==0: #only bother assigning it to the sink if it's within the max disc radius
+			sink_index=-1
 			if r[order[-1-j]] <= maxsize*code_units.d_cu:
 				sink_index=order[-1-j]
 				found_sink=1
 			j+=1
 			if j>len(order)-1:
 				found_sink=1
-				sink_index=-1
 			
 		if sink_index>-1:
 			if 0.5 * M[mask[i]] *vmag**2 < 1.5*forces[sink_index]: #if it's bound,check it's in circular motion
@@ -328,34 +328,69 @@ def Q_time(dirname,start,end,interval,accradius,zoomzone,maxsize,merge_length):
 		#	Nsinks=np.append(Nsinks,a.npart[-1])
 		#	Nsinkst=np.append(Nsinkst,t)
 		#Nsink=a.npart[-1]
+	fig,ax=plt.subplots(1)
 	sinktime,N,M=read_sink_info.Nsinks(dirname+'/sink_particle_info/')
 	#plt.figure()
 	Nsink=N[0]
 	t0=sinktime[0]
-	#for i in range(len(sinktime)):
-	#	if N[i]>Nsink:
-	#		plt.axvline(x=(sinktime[i]-t0)*code_units.t_cu/(60*60*24*365),c='k')
-	#	Nsink=N[i]
-	for i in range(len(Qs)):
- 		plt.semilogy((T[i]-t0)*code_units.t_cu/(60*60*24*365),Qs[i],c='k')
-	
-		
-	return Qs,T,IDS
-	
-def Qjoin():
-	sinktime,N,M=read_sink_info.Nsinks('/scratch/c.c1521474/resolution_test/merge/1e12_redo/'+'/sink_particle_info/')
-	Nsink=N[0]
-	t0=sinktime[0]
-	plt.figure()
 	for i in range(len(sinktime)):
 		if N[i]>Nsink:
 			plt.axvline(x=(sinktime[i]-t0)*code_units.t_cu/(60*60*24*365),c='r')
 		Nsink=N[i]
-	Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',45,155,10,1.71E-05,0.005,0.0002,0.0001)
-	Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',195,355,10,1.71E-05,0.01,0.005,0.001)
-	Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',355,545,10,1.71E-05,0.013,0.005,0.001)	
-	plt.xlabel('t [yr]')
-	plt.ylabel('Q')
+	for i in range(len(Qs)):
+ 		ax.semilogy((T[i]-t0)*code_units.t_cu/(60*60*24*365),Qs[i],c='k')
+	
+		
+	return Qs,T,IDS
+	
+def Qjoin(dirnames):
+	fig,ax=plt.subplots(nrows=len(dirnames),sharex=True)
+	plt.subplots_adjust(hspace=0)
+	rhos=r'$\rho_{\rm sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{\rm sink}$=10$^{-6}$gcm$^{-3}$'
+	for j in range(len(dirnames)):
+		sinktime,N,M=read_sink_info.Nsinks(dirnames[j]+'/sink_particle_info/')
+		Nsink=N[0]
+		t0=sinktime[0]
+		for i in range(len(sinktime)):
+			if N[i]>Nsink:
+				ax[j].axvline(x=(sinktime[i]-t0)*code_units.t_cu/(60*60*24*365),c='r')
+			Nsink=N[i]
+		if j==0:
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e8_redo/',43,143,5,0.001376823,0.01,0.0025,0.0001)
+			for k in range(len(Qs)):
+				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
+		if j==1:
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e9/',43,143,5,0.001376823,0.01,0.0025,0.0001)
+			for k in range(len(Qs)):
+				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
+		if j==2:
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e10/',43,143,5,0.001376823,0.01,0.0025,0.0001)
+			for k in range(len(Qs)):
+				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
+		if j==3:
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e11/',43,143,5,0.001376823,0.01,0.0025,0.0005)
+			for k in range(len(Qs)):
+				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
+		if j==4:
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',45,175,10,1.71E-05,0.005,0.0002,0.0001)
+			for k in range(len(Qs)):
+				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',195,355,10,1.71E-05,0.01,0.005,0.001)
+			for k in range(len(Qs)):
+				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',355,545,10,1.71E-05,0.013,0.005,0.001)	
+			for k in range(len(Qs)):
+				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
+
+		ax[j].text(1.22,0.5,rhos[o],ha='center', va='center', transform=ax[o].transAxes,fontsize=10)
+		ax[j].tick_params(axis="y", labelsize=10,direction="in",which='both')
+		ax[j].tick_params(axis="x", labelsize=10,direction="in",which='both')
+		ax[j].set_yticks([1,10,100])
+		ax[j].set_ylim(1e-1,1e3)
+	plt.subplots_adjust(left = 0.15,bottom = 0.1,right=0.7,top=0.9)
+	ax[-1].set_xlabel('t [yr]',fontsize=10)
+	ax[int(len(dirnames)/2)].set_ylabel('Q        ',fontsize=10,rotation=0)
+	ax[-1].set_xlim(10,410)
 	
 		
 ''' and so ends the useful part of this script'''		
