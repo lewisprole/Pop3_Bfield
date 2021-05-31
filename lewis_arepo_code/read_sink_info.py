@@ -109,9 +109,10 @@ def Nsink_plot(dirnames):
 	ax[1].set_xlabel('t [yrs]')
 	ax[0].set_ylabel(r'N$_{\rm sinks}$')
 	ax[1].set_ylabel(r'M [M$_\odot$]')
-	ax[1].legend(frameon=False,loc='lower right',fontsize=10)
+	ax[1].legend(frameon=False,loc='lower right',fontsize=8)
 	ax[0].set_ylim(0,N.max()+1)
 	plt.show()
+	return fig,ax
 
 
 def Nsink_MHD(dirnames):
@@ -134,9 +135,10 @@ def Nsink_MHD(dirnames):
 		ax[1,i].set_xlabel('t [yrs]')
 		ax[1,i].set_xlim(-10,2500)
 		ax[0,i].set_title(titles[i])
-	ax[0,0].legend(frameon=False,loc='lower right',fontsize=10)
+	ax[0,0].legend(frameon=False,loc='lower right',fontsize=8)
 	ax[0,0].set_ylabel(r'N$_{\rm sinks}$')
 	ax[1,0].set_ylabel(r'M [M$_\odot$]')
+	return fig,ax
 	
 def IMF(dirname,t_goal):
 	files = allfiles(dirname)
@@ -195,6 +197,7 @@ def IMF_plot(dirnames,t_goal_yrs):
 	ax[len(dirnames)-1].set_xlabel(r'M [M$_{\odot}$]')
 	ax[int(len(dirnames)/2)].set_ylabel(r'N$_{\rm M}$             ',rotation=0)
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
+	return fig,ax
 
 
 
@@ -234,6 +237,7 @@ def largest_sink(dirname):
 
 def largest_plot(dirnames,interval):
 	colors='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
 	fig,ax=plt.subplots(2,sharex=True)
 	plt.subplots_adjust(hspace=0)
 	ax[1].set_ylabel(r'$\dot {\rm M}_{\rm largest}$ [M$_\odot$ yr$^{-1}$]',fontsize=10)
@@ -244,13 +248,14 @@ def largest_plot(dirnames,interval):
 		if i==0:
 			t0=T[0]
 		T=(T-t0)*code_units.t_cu/(60*60*24*365)
-		ax[0].semilogy(T,M,c=colors[i])
+		ax[0].semilogy(T,M,c=colors[i],label=labels[i])
 		T=T[1::interval]
 		ACC=ACC[1::interval] #acc units already cgs 
-		ax[1].semilogy(T[np.where(ACC>0)],ACC[np.where(ACC>0)],c=colors[i])
+		ax[1].semilogy(T,ACC,c=colors[i])
 	for i in range(2):
 		ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
 		ax[i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+	ax[0].legend(frameon=False,loc='lower right',fontsize=8)
 			
 				
 
