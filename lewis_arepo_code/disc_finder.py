@@ -360,19 +360,19 @@ def Qjoin(dirnames):
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==1:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e9/',43,143,5,0.001376823,0.01,0.0025,0.0001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e9/',36,146,5,0.001376823,0.01,0.0025,0.0001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==2:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e10/',43,143,5,0.001376823,0.01,0.0025,0.0001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e10/',34,144,5,0.001376823,0.01,0.0025,0.0001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==3:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e11/',43,143,5,0.001376823,0.01,0.0025,0.0005)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e11/',38,148,5,0.001376823,0.01,0.0025,0.0005)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==4:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',45,175,10,1.71E-05,0.005,0.0002,0.0001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',45,185,10,1.71E-05,0.005,0.0002,0.0001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',195,355,10,1.71E-05,0.01,0.005,0.001)
@@ -382,7 +382,7 @@ def Qjoin(dirnames):
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 
-		ax[j].text(1.22,0.5,rhos[o],ha='center', va='center', transform=ax[o].transAxes,fontsize=10)
+		ax[j].text(1.22,0.5,rhos[j],ha='center', va='center', transform=ax[j].transAxes,fontsize=10)
 		ax[j].tick_params(axis="y", labelsize=10,direction="in",which='both')
 		ax[j].tick_params(axis="x", labelsize=10,direction="in",which='both')
 		ax[j].set_yticks([1,10,100])
@@ -391,6 +391,7 @@ def Qjoin(dirnames):
 	ax[-1].set_xlabel('t [yr]',fontsize=10)
 	ax[int(len(dirnames)/2)].set_ylabel('Q        ',fontsize=10,rotation=0)
 	ax[-1].set_xlim(10,410)
+	plt.subplots_adjust(left = 0.15,bottom = 0.1,right=0.7,top=0.9)
 	
 		
 ''' and so ends the useful part of this script'''		
