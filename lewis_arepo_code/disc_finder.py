@@ -154,11 +154,18 @@ def combine_binaries(a,merge_length,accradius):
 				
 
 	return sinkx,sinky,sinkz,sinkmass,sinkvx,sinkvy,sinkvz,ids,vectors
-		
-def radial_Q(vector,rvec,temp,mass,Msink):
-	r=np.sqrt((rvec[0])**2+(rvec[1])**2+(rvec[2])**2)
-	vector_mag=np.sqrt((vector[0])**2+(vector[1])**2+(vector[2])**2)
-	h=(vector[0]*rvec[0] + vector[1]*rvec[1] + vector[2]*rvec[2])/vector_mag
+
+
+'''MASS WIEGHT EVERYTHING - sound speed, angular velocity for T
+make combines IMF and IMF just for ejected
+switch off hydro timebins -tree based timesteps off, force equal timesteps on 
+read domain options in param files (arepo pdf)
+make MHD IMFs (combined)'''	
+def radial_Q(vel_vec,r_vec,temp,mass,Msink):
+
+	r=np.sqrt((r_vec[0])**2+(r_vec[1])**2+(r_vec[2])**2)
+	
+
 	rs=np.linspace(r.min(),r.max(),50)
 	Q=np.array([])
 	for i in range(len(rs)-1):	
@@ -166,10 +173,25 @@ def radial_Q(vector,rvec,temp,mass,Msink):
 		if len(mask[0])>0:
 			dr=rs[i+1]-rs[i]
 			dA=2*np.pi*rs[i] *dr
-			c_s=np.mean(np.sqrt(ap.k_B.cgs.value * temp[mask]/ap.m_p.cgs.value))
+			T_massweighted=np.sum(temp[mask]*mass[mask])/np.sum(mass[mask])
+			c_s=np.mean(np.sqrt(ap.k_B.cgs.value * T_massweighted/ap.m_p.cgs.value))
 			surface=np.sum(mass[mask]) /dA
-			period=2*np.pi *np.sqrt(rs[i]**3 /(ap.G.cgs.value*Msink))
+			
+			vvec=vel_vec[0][mask], vel_vec[1][mask], vel_vec[2][mask] #strip down the vectors to within anulus
+			rvec=r_vec[0][mask],r_vec[1][mask],r_vec[2][mask]
+
+			crossi= vvec[1]*rvec[2] - vvec[2]*rvec[1] #rotational velocity calculation 
+			crossj= -vvec[0]*rvec[2] + vvec[2]*rvec[0]
+			crossz=vvec[0]*rvec[1] - vvec[1]*rvec[0]
+			v_cross_r=np.sqrt(crossi**2+crossj**2+crossz**2)
+			vr=v_cross_r / r[mask]
+			vr_massweighted=np.sum(vr*mass[mask])/np.sum(mass[mask])
+
+			circumference=2*np.pi*rs[i] #keplarian period 
+			period=circumference/vr_massweighted
+			#period=2*np.pi *np.sqrt(rs[i]**3 /(ap.G.cgs.value*Msink))
 			frequency=2*np.pi/period 
+
 			Q=np.append(Q,c_s*frequency/(np.pi*ap.G.cgs.value*surface))
 		else:
 			Q=np.append(Q,np.nan)
@@ -275,7 +297,8 @@ def get_disc(a,accradius,zoomzone,maxsize,merge_length):
 		#calculate Toomr parameter 
 		if len(sinks[i])>0:
 			rvec=np.array([a.x[sinks[i]]-sinkx[i] , a.y[sinks[i]]-sinky[i], a.z[sinks[i]]-sinkz[i] ])*code_units.d_cu
-			Qs,R=radial_Q(vector,rvec,a.temp[sinks[i]],a.mass[sinks[i]]*code_units.M_cu,sinkmass[i]*code_units.M_cu)
+			vvec=np.array([a.vx[sinks[i]],a.vy[sinks[i]],a.vz[sinks[i]]]) * code_units.v_cu
+			Qs,R=radial_Q(vvec,rvec,a.temp[sinks[i]],a.mass[sinks[i]]*code_units.M_cu,sinkmass[i]*code_units.M_cu)
 			#R=np.sqrt((a.x[sinks[i]]-a.sinkx[i])**2+(a.y[sinks[i]]-a.sinky[i])**2+(a.z[sinks[i]]-a.sinkz[i])**2)
 			#ax3.semilogy(R[:-1]/ap.au.cgs.value,Qs,'.')
 			#ax2.scatter(a.x[sinks[i]],a.y[sinks[i]],s=0.1)

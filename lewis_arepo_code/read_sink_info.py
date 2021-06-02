@@ -199,7 +199,35 @@ def IMF_plot(dirnames,t_goal_yrs):
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
 	return fig,ax
 
-
+def IMF_plot_join(dirnames,t_goal_yrs):
+	fig,ax=plt.subplots(5,sharex=True)
+	plt.subplots_adjust(hspace=0)
+	colors='b','g','r','cyan','purple'
+	rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	extensions='1e8/sink_particle_info/','1e9/sink_particle_info/','1e10/sink_particle_info/','1e11/sink_particle_info/','1e12/sink_particle_info/'
+	for j in range(5):
+		Msinks=np.array([])
+		for i in range(len(dirnames)):
+			T,N,M=Nsinks(dirnames[i]+extensions[0])
+			t0=T[0]
+			t_goal=(t_goal_yrs*60*60*24*365/code_units.t_cu)+t0
+			Msinks=np.append(Msinks,IMF(dirnames[i]+extensions[j],t_goal))
+		if j==0:
+			m_max=M.max()*1.2
+			m_min=1e12 * 4/3*np.pi*(1.71E-05)**3    *0.1
+			bins = 10**np.linspace(np.log10(m_min),np.log10(m_max),100)
+		ax[j].hist(Msinks,bins,color=colors[j])
+		N,M=np.histogram(Msinks,bins)
+		ax[j].set_ylim(0,N.max()+1)
+		ax[j].set_yticks([N.max()])
+		ax[j].text(1.22,0.5,rhos[j],ha='center', va='center', transform=ax[j].transAxes,fontsize=10)
+		ax[j].set_xscale('log')
+		ax[j].tick_params(axis="y", labelsize=10,direction="in",which='both')
+		ax[j].tick_params(axis="x", labelsize=10,direction="in",which='both')
+	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
+	ax[-1].set_xlabel(r'M [M$_{\odot}$]')
+	ax[2].set_ylabel(r'N$_{\rm M}$             ',rotation=0)
+			
 
 def largest_sink(dirname):
 	files = allfiles(dirname)
