@@ -37,6 +37,7 @@ def Nsinks(dirname):
 	T=np.array([])
 	N=np.array([])
 	M=np.array([])
+	eject=np.array([])
 	for i in range(len(files)):
 		with open(dirname+files[i], mode='rb') as file:
 			data = file.read()
@@ -140,10 +141,15 @@ def Nsink_MHD(dirnames):
 	ax[1,0].set_ylabel(r'M [M$_\odot$]')
 	return fig,ax
 	
-def IMF(dirname,t_goal):
+def IMF(dirname,t_goal,scale_ejects):
+	'''if you don't care about ejections, set scale_ejects as 'no' '''
 	files = allfiles(dirname)
 	Nsinks_old =0
 	M=np.array([])
+	x=np.array([])
+	y=np.array([])
+	z=np.array([])
+	mass_ejected=np.array([])
 	t_old=-1
 	for i in range(len(files)):
 		if len(M)==0:
@@ -155,39 +161,58 @@ def IMF(dirname,t_goal):
 			while (n<len(data)): #n is bits read so far
 				t=struct.unpack('d',data[n:n+8])[0]
 				Nsinks=struct.unpack('i',data[n+8:n+12])[0]
-
+				                 
+                                               
 				if t<t_old: #sometimes this happens when the sink files overlap
 					t_old=t
 
 				if abs(t-t_goal) > abs(t_old-t_goal): #reached the time goal
 					for j in range(Nsinks):
 						start = n + 8 + 4 + (j*bits_sink)
-						M=np.append(M,struct.unpack('d',data[start+8*9:start + 8*10]))
+						Mcurrent=struct.unpack('d',data[start+8*9:start + 8*10])
+						M=np.append(M,Mcurrent)
+						
+						if scale_ejects !='no':
+							x=np.append(x,struct.unpack('d',data[start:start + 8]))
+							y=np.append(y,struct.unpack('d',data[start+8:start + 8*2]))
+							z=np.append(z,struct.unpack('d',data[start+8*2:start + 8*3]))
+									
+							
 					n=len(data)
 
 				t_old=t
 				n  = n + 8 + 4 + Nsinks*bits_sink
 				cycles+=1
-	return M
 
-def IMF_plot(dirnames,t_goal_yrs):
+	mid = np.where(M==M.max())
+	if scale_ejects !='no':
+		rs=np.sqrt((x-x[mid])**2+(y-y[mid])**2+(z-z[mid])**2)
+		eject_mask=np.where(rs>scale_ejects)
+		mass_ejected=M[eject_mask]
+	
+	return M,mass_ejected
+
+
+def IMF_plot(dirnames,t_goal_yrs,scale_ejects):
 
 	T,N,M=Nsinks(dirnames[0])
 	t0=T[0]
 	t_goal=(t_goal_yrs*60*60*24*365/code_units.t_cu)+t0
-	m_min=1e12 * 4/3*np.pi*(1.71E-05)**3
+	m_min=1e12 * 4/3*np.pi*(1.71E-05)**3 *0.01
 	rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
 	colors='b','g','r','cyan','purple'
 	minmass=np.array([1e8,1e9,1e10,1e11,1e12]) *code_units.rho_cu  * 4/3*np.pi * (np.array([0.001376823,0.0004563,0.000152667,5.04801E-05,1.71E-05])*code_units.d_cu)**3 /ap.M_sun.cgs.value
 	fig,ax=plt.subplots(len(dirnames),sharex=True)
 	plt.subplots_adjust(hspace=0)
 	for i in range(len(dirnames)):
-		M=IMF(dirnames[i],t_goal)
+		M,Meject=IMF(dirnames[i],t_goal,scale_ejects)
 		print(M)
 		if i==0:
 			m_max=M.max()*1.2
 			bins = 10**np.linspace(np.log10(m_min),np.log10(m_max),100)
 		ax[i].hist(M,bins,color=colors[i])
+		if scale_ejects !='no':
+			ax[i].hist(Meject,bins,color='k')
 		#ax[i].axvline(x=minmass[i],ymin=0,ymax=1,color='k',linestyle='--')
 		ax[i].set_xscale('log')
 		N,M=np.histogram(M,bins)
@@ -199,7 +224,7 @@ def IMF_plot(dirnames,t_goal_yrs):
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
 	return fig,ax
 
-def IMF_plot_join(dirnames,t_goal_yrs):
+def IMF_plot_join(dirnames,t_goal_yrs,scale_ejects):
 	fig,ax=plt.subplots(5,sharex=True)
 	plt.subplots_adjust(hspace=0)
 	colors='b','g','r','cyan','purple'
@@ -207,16 +232,24 @@ def IMF_plot_join(dirnames,t_goal_yrs):
 	extensions='1e8/sink_particle_info/','1e9/sink_particle_info/','1e10/sink_particle_info/','1e11/sink_particle_info/','1e12/sink_particle_info/'
 	for j in range(5):
 		Msinks=np.array([])
+		ejects=np.array([])
 		for i in range(len(dirnames)):
 			T,N,M=Nsinks(dirnames[i]+extensions[0])
 			t0=T[0]
 			t_goal=(t_goal_yrs*60*60*24*365/code_units.t_cu)+t0
-			Msinks=np.append(Msinks,IMF(dirnames[i]+extensions[j],t_goal))
+			Ms,Meject=IMF(dirnames[i]+extensions[j],t_goal,scale_ejects[i])
+			print(Ms.min())
+			Msinks=np.append(Msinks,Ms)
+			if scale_ejects !='no':
+				ejects=np.append(ejects,Meject)
 		if j==0:
 			m_max=M.max()*1.2
 			m_min=1e12 * 4/3*np.pi*(1.71E-05)**3    *0.1
 			bins = 10**np.linspace(np.log10(m_min),np.log10(m_max),100)
 		ax[j].hist(Msinks,bins,color=colors[j])
+		
+		if scale_ejects !='no':
+			ax[j].hist(ejects,bins,color='k')
 		N,M=np.histogram(Msinks,bins)
 		ax[j].set_ylim(0,N.max()+1)
 		ax[j].set_yticks([N.max()])
@@ -227,7 +260,46 @@ def IMF_plot_join(dirnames,t_goal_yrs):
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
 	ax[-1].set_xlabel(r'M [M$_{\odot}$]')
 	ax[2].set_ylabel(r'N$_{\rm M}$             ',rotation=0)
+
+def IMG_plot_join_MHD(t_goal_yrs):
+
+	fig,ax=plt.subplots(nrows=3,ncols=3,sharex='col')	
+	plt.subplots_adjust(hspace=0,wspace=0)	
+	dirname='/scratch/c.c1521474/resolution_test/'
+	ext1='/MHD/','/MHD2/'
+	ext2='/1e8','/1e9','/1e10'
+	ext3='/sink_particle_info/','MHD/sink_particle_info/','_uniform/sink_particle_info/'	
+	m_min=1e12 * 4/3*np.pi*(1.71E-05)**3    *0.1
+	colors='b','g','r'
+
+	for i in range(len(ext2)):
+		M1=np.array([])
+		M2=np.array([])
+		M3=np.array([])
+		for j in range(len(ext1)):
+			t,N,M=Nsinks(dirname+ext1[j]+ext2[i]+'/sink_particle_info/')
+			t0=t[0]
+			t_goal=(np.array(t_goal_yrs)*60*60*24*365/code_units.t_cu)+t0
+				
+			Ms1,Meject1=IMF(dirname+ext1[j]+ext2[i]+ext3[0],t_goal[i],'no')
+			Ms2,Meject2=IMF(dirname+ext1[j]+ext2[i]+ext3[1],t_goal[i],'no')
+			Ms3,Meject3=IMF(dirname+ext1[j]+ext2[i]+ext3[2],t_goal[i],'no')
+
+			M1=np.append(M1,Ms1)
+			M2=np.append(M2,Ms2)
+			M3=np.append(M3,Ms3)
+		
+		m_max=max(M1.max()*1.2,M2.max()*1.2,M3.max()*1.2)
+		bins = 10**np.linspace(np.log10(m_min),np.log10(m_max),100)
+
+		ax[0,i].hist(M1,bins,color=colors[i])
+		ax[1,i].hist(M2,bins,color=colors[i])
+		ax[2,i].hist(M3,bins,color=colors[i])
+		ax[0,i].set_xscale('log')
+		ax[1,i].set_xscale('log')
+		ax[2,i].set_xscale('log')
 			
+		
 
 def largest_sink(dirname):
 	files = allfiles(dirname)
@@ -479,11 +551,11 @@ def get_all_info(dirname):
 				mass=np.append(mass,struct.unpack('d',data[start+8*9:start + 8*10]))
 			
 			
-			#begin storing the info... only read this if you really need to...
-			#storage shape is 100,3,100
-			#the first dimension allows for 100 possible sinks
-			#second dimension gives mass, accretion rate and time
-			#third dimension progresses the data in time (10000 time slots)
+				#begin storing the info... only read this if you really need to...
+				#storage shape is 100,3,100
+				#the first dimension allows for 100 possible sinks
+				#second dimension gives mass, accretion rate and time
+				#third dimension progresses the data in time (10000 time slots)
 
 						
 				if ids[j] not in sink_space[:,0,0]: #going to put the info into the sink space array, each sink gets its own 2D array shape (3,10000)

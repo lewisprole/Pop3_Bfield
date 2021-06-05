@@ -379,29 +379,29 @@ def Qjoin(dirnames):
 				ax[j].axvline(x=(sinktime[i]-t0)*code_units.t_cu/(60*60*24*365),c='r')
 			Nsink=N[i]
 		if j==0:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e8_redo/',43,143,5,0.001376823,0.01,0.0025,0.0001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e8/',43,143,2,0.001376823,0.01,0.0025,0.0001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==1:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e9/',36,146,5,0.001376823,0.01,0.0025,0.0001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e9/',36,146,2,0.001376823,0.01,0.0025,0.0001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==2:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e10/',34,144,5,0.001376823,0.01,0.0025,0.0001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e10/',34,144,2,0.001376823,0.01,0.0025,0.0001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==3:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e11/',38,148,5,0.001376823,0.01,0.0025,0.0005)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e11/',38,148,2,0.001376823,0.01,0.0025,0.0005)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==4:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',45,185,10,1.71E-05,0.005,0.0002,0.0001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12/',45,185,5,1.71E-05,0.005,0.0002,0.0001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',195,355,10,1.71E-05,0.01,0.005,0.001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12/',195,355,5,1.71E-05,0.01,0.005,0.001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12_redo/',355,545,10,1.71E-05,0.013,0.005,0.001)	
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12/',355,545,5,1.71E-05,0.013,0.005,0.001)	
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 
