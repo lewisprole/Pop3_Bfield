@@ -37,7 +37,7 @@ vx,vy,vz=vx/V,vy/V,vz/V
 
 #positions
 Nfield=50**3#10**3 
-N=int(Nfield) * np.array([5e-1])#1e-1,1,10])
+N=int(Nfield) * np.array([4])#np.array([5e-1])#1e-1,1,10])
 locs='1e-1','1','10'
 for i in range(len(N)):
 	print(N[i])
@@ -84,8 +84,8 @@ for i in range(len(N)):
 	sofar=arepo_input_writer.tag_block(sofar,rho,'MASS','d',1)
 	sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
 	sofar=arepo_input_writer.tag_block(sofar,(Bx,By,Bz),'BFLD','d',3)
-	print('/scratch/c.c1521474/interpolation_trial/'+locs[i]+'/arepo_input.dat')
-	arepo_input_writer.writer(sofar,'/scratch/c.c1521474/interpolation_trial/5e-1/arepo_input.dat')
+	#print('/scratch/c.c1521474/interpolation_trial/'+locs[i]+'/arepo_input.dat')
+	arepo_input_writer.writer(sofar,'/scratch/c.c1521474/interpolation_trial/4/arepo_input.dat')
 
 
 

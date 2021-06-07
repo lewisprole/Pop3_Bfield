@@ -56,7 +56,7 @@ def create_spectrum(vx,vy,vz):
         return ks1,energy1
 
 def interp_graph(files):
-	labels='0.1N','0.5N','N','2N','10N','100N'
+	labels=r'0.05N$_{\rm field}$',r'0.25N$_{\rm field}$',r'0.5N$_{\rm field}$',r'N$_{\rm field}$',r'2N$_{\rm field}$',r'10N$_{\rm field}$',r'100N$_{\rm field}$'
 	#first make spectrum of original uniform field
 	#bx,by,bz=field_maker.create_nonscaled_Bfield(50,3/2)
 	#k,P=create_spectrum(bx,by,bz)
@@ -67,8 +67,8 @@ def interp_graph(files):
 		bx,by,bz,x,y,z=read_3cube(files[i])
 		k,P=create_spectrum(bx,by,bz)
 		plt.loglog(k,P/k**(3/2),label=labels[i])
-	plt.legend(fontsize=10,frameon=False)
-	plt.ylabel(r'P/$k^{3/2}$')
+	plt.legend(fontsize=8,frameon=False)
+	plt.ylabel(r'P/$k^{3/2}$',rotation=0)
 	plt.xlabel('k')
 	plt.ylim(5.5e-7,1.5e-5)
 	plt.xlim(0.995,25.1)

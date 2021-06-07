@@ -287,7 +287,7 @@ def get_disc(a,accradius,zoomzone,maxsize,merge_length):
 				
 				else:
 					if r[angle][args[j]]<maxsize*code_units.d_cu:
-						if a.rho[bound][angle][args[j]]>rho_av/20:
+						if a.rho[bound][angle][args[j]]>rho_av/50:
 							sinks[i].append(bound[angle][args[j]])
 							rho_av=np.mean(a.rho[sinks[i]])
 				j+=1
