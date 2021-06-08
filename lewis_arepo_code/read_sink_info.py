@@ -452,6 +452,8 @@ def largest_plot_big(dirnames):
 			ax[1,i].semilogy(T,ACC,c=colors[j],label=labels[j])
 			ax[1,i].set_xlabel('t [yr]',fontsize=10)
 			ax[1,i].set_xlim(-50,1050)
+		ax[0,i].set_title(('A','B','C')[i],fontsize=10)
+		ax[1,i].set_xticks([0,300,600,900])
 		for j in range(2):
 			ax[j,i].tick_params(axis="y", labelsize=10,direction="in",which='both')
 			ax[j,i].tick_params(axis="x", labelsize=10,direction="in",which='both')
