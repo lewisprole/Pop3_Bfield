@@ -76,7 +76,7 @@ def Nsinks(dirname):
 				T=np.append(T,t)
 				M=np.append(M,m)
 				M=np.append(M,m)
-				Nsinks_old = Nsinks
+			Nsinks_old = Nsinks
 
 			#also update arrays every 10 cycles through the sink file (needed to track mass)
 			if cycles>0:
@@ -107,14 +107,38 @@ def Nsink_plot(dirnames):
 	ax[0].tick_params(axis="y", labelsize=10,direction="in",which='both')
 	ax[1].tick_params(axis="y", labelsize=10,direction="in",which='both')
 	ax[1].tick_params(axis="x", labelsize=10,direction="in",which='both')
-	ax[1].set_xlabel('t [yrs]')
-	ax[0].set_ylabel(r'N$_{\rm sinks}$')
+	ax[1].set_xlabel('t [yr]')
+	ax[0].set_ylabel(r'N$_{\rm sink}$')
 	ax[1].set_ylabel(r'M [M$_\odot$]')
 	ax[1].legend(frameon=False,loc='lower right',fontsize=8)
 	ax[0].set_ylim(0,N.max()+1)
 	plt.show()
 	return fig,ax
 
+def Nsink_plot_big(dirnames):
+	fig,ax=plt.subplots(ncols=3,nrows=2,sharex='col',sharey='row')
+	plt.subplots_adjust(hspace=0,wspace=0,right=0.75)
+	extensions='/1e8/sink_particle_info/','/1e9/sink_particle_info/','/1e10/sink_particle_info/','/1e11/sink_particle_info/','/1e12/sink_particle_info/'
+	colors='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	for i in range(len(dirnames)):
+		for j in range(len(extensions)):
+			t,N,M=Nsinks(dirnames[i]+extensions[j])
+			if j==0:
+				t0=t[0]
+			ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[j],label=labels[j])
+			ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[j],label=labels[j])
+			ax[0,i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+			ax[0,i].tick_params(axis="y", labelsize=10,direction="in",which='both')
+			ax[1,i].tick_params(axis="y", labelsize=10,direction="in",which='both')
+			ax[1,i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+			ax[1,i].set_xlim(-10,1050)
+			ax[1,i].set_xlabel('t [yr]',fontsize=10)
+			ax[1,i].set_xticks([0,300,600,900])
+			ax[0,i].set_title(('A','B','C')[i],fontsize=10)
+		ax[0,0].set_ylabel(r'N$_{\rm sink}$',fontsize=10)
+		ax[1,0].set_ylabel(r'M [M$_\odot$]',fontsize=10)	
+		ax[0,-1].legend(frameon=False,loc=(1.05,0.3),fontsize=8)
 
 def Nsink_MHD(dirnames):
 	fig,ax=plt.subplots(ncols=3,nrows=2,sharey='row',sharex='col')
@@ -261,7 +285,7 @@ def IMF_plot_join(dirnames,t_goal_yrs,scale_ejects):
 	ax[-1].set_xlabel(r'M [M$_{\odot}$]')
 	ax[2].set_ylabel(r'N$_{\rm M}$             ',rotation=0)
 
-def IMG_plot_join_MHD(t_goal_yrs):
+def IMF_plot_join_MHD(t_goal_yrs):
 
 	fig,ax=plt.subplots(nrows=3,ncols=3,sharex='col')	
 	plt.subplots_adjust(hspace=0,wspace=0)	
@@ -299,7 +323,59 @@ def IMG_plot_join_MHD(t_goal_yrs):
 		ax[1,i].set_xscale('log')
 		ax[2,i].set_xscale('log')
 			
-		
+def Nmerge(dirname):
+	'''cycle starts wih double: time, int: Nsinks, then...
+	doubles: 3pos, 3vel, 3accel, mass, FormationMass, FormationTime, AccretionRate, TimeOld =14
+	long long ID, ints: HomeTask, Index, FormationOrder
+	so sink mass starts at (8+4 + 8*9) bits, then every N(8*14 + 8 + 4*3 + 4) where N is the Number of sinks cycled through so far'''
+	#first get all the sink_particle_info files into the right order
+	files = allfiles(dirname)
+	Nsinks_old =0
+	T=np.array([])
+	merge=np.array([])
+	for i in range(len(files)):
+		with open(dirname+files[i], mode='rb') as file:
+			data = file.read()
+		bits_sink= 8*14 + 8 + 4*3 + 4
+		n=0
+		cycles=0
+		while (n<len(data)): #n is bits read so far
+			t=struct.unpack('d',data[n:n+8])[0]
+			Nsinks=struct.unpack('i',data[n+8:n+12])[0]
+			if Nsinks < Nsinks_old:
+
+				marker=0
+				while marker == 0: #delete anything overlapping from last file
+					if len(T)>0:
+						if t<T[-1]:
+							T=np.delete(T,len(T)-1)
+							merge=np.delete(N,len(N)-1)
+						else:
+							marker=1
+					else:	
+						marker=1
+				#and update lists
+				if len(merge)==0:
+					merge=np.append(merge,0) #line to the right
+				else:
+					merge=np.append(merge,merge[-1])
+				merge=np.append(merge,merge[-1]+1)     #and vertically up
+				T=np.append(T,t)
+				T=np.append(T,t)
+			print(n,len(data)-( 8 + 4 + Nsinks*bits_sink))
+
+			if n==(len(data)-( 8 + 4 + Nsinks*bits_sink)):
+				if len(merge)==0:
+					merge=np.append(merge,0)
+				else:
+					merge=np.append(merge,merge[-1])
+				T=np.append(T,t)
+
+			Nsinks_old=Nsinks 
+			n  = n + 8 + 4 + Nsinks*bits_sink
+			cycles+=1
+
+	return T,merge		
 
 def largest_sink(dirname):
 	files = allfiles(dirname)
@@ -358,6 +434,31 @@ def largest_plot(dirnames,interval):
 	ax[0].legend(frameon=False,loc='lower right',fontsize=8)
 			
 				
+def largest_plot_big(dirnames):
+	fig,ax=plt.subplots(ncols=3,nrows=2,sharex='col',sharey='row')
+	plt.subplots_adjust(hspace=0,wspace=0,right=0.75)
+	extensions='/1e8/sink_particle_info/','/1e9/sink_particle_info/','/1e10/sink_particle_info/','/1e11/sink_particle_info/','/1e12/sink_particle_info/'
+	colors='b','g','r','cyan','purple'
+ 	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	for i in range(len(dirnames)):
+		for j in range(len(extensions)):
+			T,M,ACC=largest_sink(dirnames[i]+extensions[j])
+			if j==0:
+				t0=T[0]
+			T=(T-t0)*code_units.t_cu/(60*60*24*365)
+			ax[0,i].semilogy(T,M,c=colors[j],label=labels[j])
+			T=T[1::50]		
+			ACC=ACC[1::50] #acc units already cgs
+			ax[1,i].semilogy(T,ACC,c=colors[j],label=labels[j])
+			ax[1,i].set_xlabel('t [yr]',fontsize=10)
+			ax[1,i].set_xlim(-50,1050)
+		for j in range(2):
+			ax[j,i].tick_params(axis="y", labelsize=10,direction="in",which='both')
+			ax[j,i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+	ax[0,-1].legend(frameon=False,loc=(1.05,0.3),fontsize=8)
+	ax[1,0].set_ylabel(r'$\dot {\rm M}_{\rm largest}$ [M$_\odot$ yr$^{-1}$]',fontsize=10)
+	ax[0,0].set_ylabel(r'M$_{\rm largest}$ [M$_\odot$]',fontsize=10)
+
 
 '''first couple of functions are for getting sink info when they newly form'''
 

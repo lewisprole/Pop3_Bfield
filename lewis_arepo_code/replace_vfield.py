@@ -90,7 +90,8 @@ U=internal_energy.int_en(len(x),T,1)
 #turbulence
 Alpha=np.array([0.05])
 
-dirs='/scratch/c.c1521474/resolution_test/seed3/','/scratch/c.c1521474/resolution_test/seed4/','/scratch/c.c1521474/resolution_test/seed5/'
+#dirs='/scratch/c.c1521474/resolution_test/seed3/','/scratch/c.c1521474/resolution_test/seed4/','/scratch/c.c1521474/resolution_test/seed5/'
+dirs='/scratch/c.c1521474/resolution_test/seed6/','/scratch/c.c1521474/resolution_test/seed7/'
 for i in range (len(dirs)):
 	for k in range(len(Alpha)):
 

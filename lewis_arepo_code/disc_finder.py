@@ -395,7 +395,7 @@ def Qjoin(dirnames):
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 		if j==4:
-			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12/',45,185,5,1.71E-05,0.005,0.0002,0.0001)
+			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12/',45,195,5,1.71E-05,0.005,0.0002,0.0001)
 			for k in range(len(Qs)):
 				ax[j].semilogy((T[k]-t0)*code_units.t_cu/(60*60*24*365),Qs[k],c='k')
 			Qs,T,IDS=Q_time('/scratch/c.c1521474/resolution_test/merge/1e12/',195,355,5,1.71E-05,0.01,0.005,0.001)
