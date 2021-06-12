@@ -161,7 +161,62 @@ def plot_MN_join(files):
         ax3.set_ylim(0.5,15)
         plt.subplots_adjust(left = 0.1,bottom = 0.17,right=0.8)
         
+'''ejection checker'''
 
+def energy_check(a,min_eject_length):
+	masses=np.array([])
+	ejects=0
+	args=np.array([])
+	x=sum(a.sinkmass*a.sinkx)/sum(a.sinkmass) 
+	y=sum(a.sinkmass*a.sinky)/sum(a.sinkmass)
+	z=sum(a.sinkmass*a.sinkz)/sum(a.sinkmass)
+	r_sinks=np.sqrt((a.sinkx-x)**2+(a.sinky-y)**2+(a.sinkz-z)**2) *code_units.d_cu
+	r_cells=np.sqrt((a.x-x)**2+(a.y-y)**2+(a.z-z)**2) *code_units.d_cu
+	for i in range(len(a.sinkmass)):
+		if r_sinks[i]>(min_eject_length*code_units.d_cu):
+			v=np.sqrt(a.sinkvx[i]**2+a.sinkvy[i]**2+a.sinkvz[i]**2) *code_units.v_cu
+			mask=np.where(r_cells<r_sinks[i])
+			mask_sinks=np.where(r_sinks<r_sinks[i])
+			Mtot=sum(a.mass[mask])+sum(a.sinkmass[mask_sinks])
+
+			Ek=(0.5*a.sinkmass[i]*code_units.M_cu*(v)**2) 
+			Eu= (ap.G.cgs.value * a.sinkmass[i]*code_units.M_cu * Mtot*code_units.M_cu) / r_sinks[i]
+			if Ek>Eu:
+				ejects+=1
+				masses=np.append(masses,a.sinkmass[i])
+				args=np.append(args,i)
+	print('no eject: '+str(ejects))
+	print(masses)
+	return args.astype(int)
+
+def ejection_fraction(files):
+	bins=np.array([0,0.075,0.8,1000])
+	mask1=np.array([])
+	mask_ej1=np.array([])
+	mask2=np.array([])
+	mask_ej2=np.array([])
+	mask3=np.array([])
+	mask_ej3=np.array([])
+	fracs=np.array([])
+	for j in range(len(files)):
+		a=arepo_utils.aread(files[i])
+		fracs=np.array([])
+		args=energy_check(a,0.03)
+			
+		mask1=np.append(mask1, (np.where((a.sinkmass>bins[0]) & (a.sinkmass<=bins[1])))[0] )
+		mask_ej1=np.append(mask_ej1, (np.where((a.sinkmass[args]>bins[0]) & (a.sinkmass[args]<=bins[1])))[0])
+
+		mask2=np.append(mask2, (np.where((a.sinkmass>bins[1]) & (a.sinkmass<=bins[2])))[0] )
+		mask_ej2=np.append(mask_ej2, (np.where((a.sinkmass[args]>bins[1]) & (a.sinkmass[args]<=bins[2])))[0])
+
+		mask3=np.append(mask3, (np.where((a.sinkmass>bins[2]) & (a.sinkmass<=bins[3])))[0] )
+		mask_ej3=np.append(mask_ej3, (np.where((a.sinkmass[args]>bins[2]) & (a.sinkmass[args]<=bins[3])))[0])
+
+	fracs=np.append(fracs, len(mask_ej1)/len(mask1))
+	fracs=np.append(fracs, len(mask_ej2)/len(mask2))
+	fracs=np.append(fracs, len(mask_ej3)/len(mask3))
+	return fracs
+	
 
 def velocity_graph(files):
         colors='Purple','cyan','r','g','b'

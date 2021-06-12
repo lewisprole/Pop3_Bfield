@@ -4,6 +4,7 @@ import struct
 import code_units
 import astropy.constants as ap 
 import os
+from scipy.interpolate import interp1d
 plt.ion()
 
 def allfiles(dirname):
@@ -157,11 +158,11 @@ def Nsink_MHD(dirnames):
 		t,N,M=Nsinks(dirnames[i]+'_uniform/sink_particle_info/')
 		ax[0,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),N,color=colors[2],label=labels[2])
 		ax[1,i].plot((t-t0)*code_units.t_cu/(60*60*24*365),M*code_units.M_cu/ap.M_sun.cgs.value,color=colors[2],label=labels[2])
-		ax[1,i].set_xlabel('t [yrs]')
+		ax[1,i].set_xlabel('t [yr]')
 		ax[1,i].set_xlim(-10,2500)
 		ax[0,i].set_title(titles[i])
 	ax[-1,-1].legend(frameon=False,loc='lower right',fontsize=8)
-	ax[0,0].set_ylabel(r'N$_{\rm sinks}$')
+	ax[0,0].set_ylabel(r'N$_{\rm sink}$')
 	ax[1,0].set_ylabel(r'M [M$_\odot$]')
 	return fig,ax
 	
@@ -349,7 +350,7 @@ def Nmerge(dirname):
 					if len(T)>0:
 						if t<T[-1]:
 							T=np.delete(T,len(T)-1)
-							merge=np.delete(N,len(N)-1)
+							merge=np.delete(merge,len(merge)-1)
 						else:
 							marker=1
 					else:	
@@ -358,9 +359,9 @@ def Nmerge(dirname):
 				if len(merge)==0:
 					merge=np.append(merge,0) #line to the right
 				else:
-					merge=np.append(merge,merge[-1])
-				merge=np.append(merge,merge[-1]+1)     #and vertically up
-				T=np.append(T,t)
+					merge=np.append(merge,merge[-1]+1)
+				#merge=np.append(merge,merge[-1]+1)     #and vertically up
+				#T=np.append(T,t)
 				T=np.append(T,t)
 			print(n,len(data)-( 8 + 4 + Nsinks*bits_sink))
 
@@ -375,7 +376,32 @@ def Nmerge(dirname):
 			n  = n + 8 + 4 + Nsinks*bits_sink
 			cycles+=1
 
-	return T,merge		
+	return T,merge	
+
+def Nmerge_plot_join(dirnames):
+	fig,ax=plt.subplots(1)
+	plt.subplots_adjust(left=0.2,right=0.8,top=0.8,bottom=0.2)
+	plt.subplots_adjust(hspace=0)
+	extensions='1e8/sink_particle_info/','1e9/sink_particle_info/','1e10/sink_particle_info/','1e11/sink_particle_info/','1e12/sink_particle_info/'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	colors='b','g','r','cyan','purple'
+	for i in range(len(extensions)):
+		
+		MERGE=np.zeros(1000)
+		for j in range(len(dirnames)):
+			t,merge=Nmerge(dirnames[j]+extensions[i])
+			t=t-t[0]
+			if j==0:
+				t_ = np.linspace(t[0],t[-2],1000)
+			f=interp1d(t, merge,bounds_error=False,fill_value=merge.max())
+			MERGE+=f(t_)
+		ax.plot(t_ *code_units.t_cu /(60*60*24*365) , MERGE, c=colors[i],label=labels[i])
+		ax.tick_params(axis="y", labelsize=10,direction="in",which='both')
+		ax.tick_params(axis="x", labelsize=10,direction="in",which='both')
+		ax.set_xlabel('t [yr]')
+		ax.set_ylabel(r'N$_{\rm merge}$')
+	ax.set_xlim(-10,400)
+	ax.legend(frameon=False,fontsize=8)
 
 def largest_sink(dirname):
 	files = allfiles(dirname)
@@ -439,7 +465,7 @@ def largest_plot_big(dirnames):
 	plt.subplots_adjust(hspace=0,wspace=0,right=0.75)
 	extensions='/1e8/sink_particle_info/','/1e9/sink_particle_info/','/1e10/sink_particle_info/','/1e11/sink_particle_info/','/1e12/sink_particle_info/'
 	colors='b','g','r','cyan','purple'
- 	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
 	for i in range(len(dirnames)):
 		for j in range(len(extensions)):
 			T,M,ACC=largest_sink(dirnames[i]+extensions[j])

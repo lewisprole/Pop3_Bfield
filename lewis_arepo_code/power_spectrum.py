@@ -1,5 +1,6 @@
 from projection_functions import * 
 from code_units import * 
+from scipy.stats import binned_statistic
 
 fig,ax=plt.subplots(nrows=2,sharex=True)
 plt.subplots_adjust(hspace=0)
@@ -27,3 +28,24 @@ ax[0].text(0.85,0.95,r'Kazantsev spectrum',ha='center', va='center', transform=a
 ax[1].text(0.9,-0.05,r'Uniform field',ha='center', va='center', transform=ax[0].transAxes,fontsize=10)
 ax[0].tick_params(axis="x", labelsize=10,direction="in",which='both')
 ax[1].tick_params(axis="y", labelsize=10,direction="in",which='both')
+
+
+fig,ax=plt.subplots(nrows=2,sharex=True)
+plt.subplots_adjust(hspace=0)
+files='/scratch/c.c1521474/resolution_test/MHD2/1e8MHD/snapshot_009','/scratch/c.c1521474/resolution_test/MHD2/1e9MHD/snapshot_051','/scratch/c.c1521474/resolution_test/MHD2/1e10MHD/snapshot_044'
+files2='/scratch/c.c1521474/resolution_test/MHD2/1e8_uniform/snapshot_009','/scratch/c.c1521474/resolution_test/MHD2/1e9_uniform/snapshot_051','/scratch/c.c1521474/resolution_test/MHD2/1e10_uniform/snapshot_044'
+rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$'
+for i in range(len(files)):
+	a=aread(files[i])
+	midx,midy,midz=a.sinkx[0],a.sinky[0],a.sinkz[0]
+	r=np.sqrt((a.x-midx)**2+(a.y-midy)**2+(a.z-midz)**2)
+	b,rs,y=binned_statistic(r,a.bmag,bins=10**np.linspace(np.log10(r.min()),np.log10(r.max()),25))
+	ax[0].loglog(rs[:-1]*code_units.d_cu /ap.au.cgs.value ,b*code_units.B_cu)
+	a=aread(files2[i])
+	midx,midy,midz=a.sinkx[0],a.sinky[0],a.sinkz[0]
+	r=np.sqrt((a.x-midx)**2+(a.y-midy)**2+(a.z-midz)**2)
+	b,rs,y=binned_statistic(r,a.bmag,bins=10**np.linspace(np.log10(r.min()),np.log10(r.max()),25))
+	ax[1].loglog(rs[:-1]*code_units.d_cu /ap.au.cgs.value ,b*code_units.B_cu)
+
+
+
