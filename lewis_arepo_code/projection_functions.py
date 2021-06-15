@@ -5,7 +5,7 @@ from scipy.stats import binned_statistic
 import arepo_utils
 import astropy.constants as ap
 from mpl_toolkits.axes_grid1 import ImageGrid 
-
+import os 
 
 
 def read_cube(name):
@@ -228,32 +228,69 @@ def read_sink(dirname,sink_number):
         
         return np.asarray(x),np.asarray(y),np.asarray(z),np.asarray(M)
 
+def density_files(dirname):
+	'''takes all files in directory and orders them based on order of ending 3 number string'''
+	files=os.listdir(dirname)
+	files_new=np.array([])
+	nos=np.array([])
+	nos_str=np.array([])
+	for i in range(len(files)):
+		if 'density_grid' in files[i]:
+			no=files[i][-3:]
+			no_copy=files[i][-3:]
+			if no[0]==0: #get rid of zeros e.g. '001' -> '1'
+				no=no[1:]
+				if no[0]==0:
+					no=no[1:]
+			no=int(no)
+			nos=np.append(nos,no)
+			nos_str=np.append(nos_str,no_copy)
+	args=np.argsort(nos) #rearrange list
+	for i in range(len(args)):
+		files_new=np.append(files_new,dirname+'/density_grid_'+nos_str[args[i]])
+	return files_new
 
-def simple_grid(dirs1,dirs2,dirs3,nums1,nums2,nums3):
-	fig,ax=plt.subplots(ncols=5,nrows=3)
-	for i in range(len(dirs1)):
-		
-		rho=read_cube(dirs1[i]+'/density_grid_'+str(nums1[i]))
-		x,y,z,M=read_sink(dirs1[i]+'/',str(nums1[i]))
-		ax[0,i].imshow(np.log10(np.sum(rho,1)),cmap='bone')
-		ax[0,i].scatter(z,x,s=0.5,c='magenta')
 
-		rho=read_cube(dirs2[i]+'/density_grid_'+str(nums2[i]))
-		x,y,z,M=read_sink(dirs2[i]+'/',str(nums2[i]))
-		ax[1,i].imshow(np.log10(np.sum(rho,1)),cmap='bone')
-		ax[1,i].scatter(z,x,s=0.5,c='magenta')
+def simple_grid(dirnames):
+	fig = plt.figure(figsize=(5, 4))
+	grid = ImageGrid(fig, 111,  # similar to subplot(111)
+		nrows_ncols=(5, 4),  # creates 2x2 grid of axes
+		axes_pad=0,
+		cbar_mode="single",  # pad between axes in inch.
+		cbar_size='3%'
+		 )
+	rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	#fig,ax=plt.subplots(ncols=4,nrows=5)
+	for i in range(len(dirnames)):
+		files=density_files(dirnames[-1-i])	
+		for j in range(len(files)):
+			if i==4:
+				grid[-1-4*i-j].set_title(('0yr','100yr','200yr','400yr')[-1-j],fontsize=8)
+			if j==3:
+				grid[-1-4*i-j].set_ylabel(rhos[-1-i],fontsize=8,rotation=75)
+			rho=read_cube(files[-1-j])
+			rho=rho*code_units.rho_cu
+			no=files[-1-j][-3:]
+			x,y,z,M=read_sink(dirnames[-1-i]+'/',no)
+			if (i==0) & (j==0):
+				print(i,j)
+				Vmax=np.log10(np.sum(rho,1)).max()
+				Vmin=np.log10(np.sum(rho,1)).min()
+				im=grid[-1-4*i-j].imshow(np.log10(np.sum(rho,1)),vmax=Vmax,vmin=Vmin,cmap='bone')
+			else:
+				grid[-1-4*i-j].imshow(np.log10(np.sum(rho,1)),vmax=Vmax,vmin=Vmin,cmap='bone')
 
-		rho=read_cube(dirs3[i]+'/density_grid_'+str(nums3[i]))
-		x,y,z,M=read_sink(dirs3[i]+'/',str(nums3[i]))
-		ax[2,i].imshow(np.log10(np.sum(rho,1)),cmap='bone')
-		ax[2,i].scatter(z,x,s=0.5,c='magenta')
-		
-		for j in range(3):
-			ax[j,i].set_xlim(0,500)
-			ax[j,i].set_ylim(0,500)
-			ax[j,i].set_yticks([])
-			ax[j,i].set_xticks([])
-	plt.subplots_adjust(hspace=0,wspace=0)
+			grid[-1-4*i-j].scatter(z,x,s=0.5,c='magenta')
+
+			grid[-1-4*i-j].set_xlim(0,500)
+			grid[-1-4*i-j].set_ylim(0,500)
+			grid[-1-4*i-j].set_yticks([])
+			grid[-1-4*i-j].set_xticks([])
+	plt.subplots_adjust(hspace=0,wspace=-0.8)
+	cbar=grid.cbar_axes[0].colorbar(im)
+	cbar.ax.tick_params(labelsize=8)
+	cbar.ax.set_ylabel(r'Log$_{10}$($\rho$ [gcm$^{-3}$])', rotation=270,fontsize=8,labelpad=15)
+
 
 def CoM(x,y,z,M):
         X=sum(x*M)/sum(M)
