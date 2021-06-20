@@ -2,6 +2,45 @@ from projection_functions import *
 from code_units import * 
 from scipy.stats import binned_statistic
 
+
+
+fig,ax=plt.subplots(ncols=2,sharey=True)
+plt.subplots_adjust(wspace=0)
+k,P=create_spectrum_zeropad('/scratch/c.c1521474/resolution_test/MHD/1e10MHD/magnetic_grid_001',10)
+ax[0].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,'.',label='-250yr')
+k,P=create_spectrum_zeropad('/scratch/c.c1521474/resolution_test/MHD/1e10MHD/magnetic_grid_014',10)
+ax[0].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,'.',label='0yr')
+k,P=create_spectrum_zeropad('/scratch/c.c1521474/resolution_test/MHD/1e10MHD/magnetic_grid_071',10)
+ax[0].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,'.',label='250yr')
+k,P=create_spectrum_zeropad('/scratch/c.c1521474/resolution_test/MHD/1e10MHD/magnetic_grid_128',10)
+ax[0].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,'.',label='500yr')
+#k,P=create_spectrum('/scratch/c.c1521474/resolution_test/MHD/1e10MHD/magnetic_grid_242',1,'no')
+#ax[0].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,label='1000yr')
+ax[0].text(0.7,0.95,r'Kazantsev spectrum',ha='center', va='center', transform=ax[0].transAxes,fontsize=9)
+ax[0].legend(frameon=False,loc='lower left',fontsize=8)
+k,P=create_spectrum_zeropad('/scratch/c.c1521474/resolution_test/MHD/1e10_uniform/magnetic_grid_001',10)
+ax[1].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,'.',label='-250yr')
+k,P=create_spectrum_zeropad('/scratch/c.c1521474/resolution_test/MHD/1e10_uniform/magnetic_grid_013',10)
+ax[1].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,'.',label='0yr')
+k,P=create_spectrum_zeropad('/scratch/c.c1521474/resolution_test/MHD/1e10_uniform/magnetic_grid_071',10)
+ax[1].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,'.',label='250yr')
+k,P=create_spectrum_zeropad('/scratch/c.c1521474/resolution_test/MHD/1e10_uniform/magnetic_grid_128',10)
+ax[1].loglog(0.1/k *code_units.d_cu/ap.au.cgs.value,P,'.',label='500yr')
+ax[1].text(0.8,0.95,r'Uniform field',ha='center', va='center', transform=ax[1].transAxes,fontsize=9)
+#ax[1].legend(frameon=False,loc='lower left',fontsize=8)
+ax[0].tick_params(axis="x", labelsize=10,direction="in",which='both')
+ax[0].tick_params(axis="y", labelsize=10,direction="in",which='both')
+ax[1].tick_params(axis="y", labelsize=10,direction="in",which='both')
+ax[1].tick_params(axis="x", labelsize=10,direction="in",which='both')
+ax[0].set_xlim(0.11/1 * d_cu/ap.au.cgs.value, 0.1/500 * d_cu/ap.au.cgs.value)
+ax[1].set_xlim(0.11/1 * d_cu/ap.au.cgs.value, 0.1/500 * d_cu/ap.au.cgs.value)
+ax[1].set_xlabel('$\lambda$ [AU]',fontsize=10)
+ax[0].set_xlabel('$\lambda$ [AU]',fontsize=10)
+ax[0].set_ylabel(r'P$_{\rm B}$        ',fontsize=10,rotation=0)
+
+
+
+
 fig,ax=plt.subplots(nrows=2,sharex=True)
 plt.subplots_adjust(hspace=0)
 rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$'

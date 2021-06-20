@@ -135,7 +135,7 @@ def create_spectrum_zeropad(velfile,zeropad):
 	dk=ks1[1]-ks1[0]
 	energy1=av1*4*np.pi*ks1[:-1]**2 *dk
 
-	return ks1[:-1],energy1
+	return Nold/(Nnew/ks1[:-1]),energy1
 
 
 def write_txt(velfile,boxsize,subtract,name):
