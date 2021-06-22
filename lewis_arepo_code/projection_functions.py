@@ -286,6 +286,7 @@ def simple_grid(dirnames):
 			grid[-1-4*i-j].set_ylim(0,500)
 			grid[-1-4*i-j].set_yticks([])
 			grid[-1-4*i-j].set_xticks([])
+	grid[-4].text(0.2,0.1,'270AU',ha='center', va='center', transform=grid[-4].transAxes,fontsize=8,color='w')
 	plt.subplots_adjust(hspace=0,wspace=-0.8)
 	cbar=grid.cbar_axes[0].colorbar(im)
 	cbar.ax.tick_params(labelsize=8)
