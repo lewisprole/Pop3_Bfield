@@ -705,3 +705,43 @@ def Bfield_plot(files,sink):
 	ax[1].set_ylabel(r'B/$\rho^{2/3}$')
 	ax[1].set_xlabel(r'$\rho$ [gcm$^{-3}$]')
 
+
+def angular_velocity(a_sink,a_initial):
+	if len(a_sink.sinkx)==1:
+		x=a_sink.sinkx-a_initial.x
+		y=a_sink.sinky-a_initial.y
+		z=a_sink.sinkz-a_initial.z
+	else:
+		midx=sum(a_sink.sinkx*a_sink.sinkmass)/sum(a_sink.sinkmass)
+		midy=sum(a_sink.sinky*a_sink.sinkmass)/sum(a_sink.sinkmass)
+		midz=sum(a_sink.sinkz*a_sink.sinkmass)/sum(a_sink.sinkmass)
+		x=midx-a_initial.x
+		y=midy-a_initial.y
+		z=midz-a_initial.z
+
+	r=np.sqrt(x**2+y**2+z**2)
+	crossx=a_initial.vy*z - a_initial.vz*y
+	crossy=-(a_initial.vx*z - a_initial.vz*x)
+	crossz=a_initial.vx*y - a_initial.vy*x
+	cross=np.sqrt(crossx**2+crossy**2+crossz**2)
+	vrot=cross/r
+	v=np.sqrt(a_initial.vx**2+a_initial.vy**2+a_initial.vz**2)
+	vs,rs,z=binned_statistic(r,vrot/v,bins=10**np.linspace(np.log10(np.sort(r)[1]),np.log10(r.max()),50))
+	return vs,rs
+
+def angular_graph(sink,initial):
+	sink='/scratch/c.c1521474/resolution_test/merge/1e12/snapshot_039','/scratch/c.c1521474/resolution_test/seed4/1e12/snapshot_036','/scratch/c.c1521474/resolution_test/seed5/1e12/snapshot_021'
+	initial='/scratch/c.c1521474/resolution_test/merge/1e12/snapshot_000','/scratch/c.c1521474/resolution_test/seed4/1e12/snapshot_000','/scratch/c.c1521474/resolution_test/seed5/1e12/snapshot_000'
+	fig,ax=plt.subplots(1)
+	ax.tick_params(axis="x", labelsize=10,direction="in",which='both')
+	ax.tick_params(axis="y", labelsize=10,direction="in",which='both')
+	ax.set_ylabel(r'v$_\theta$ / v',fontsize=10)
+	ax.set_xlabel('R [pc]',fontsize=10)
+	for i in range(3):
+		a_sink=arepo_utils.aread(sink[i])
+		a_initial=arepo_utils.aread(initial[i])
+		vs,rs=angular_velocity(a_sink,a_initial)
+		ax.plot(rs[:-1]*code_units.d_cu/ap.pc.cgs.value,vs,label=('A','B','C')[i])
+	ax.legend(fontsize=10,loc='lower right',frameon=False)
+	plt.subplots_adjust(left=0.2,right=0.8,top=0.8,bottom=0.2)
+	ax.set_yscale('log')
