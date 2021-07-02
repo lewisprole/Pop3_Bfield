@@ -488,6 +488,54 @@ def largest_plot_big(dirnames):
 	ax[0,0].set_ylabel(r'M$_{\rm largest}$ [M$_\odot$]',fontsize=10)
 
 
+'''estimate the number of ionising photons per second'''
+def read_Hirano2014(txtfile):
+	r=[]
+	M=[]
+	with open(txtfile) as f:
+		for line in f.readlines():
+			M.append(line.split()[0])
+			r.append(line.split()[1])
+	return np.asarray(M).astype(float) ,np.asarray(r).astype(float)
+
+def photons(dirname):
+	'''keeping it in base units this time'''
+	#read in the mass and accretin rate onto the most massive sink
+	t,M,ACC=largest_sink(dirname)
+
+	#take R from mass-radius relationship (Hirano2014)
+	M1,r1=read_Hirano2014('P2_curve.txt')
+	f1=interp1d(M1,r1,fill_value='extrapolate')
+	R=f1(M)
+
+	#convert from solar values to base units
+	ACC=ACC*ap.M_sun.value /(60*60*24*365)
+	M=M*ap.M_sun.value
+	R=R*ap.R_sun.value
+	t=(t-t[0])*code_units.t_cu/(60*60*24*365) #years (only used in the graph)
+
+	#accretion luminosity as function of time
+	Lacc=M*ACC*ap.G.value/ R 
+	
+	#Temperature from Stefan-Boltzman
+	T=(Lacc/(4*np.pi*R**2) /ap.sigma_sb.value)**(1/4)
+
+	#Plank function
+	v=10**np.linspace(np.log10(3.28e15),20,100) #Lynman limit and above 
+	dv=np.zeros_like(v)
+	dv[:-1]=v[1:]-v[:-1]
+	
+	Nion=np.array([])
+	for i in range(len(T)):
+		plank=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T[i]))-1)
+		N=sum(4*np.pi * plank*dv /(ap.h.value*v) * 4*np.pi*R[i]**2)
+		Nion=np.append(Nion,N)
+
+	return Nion,t,R,Lacc,T
+
+
+
+
 '''first couple of functions are for getting sink info when they newly form'''
 
 

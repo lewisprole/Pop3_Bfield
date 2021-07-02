@@ -10,6 +10,7 @@ import os
 from matplotlib.lines import Line2D
 from scipy.stats import binned_statistic
 from scipy.interpolate import interp1d
+import read_sink_info
 
 
 def snapname(start,i,interval):
@@ -181,7 +182,7 @@ def energy_check(a,min_eject_length):
 
 			Ek=(0.5*a.sinkmass[i]*code_units.M_cu*(v)**2) 
 			Eu= (ap.G.cgs.value * a.sinkmass[i]*code_units.M_cu * Mtot*code_units.M_cu) / r_sinks[i]
-			if Ek>Eu:
+			if Ek>2*Eu:
 				ejects+=1
 				masses=np.append(masses,a.sinkmass[i])
 				args=np.append(args,i)
@@ -198,7 +199,7 @@ def ejection_fraction(files):
 	mask3=np.array([])
 	mask_ej3=np.array([])
 	fracs=np.array([])
-	for j in range(len(files)):
+	for i in range(len(files)):
 		a=arepo_utils.aread(files[i])
 		fracs=np.array([])
 		args=energy_check(a,0.03)
@@ -217,6 +218,66 @@ def ejection_fraction(files):
 	fracs=np.append(fracs, len(mask_ej3)/len(mask3))
 	return fracs
 	
+def ejction_time(dirname,start,end,interval,min_eject_length):
+	Neject=np.array([])
+	t=np.array([])
+	name=dirname+'/ejections.txt'
+	if os.path.isfile(name):
+		print("file exists, appending")
+		f=open(name, "a+")
+	else:
+		print("creating new file")
+		f = open(name, "x")
+	num=int((end-start)/interval)
+	counter=0
+	for i in range(num):
+		text_trap = io.StringIO() #prevent massive text output from snapshot reads
+		sys.stdout = text_trap
+		n=snapname(start,i,interval)
+		a=arepo_utils.aread(dirname+'snapshot_'+n)
+		sys.stdout = sys.__stdout__
+		args=energy_check(a,min_eject_length)
+		Neject=np.append(Neject,len(args))
+		t=np.append(t,a.time)
+		f.write(str(a.time) + ' ' + str(len(args)) + ' \n')
+		print(str(n)+' :done')
+	f.close()
+
+def read_ejection(filename):
+	t=np.array([])
+	Neject=np.array([])
+	with open(filename) as f:
+		for line in f.readlines():
+			t=np.append(t,float(line.split()[0]))
+			Neject=np.append(Neject,float(line.split()[1]))
+	return t,Neject
+
+
+def ejection_graph():
+	fig,ax=plt.subplots(1)
+	dirs='/scratch/c.c1521474/resolution_test/merge/1e12/','/scratch/c.c1521474/resolution_test/seed4/1e12/','/scratch/c.c1521474/resolution_test/seed5/1e12/'
+	for i in range(3):
+		t,N,M=read_sink_info.Nsinks(dirs[i]+'/sink_particle_info/')
+		T,Neject=read_ejection(dirs[i]+'/ejections.txt')
+		Tnew=np.array([T[0]])
+		Nnew=np.array([Neject[0]])
+		for j in range(len(T)-1):
+			if Neject[j+1]>Neject[j]:
+				Tnew=np.append(Tnew,T[j+1])
+				Tnew=np.append(Tnew,T[j+1])
+				Nnew=np.append(Nnew,Neject[j])
+				Nnew=np.append(Nnew,Neject[j+1])
+			if j==len(T)-2:
+				Tnew=np.append(Tnew,T[j+1])
+				Nnew=np.append(Nnew,Neject[j+1])
+		ax.plot((Tnew-t[0])*code_units.t_cu/(60*60*24*365),Nnew,label=('A','B','C')[i])
+	plt.subplots_adjust(left=0.2,right=0.8,top=0.8,bottom=0.2)
+	plt.subplots_adjust(hspace=0)	
+	ax.tick_params(axis="y", labelsize=10,direction="in",which='both')
+	ax.tick_params(axis="x", labelsize=10,direction="in",which='both')
+	ax.set_xlabel('t [yr]')
+	ax.set_ylabel(r'N$_{\rm eject}$')
+	ax.legend(frameon=False,fontsize=8)
 
 def velocity_graph(files):
         colors='Purple','cyan','r','g','b'
@@ -745,3 +806,4 @@ def angular_graph(sink,initial):
 	ax.legend(fontsize=10,loc='lower right',frameon=False)
 	plt.subplots_adjust(left=0.2,right=0.8,top=0.8,bottom=0.2)
 	ax.set_yscale('log')
+
