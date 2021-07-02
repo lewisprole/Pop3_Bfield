@@ -533,8 +533,28 @@ def photons(dirname):
 
 	return Nion,t,R,Lacc,T
 
-
-
+def photon_graph():
+	dirs='/scratch/c.c1521474/resolution_test/'
+	ext='/merge/','/seed4/','/seed5/'
+	ends='/1e8/sink_particle_info/','/1e9/sink_particle_info/','/1e10/sink_particle_info/','/1e11/sink_particle_info/','/1e12/sink_particle_info/'
+	c='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	colors='b','g','r','cyan','purple'
+	fig,ax=plt.subplots(3,sharex=True)
+	plt.subplots_adjust(hspace=0,wspace=0,right=0.75)
+	for i in range(3):
+		for j in range(len(ends)):
+			dirnames=dirs+ext[i]+ends[j]
+			Nion,t,R,Lacc,T=photons(dirnames)
+			Nion,t,z=binned_statistic(t,Nion,bins =np.linspace(0,4000,400))
+			ax[i].semilogy(t[np.where(Nion>0)],Nion[np.where(Nion>0)],c=colors[j],label=labels[j])
+			ax[i].set_xlabel('t [yr]',fontsize=10)
+			ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
+			ax[i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+			ax[i].text(0.03,0.1,('A','B','C')[i],ha='center', va='center', transform=ax[i].transAxes,fontsize=10,fontweight='light')
+	ax[0].legend(frameon=False,loc=(1.03,0),fontsize=8)
+	ax[1].set_ylabel(r'N$_{\rm ion}$ [s$^{-1}$]',fontsize=10)
+	
 
 '''first couple of functions are for getting sink info when they newly form'''
 

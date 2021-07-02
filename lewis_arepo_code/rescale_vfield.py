@@ -25,7 +25,7 @@ import Bfield
 import field_maker
 import read_custom_field
 
-filename='/scratch/c.c1521474/resolution_test/seed4/1e8/snapshot_000'                #read remesh data
+filename='/scratch/c.c1521474/resolution_test/seed5/1e12/snapshot_000'                #read remesh data
 a=gadget_reader_lewis.reader(filename)        
 
 n0,n1,n2,n3,n4,n5=a.npart
@@ -122,5 +122,5 @@ for i in range (1):
 		sofar=arepo_input_writer.tag_block(sofar,m,'MASS','d',1)
 		sofar=arepo_input_writer.tag_block(sofar,U,'U   ','d',1)
 		sofar=arepo_input_writer.tag_block(sofar,B,'BFLD','d',3)
-		arepo_input_writer.writer(sofar,dirs+'seed4_higheralpha.dat')
+		arepo_input_writer.writer(sofar,dirs+'seed5_higheralpha.dat')
 
