@@ -5,6 +5,8 @@ import code_units
 import astropy.constants as ap 
 import os
 from scipy.interpolate import interp1d
+from scipy.integrate import quad
+from scipy.stats import binned_statistic
 plt.ion()
 
 def allfiles(dirname):
@@ -72,7 +74,7 @@ def Nsinks(dirname):
 						marker=1
 				#and update lists 
 				N=np.append(N,Nsinks_old) #line to the right 
-				N=np.append(N,Nsinks)     #and vertically up
+				N=np.append(N,Nsinks)	  #and vertically up
 				T=np.append(T,t)
 				T=np.append(T,t)
 				M=np.append(M,m)
@@ -186,8 +188,8 @@ def IMF(dirname,t_goal,scale_ejects):
 			while (n<len(data)): #n is bits read so far
 				t=struct.unpack('d',data[n:n+8])[0]
 				Nsinks=struct.unpack('i',data[n+8:n+12])[0]
-				                 
-                                               
+						 
+					       
 				if t<t_old: #sometimes this happens when the sink files overlap
 					t_old=t
 
@@ -245,7 +247,7 @@ def IMF_plot(dirnames,t_goal_yrs,scale_ejects):
 		ax[i].set_yticks([N.max()])
 		ax[i].text(1.22,0.5,rhos[i],ha='center', va='center', transform=ax[i].transAxes,fontsize=10)	
 	ax[len(dirnames)-1].set_xlabel(r'M [M$_{\odot}$]')
-	ax[int(len(dirnames)/2)].set_ylabel(r'N$_{\rm M}$             ',rotation=0)
+	ax[int(len(dirnames)/2)].set_ylabel(r'N$_{\rm M}$	      ',rotation=0)
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
 	return fig,ax
 
@@ -269,7 +271,7 @@ def IMF_plot_join(dirnames,t_goal_yrs,scale_ejects):
 				ejects=np.append(ejects,Meject)
 		if j==0:
 			m_max=M.max()*1.2
-			m_min=1e12 * 4/3*np.pi*(1.71E-05)**3    *0.1
+			m_min=1e12 * 4/3*np.pi*(1.71E-05)**3	*0.1
 			bins = 10**np.linspace(np.log10(m_min),np.log10(m_max),100)
 		ax[j].hist(Msinks,bins,color=colors[j])
 		
@@ -284,7 +286,7 @@ def IMF_plot_join(dirnames,t_goal_yrs,scale_ejects):
 		ax[j].tick_params(axis="x", labelsize=10,direction="in",which='both')
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
 	ax[-1].set_xlabel(r'M [M$_{\odot}$]')
-	ax[2].set_ylabel(r'N$_{\rm M}$             ',rotation=0)
+	ax[2].set_ylabel(r'N$_{\rm M}$		   ',rotation=0)
 
 def IMF_plot_join_MHD(t_goal_yrs):
 
@@ -294,7 +296,7 @@ def IMF_plot_join_MHD(t_goal_yrs):
 	ext1='/MHD/','/MHD2/'
 	ext2='/1e8','/1e9','/1e10'
 	ext3='/sink_particle_info/','MHD/sink_particle_info/','_uniform/sink_particle_info/'	
-	m_min=1e12 * 4/3*np.pi*(1.71E-05)**3    *0.1
+	m_min=1e12 * 4/3*np.pi*(1.71E-05)**3	*0.1
 	colors='b','g','r'
 
 	for i in range(len(ext2)):
@@ -360,7 +362,7 @@ def Nmerge(dirname):
 					merge=np.append(merge,0) #line to the right
 				else:
 					merge=np.append(merge,merge[-1]+1)
-				#merge=np.append(merge,merge[-1]+1)     #and vertically up
+				#merge=np.append(merge,merge[-1]+1)	#and vertically up
 				#T=np.append(T,t)
 				T=np.append(T,t)
 			print(n,len(data)-( 8 + 4 + Nsinks*bits_sink))
@@ -417,15 +419,32 @@ def largest_sink(dirname):
 		while (n<len(data)): #n is bits read so far
 			#if cycles/interval==int(cycles/interval):
 			t=struct.unpack('d',data[n:n+8])[0]
-			T=np.append(T,t)
-
+			
+			marker=0
+			while marker == 0: #delete anything overlapping from last file
+				if len(T)>0:
+					if t<=T[-1]:
+						T=np.delete(T,len(T)-1)
+						M=np.delete(M,len(M)-1)
+						ACC=np.delete(ACC,len(ACC)-1)
+					else:
+						marker=1
+				else:
+					marker=1
+			
 			Nsinks=struct.unpack('i',data[n+8:n+12])[0]
 			mass=np.array([])			
 			for j in range(Nsinks):
 				start = n + 8 + 4 + (j*bits_sink)
 				mass=np.append(mass,struct.unpack('d',data[start+8*9:start + 8*10]))
-			
+
+			#if len(T)>0:
+			#	if M[-1]>mass.max():
+			#		T=np.delete(T,len(T)-1)
+			#		M=np.delete(M,len(T)-1)
 			M=np.append(M,mass.max())
+			T=np.append(T,t)
+			
 			if cycles==0:
 				ACC=np.append(ACC,0)
 			else:
@@ -498,28 +517,37 @@ def read_Hirano2014(txtfile):
 			r.append(line.split()[1])
 	return np.asarray(M).astype(float) ,np.asarray(r).astype(float)
 
-def photons(dirname):
-	'''keeping it in base units this time'''
+def Nphotons(v,T,R):
+	plank=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T))-1)
+	return np.pi * plank /(ap.h.value*v) * 4*np.pi*R**2
+
+def photons(t,M,ACC):
+	''' t in code units, M in solar mass, ACC in solar mass per year 
+	
+	keeping it in base units this time'''
 	#read in the mass and accretin rate onto the most massive sink
-	t,M,ACC=largest_sink(dirname)
+	#t,M,ACC=largest_sink(dirname)
 
 	#take R from mass-radius relationship (Hirano2014)
-	M1,r1=read_Hirano2014('P2_curve.txt')
-	f1=interp1d(M1,r1,fill_value='extrapolate')
+	M1,r1=read_Hirano2014('P1_curve.txt')
+	#f1=interp1d(M1,r1,fill_value='extrapolate')
+	f1=interp1d(M1,r1,bounds_error=False,fill_value=r1[-1])
 	R=f1(M)
 
 	#convert from solar values to base units
 	ACC=ACC*ap.M_sun.value /(60*60*24*365)
 	M=M*ap.M_sun.value
 	R=R*ap.R_sun.value
-	t=(t-t[0])*code_units.t_cu/(60*60*24*365) #years (only used in the graph)
+	t=(t)*code_units.t_cu/(60*60*24*365) #years (only used in the graph)
+
+	R=26*ap.R_sun.value*(M/ap.M_sun.value)**(0.27) * (ACC *60*60*24*365/ap.M_sun.value/1e-3)**(0.41)
 
 	#accretion luminosity as function of time
 	Lacc=M*ACC*ap.G.value/ R 
 	
 	#Temperature from Stefan-Boltzman
 	T=(Lacc/(4*np.pi*R**2) /ap.sigma_sb.value)**(1/4)
-
+	
 	#Plank function
 	v=10**np.linspace(np.log10(3.28e15),20,100) #Lynman limit and above 
 	dv=np.zeros_like(v)
@@ -527,11 +555,21 @@ def photons(dirname):
 	
 	Nion=np.array([])
 	for i in range(len(T)):
-		plank=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T[i]))-1)
-		N=sum(4*np.pi * plank*dv /(ap.h.value*v) * 4*np.pi*R[i]**2)
-		Nion=np.append(Nion,N)
+		if T[i]>0:	
+			#plank=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T[i]))-1)
+			#N=sum(4*np.pi * plank*dv /(ap.h.value*v) * 4*np.pi*R[i]**2)
+			v_peak=5.88e10*T[i]
+			#print(dirname,R[i],T[i],v_peak,3.28e15)
+			if v_peak>3.28e15:
+				point=v_peak
+			if v_peak<=3.28e15:
+				point=3.28e15
+			N=quad(Nphotons,3.28e15,1e25,args=(T[i],R[i]),points=np.array([point,point*2,point*5,point*10]))
+		
+			Nion=np.append(Nion,N[0])
+	
 
-	return Nion,t,R,Lacc,T
+	return Nion,t[np.where(T>0)],R[np.where(T>0)],Lacc[np.where(T>0)],T[np.where(T>0)]
 
 def photon_graph():
 	dirs='/scratch/c.c1521474/resolution_test/'
@@ -544,9 +582,13 @@ def photon_graph():
 	plt.subplots_adjust(hspace=0,wspace=0,right=0.75)
 	for i in range(3):
 		for j in range(len(ends)):
+			
 			dirnames=dirs+ext[i]+ends[j]
-			Nion,t,R,Lacc,T=photons(dirnames)
-			Nion,t,z=binned_statistic(t,Nion,bins =np.linspace(0,4000,400))
+			t,M,ACC=largest_sink(dirnames)
+			Nion,t,R,Lacc,T=photons(t,M,ACC)
+			if j==0:
+				t0=t[0]
+			Nion,t,z=binned_statistic(t-t0,Nion,bins =np.linspace(0,4000,400))
 			ax[i].semilogy(t[np.where(Nion>0)],Nion[np.where(Nion>0)],c=colors[j],label=labels[j])
 			ax[i].set_xlabel('t [yr]',fontsize=10)
 			ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
@@ -555,6 +597,114 @@ def photon_graph():
 	ax[0].legend(frameon=False,loc=(1.03,0),fontsize=8)
 	ax[1].set_ylabel(r'N$_{\rm ion}$ [s$^{-1}$]',fontsize=10)
 	
+
+'''now do it for all sinks in the halo combined'''
+
+def all_mass(dirname):
+	T,N,M=Nsinks(dirname)
+	files = allfiles(dirname)
+	IDS=np.array([])
+
+	cycles=0
+	for i in range(len(files)): #quickly cycle through until the end to get the IDS of sinks (even the ones that merge along the way)
+		with open(dirname+files[i], mode='rb') as file:
+			data = file.read()
+		bits_sink= 8*14 + 8 + 4*3 + 4
+		n=0
+		while (n<len(data)): #n is bits read so far
+			Nsink=struct.unpack('i',data[n+8:n+12])[0]
+			for j in range(Nsink):
+				id_current=struct.unpack('q',data[n + 8 + 4 + 8*14 + (j*bits_sink) : n + 8 + 4 + 8*14 + (j*bits_sink) + 8])
+				if id_current not in IDS:
+						IDS=np.append(IDS,id_current)
+			n  = n + 8 + 4 + Nsink*bits_sink
+			cycles	+= 1
+
+
+	masses=np.zeros((cycles,len(IDS))) #storage space the size of the numer of sinks
+	accretions=np.zeros((cycles,len(IDS)))
+	time=np.zeros(cycles)
+	cycles_all=0
+	for i in range(len(files)): #now cycle through properly and note the masses of all sinks, ordering them by IDS
+		with open(dirname+files[i], mode='rb') as file:
+			data = file.read()
+		bits_sink= 8*14 + 8 + 4*3 + 4
+		n=0
+		while (n<len(data)): #n is bits read so far
+			t=struct.unpack('d',data[n:n+8])[0]
+			Nsink=struct.unpack('i',data[n+8:n+12])[0]
+
+			marker=0
+			while marker==0:
+				if len(time)>0:
+					if t<=time[-1]: #sometimes when you go to the next file it jumps back in time a bit: delete the overlap before continuing
+						masses[cycles_all-1,:]=0
+						accretions[cycles_all-1,:]=0
+						time[cycles_all-1]=0
+						cycles_all -= 1
+					else:
+						marker=1
+				else:
+					marker=1
+
+			for j in range(Nsink): #now good to add the masses to the list
+				ids=struct.unpack('q',data[n + 8 + 4 + 8*14 + (j*bits_sink) : n + 8 + 4 + 8*14 + (j*bits_sink) + 8])
+				arg=np.where(IDS == ids)
+				mass=struct.unpack('d',data[n+ 8 + 4 +8*9 + (j*bits_sink): n+ 8 + 4  + 8*10 + (j*bits_sink)])
+				masses[cycles_all,arg]=mass #solar mass
+				accretions[cycles_all,arg]=(mass-masses[cycles_all-1,arg]) / ((t-time[cycles_all-1]) * code_units.t_cu/(60*60*24*365)) #solar mass per year 
+				time[cycles_all]=t #code units
+
+
+			n  = n + 8 + 4 + Nsink*bits_sink
+			cycles_all+=1
+
+	return masses,accretions,time
+
+def Nphotons_all():
+	dirs='/scratch/c.c1521474/resolution_test/'
+	ext='/merge/','/seed4/','/seed5/'
+	ends='/1e8/sink_particle_info/','/1e9/sink_particle_info/','/1e10/sink_particle_info/','/1e11/sink_particle_info/','/1e12/sink_particle_info/'
+	c='b','g','r','cyan','purple'
+	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	colors='b','g','r','cyan','purple'
+	fig,ax=plt.subplots(3,sharex=True)
+	plt.subplots_adjust(hspace=0,wspace=0,right=0.75)
+	for i in range(3):
+		for j in range(len(ends)):
+
+			dirnames=dirs+ext[i]+ends[j]
+			print(dirnames)
+			M,ACC,time=all_mass(dirnames)
+			M=M[0::10]
+			ACC=ACC[0::10]
+			time=time[0::10]
+
+			for k in range(M.shape[1]):
+				if sum(M[:,k]>0:
+					Nion,t,R,Lacc,T=photons(time,M[:,k],ACC[:,k])
+				
+					if j==0:
+						t0=time[0]*code_units.t_cu/(60*60*24*365)
+					if k==0:
+						Nion_,t_,z=binned_statistic(t-t0,Nion,bins =np.linspace(0,4000,400))
+						mask=np.isnan(Nion_)
+						Nion_[mask]=0
+					else:	
+						Nion__,t__,z_=binned_statistic(t-t0,Nion,bins =np.linspace(0,4000,400))
+						mask=np.isnan(Nion__)
+						Nion__[mask]=0
+						Nion_+=Nion__
+
+			ax[i].semilogy(t_[np.where(Nion_>0)],Nion_[np.where(Nion_>0)],c=colors[j],label=labels[j])
+			ax[i].set_xlabel('t [yr]',fontsize=10)
+			ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
+			ax[i].tick_params(axis="x", labelsize=10,direction="in",which='both')
+			ax[i].text(0.03,0.1,('A','B','C')[i],ha='center', va='center', transform=ax[i].transAxes,fontsize=10,fontweight='light')
+	ax[0].legend(frameon=False,loc=(1.03,0),fontsize=8)
+	ax[1].set_ylabel(r'N$_{\rm ion}$ [s$^{-1}$]',fontsize=10)
+
+
 
 '''first couple of functions are for getting sink info when they newly form'''
 
