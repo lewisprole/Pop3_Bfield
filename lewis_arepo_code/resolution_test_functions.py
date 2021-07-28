@@ -11,6 +11,7 @@ from matplotlib.lines import Line2D
 from scipy.stats import binned_statistic
 from scipy.interpolate import interp1d
 import read_sink_info
+from scipy.integrate import quad
 
 
 def snapname(start,i,interval):
@@ -807,3 +808,79 @@ def angular_graph(sink,initial):
 	plt.subplots_adjust(left=0.2,right=0.8,top=0.8,bottom=0.2)
 	ax.set_yscale('log')
 
+def Nphotons(v,T,R):
+	plank=2*ap.h.value*v**3/ap.c.value**2 *1/(np.exp(ap.h.value*v/(ap.k_B.value*T))-1)
+	return np.pi * plank /(ap.h.value*v) * 4*np.pi*R**2
+
+
+def radial_stromgren(snapA,dirname):
+	'''want to estimate the stromgren sphere radius using different initial spheres to use their average density'''
+	a=arepo_utils.aread(snapA)
+	#b=arepo_utils.aread(snapB)
+	#ACC=np.zeros_like(a.sinkx)
+	#M=a.sinkmass
+	#for i in range(len(a.sinkx)):
+	#	if a.idsink[i] in b.idsink:
+	#		arg=np.where(b.idsink==a.idsink[i])
+	#		ACC[i]=(a.sinkmass[i]-b.sinkmass[arg])/(a.time-b.time)
+	#ACC=ACC*ap.M_sun.value/code_units.t_cu
+	#M=M*ap.M_sun.value
+
+
+	M,ACC,time,x,y,z=read_sink_info.all_mass(dirname)
+	current=np.where(abs(time-a.time)==abs(time-a.time).min())[0][0]
+	ACC=ACC[current,:]*ap.M_sun.value /(60*60*24*365)
+	M=M[current,:]*ap.M_sun.value
+	x=x[current,:]
+	y=y[current,:]
+	z=z[current,:]
+
+	R=26*ap.R_sun.value*(M/ap.M_sun.value)**(0.27) * (ACC *60*60*24*365/ap.M_sun.value/1e-3)**(0.41)
+
+	#accretion luminosity 
+	Lacc=M*ACC*ap.G.value/ R
+
+	#Temperature from Stefan-Boltzman
+	T=(Lacc/(4*np.pi*R**2) /ap.sigma_sb.value)**(1/4)
+
+	#Plank function
+	Nion=np.zeros_like(M)
+	Nion_all=0
+	for i in range(len(M)):
+		if T[i]>0:
+			
+			v_peak=5.88e10*T[i]
+			if v_peak>3.28e15:
+				point=v_peak
+			if v_peak<=3.28e15:
+        			point=3.28e15
+			N=quad(Nphotons,3.28e15,1e25,args=(T[i],R[i]),points=np.array([point,point*2,point*5,point*10]))
+			Nion[i]=N[0]
+			Nion_all+=N[0]
+	
+	for i in range(len(M)):
+		if Nion[i]>0:
+			print(i)
+			rs=np.sqrt((a.x-x[i])**2+(a.y-y[i])**2+(a.z-z[i])**2)
+			r_bins=10**np.linspace(np.log10(np.sort(rs)[1]),np.log10(rs.max()),100)
+			R_str=np.zeros_like(r_bins)
+			for j in range(len(r_bins)-1):
+				mask=np.where(rs<r_bins[j+1])
+				rho=np.mean(a.rho[mask]) *code_units.rho_cu * 1000 /ap.m_p.value #base unit
+				alpha=2.6e-19
+				R_str[j]=(Nion[i] * 3/(4*np.pi*rho**2*alpha))**(1/3)
+			print(R_str)
+			plt.loglog(r_bins*code_units.d_cu/ap.R_sun.cgs.value,R_str/ap.R_sun.value)
+	
+	argmax=np.where(M==M.max())[0]
+	rs=np.sqrt((a.x-x[argmax])**2+(a.y-y[argmax])**2+(a.z-z[argmax])**2)
+	r_bins=10**np.linspace(np.log10(np.sort(rs)[1]),np.log10(rs.max()),100)
+	R_str=np.zeros_like(r_bins)
+	for j in range(len(r_bins)-1):
+		mask=np.where(rs<r_bins[j+1])
+		rho=np.median(a.rho[mask]) *code_units.rho_cu * 1000 /ap.m_p.value #base unit
+		R_str[j]=(Nion_all * 3/(4*np.pi*rho**2*alpha))**(1/3)
+		plt.loglog(r_bins*code_units.d_cu/ap.R_sun.cgs.value,R_str/ap.R_sun.value,'k')
+
+	plt.ylabel(r'R$_{\rm Str}$')
+	plt.xlabel(r'R$_{\rm sphere}$')

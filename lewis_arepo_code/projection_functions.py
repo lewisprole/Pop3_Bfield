@@ -274,11 +274,11 @@ def simple_grid(dirnames):
 			x,y,z,M=read_sink(dirnames[-1-i]+'/',no)
 			if (i==0) & (j==0):
 				print(i,j)
-				Vmax=np.log10(np.sum(rho,1)).max()
-				Vmin=np.log10(np.sum(rho,1)).min()
-				im=grid[-1-4*i-j].imshow(np.log10(np.sum(rho,1)),vmax=Vmax,vmin=Vmin,cmap='bone')
+				Vmax=np.log10(np.sum(rho,1)/rho.shape[0]).max()
+				Vmin=np.log10(np.sum(rho,1)/rho.shape[0]).min()
+				im=grid[-1-4*i-j].imshow(np.log10(np.sum(rho,1)/rho.shape[0]),vmax=Vmax,vmin=Vmin,cmap='bone')
 			else:
-				grid[-1-4*i-j].imshow(np.log10(np.sum(rho,1)),vmax=Vmax,vmin=Vmin,cmap='bone')
+				grid[-1-4*i-j].imshow(np.log10(np.sum(rho,1)/rho.shape[0]),vmax=Vmax,vmin=Vmin,cmap='bone')
 
 			grid[-1-4*i-j].scatter(z,x,s=0.5,c='magenta')
 
@@ -291,6 +291,52 @@ def simple_grid(dirnames):
 	cbar=grid.cbar_axes[0].colorbar(im)
 	cbar.ax.tick_params(labelsize=8)
 	cbar.ax.set_ylabel(r'Log$_{10}$($\rho$ [gcm$^{-3}$])', rotation=270,fontsize=8,labelpad=15)
+
+def the_rest_grid(dirnames):
+	fig = plt.figure(figsize=(2, 5))
+	grid = ImageGrid(fig, 111,  # similar to subplot(111)
+		nrows_ncols=(2, 5),  # creates 2x2 grid of axes
+		axes_pad=0,
+		cbar_mode="single",  # pad between axes in inch.
+		cbar_size='5%'
+		 )
+	extensions='/1e8/','/1e9/','/1e10','/1e11/','1e12/'
+	rhos=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
+	for i in range(len(dirnames)):
+		for j in range(len(rhos)):
+			files=os.listdir(dirnames[-1-i]+extensions[-1-j])
+			for k in range(len(files)):
+				if 'density_grid' in files[k]:
+					name=files[k]
+					print(dirnames[-1-i]+extensions[-1-j]+'/' + name+' ' +str(-1-5*i-j))
+			
+				
+			if j==4:
+				grid[-1-5*i-j].set_ylabel(('B    ','C    ')[-1-i],fontsize=10,rotation=0)
+			if i==1:
+				grid[-1-5*i-j].set_title(rhos[-1-j],fontsize=10)
+			rho=read_cube(dirnames[-1-i]+extensions[-1-j]+'/' + name)
+			rho=rho*code_units.rho_cu
+			no=name[-3:]
+			x,y,z,M=read_sink(dirnames[-1-i]+extensions[-1-j]+'/',no)
+			if (i==0) & (j==0):
+				Vmax=np.log10(np.sum(rho,2)/rho.shape[0]).max()
+				Vmin=np.log10(np.sum(rho,2)/rho.shape[0]).min()
+				im=grid[-1-5*i-j].imshow(np.log10(np.sum(rho,2)/rho.shape[0]),vmax=Vmax,vmin=Vmin,cmap='bone')
+			else:
+				grid[-1-5*i-j].imshow(np.log10(np.sum(rho,2)/rho.shape[0]),vmax=Vmax,vmin=Vmin,cmap='bone')
+
+			grid[-1-5*i-j].scatter(y,x,s=0.5,c='magenta')
+			grid[-1-5*i-j].set_xlim(0,500)
+			grid[-1-5*i-j].set_ylim(0,500)
+			grid[-1-5*i-j].set_yticks([])
+			grid[-1-5*i-j].set_xticks([])
+	grid[-5].text(0.2,0.1,'670AU',ha='center', va='center', transform=grid[-5].transAxes,fontsize=10,color='w')
+	plt.subplots_adjust(hspace=0,wspace=-0.8)
+	cbar=grid.cbar_axes[0].colorbar(im)
+	cbar.ax.tick_params(labelsize=10)
+	cbar.ax.set_ylabel(r'Log$_{10}$($\rho$ [gcm$^{-3}$])', rotation=270,fontsize=10,labelpad=20)
+
 
 
 def CoM(x,y,z,M):

@@ -492,8 +492,10 @@ def largest_plot_big(dirnames):
 				t0=T[0]
 			T=(T-t0)*code_units.t_cu/(60*60*24*365)
 			ax[0,i].semilogy(T,M,c=colors[j],label=labels[j])
-			T=T[1::50]		
-			ACC=ACC[1::50] #acc units already cgs
+			ACC,T,z=binned_statistic(T,ACC,bins =np.linspace(0,4000,400))
+			T=T[:-1]
+			#T=T[1::50]		
+			#ACC=ACC[1::50] #acc units already cgs
 			ax[1,i].semilogy(T,ACC,c=colors[j],label=labels[j])
 			ax[1,i].set_xlabel('t [yr]',fontsize=10)
 			ax[1,i].set_xlim(-50,1050)
@@ -529,15 +531,15 @@ def photons(t,M,ACC):
 	#t,M,ACC=largest_sink(dirname)
 
 	#take R from mass-radius relationship (Hirano2014)
-	M1,r1=read_Hirano2014('P1_curve.txt')
+	#M1,r1=read_Hirano2014('P1_curve.txt')
 	#f1=interp1d(M1,r1,fill_value='extrapolate')
-	f1=interp1d(M1,r1,bounds_error=False,fill_value=r1[-1])
-	R=f1(M)
-
+	#f1=interp1d(M1,r1,bounds_error=False,fill_value=r1[-1])
+	#R=f1(M)
+	#R[np.where(M>M1[-1])]=M1[-1]
 	#convert from solar values to base units
 	ACC=ACC*ap.M_sun.value /(60*60*24*365)
 	M=M*ap.M_sun.value
-	R=R*ap.R_sun.value
+	#R=R*ap.R_sun.value
 	t=(t)*code_units.t_cu/(60*60*24*365) #years (only used in the graph)
 
 	R=26*ap.R_sun.value*(M/ap.M_sun.value)**(0.27) * (ACC *60*60*24*365/ap.M_sun.value/1e-3)**(0.41)
@@ -569,7 +571,7 @@ def photons(t,M,ACC):
 			Nion=np.append(Nion,N[0])
 	
 
-	return Nion,t[np.where(T>0)],R[np.where(T>0)],Lacc[np.where(T>0)],T[np.where(T>0)]
+	return Nion,t[np.where(T>0)],R[np.where(T>0)],Lacc[np.where(T>0)],T[np.where(T>0)],M[np.where(T>0)],ACC[np.where(T>0)]
 
 def photon_graph():
 	dirs='/scratch/c.c1521474/resolution_test/'
@@ -585,7 +587,7 @@ def photon_graph():
 			
 			dirnames=dirs+ext[i]+ends[j]
 			t,M,ACC=largest_sink(dirnames)
-			Nion,t,R,Lacc,T=photons(t,M,ACC)
+			Nion,t,R,Lacc,T,M,ACC=photons(t,M,ACC)
 			if j==0:
 				t0=t[0]
 			Nion,t,z=binned_statistic(t-t0,Nion,bins =np.linspace(0,4000,400))
@@ -623,6 +625,9 @@ def all_mass(dirname):
 
 	masses=np.zeros((cycles,len(IDS))) #storage space the size of the numer of sinks
 	accretions=np.zeros((cycles,len(IDS)))
+	x=np.zeros((cycles,len(IDS)))
+	y=np.zeros((cycles,len(IDS)))
+	z=np.zeros((cycles,len(IDS)))
 	time=np.zeros(cycles)
 	cycles_all=0
 	for i in range(len(files)): #now cycle through properly and note the masses of all sinks, ordering them by IDS
@@ -654,12 +659,15 @@ def all_mass(dirname):
 				masses[cycles_all,arg]=mass #solar mass
 				accretions[cycles_all,arg]=(mass-masses[cycles_all-1,arg]) / ((t-time[cycles_all-1]) * code_units.t_cu/(60*60*24*365)) #solar mass per year 
 				time[cycles_all]=t #code units
+				x[cycles_all,arg]=struct.unpack('d',data[n+8+4+(j*bits_sink):n+8+4+(j*bits_sink) + 8])  
+				y[cycles_all,arg]=struct.unpack('d',data[n+8+4+(j*bits_sink)+8:n+8+4+(j*bits_sink) + 8*2])
+				z[cycles_all,arg]=struct.unpack('d',data[n+8+4+(j*bits_sink)+8*2:n+8+4+(j*bits_sink) + 8*3])
 
 
 			n  = n + 8 + 4 + Nsink*bits_sink
 			cycles_all+=1
 
-	return masses,accretions,time
+	return masses,accretions,time,x,y,z
 
 def Nphotons_all():
 	dirs='/scratch/c.c1521474/resolution_test/'
@@ -675,32 +683,33 @@ def Nphotons_all():
 
 			dirnames=dirs+ext[i]+ends[j]
 			print(dirnames)
-			M,ACC,time=all_mass(dirnames)
+			M,ACC,time,x,y,z=all_mass(dirnames)
 			M=M[0::10]
 			ACC=ACC[0::10]
 			time=time[0::10]
 
 			for k in range(M.shape[1]):
-				if sum(M[:,k]>0:
-					Nion,t,R,Lacc,T=photons(time,M[:,k],ACC[:,k])
+				if sum(M[:,k])>0:
+					if sum(ACC[:,k])>0:
+						Nion,t,R,Lacc,T,M_,ACC_=photons(time,M[:,k],ACC[:,k])
 				
-					if j==0:
-						t0=time[0]*code_units.t_cu/(60*60*24*365)
-					if k==0:
-						Nion_,t_,z=binned_statistic(t-t0,Nion,bins =np.linspace(0,4000,400))
-						mask=np.isnan(Nion_)
-						Nion_[mask]=0
-					else:	
-						Nion__,t__,z_=binned_statistic(t-t0,Nion,bins =np.linspace(0,4000,400))
-						mask=np.isnan(Nion__)
-						Nion__[mask]=0
-						Nion_+=Nion__
+						if j==0:
+							t0=time[0]*code_units.t_cu/(60*60*24*365)
+						if k==0:
+							Nion_,t_,z=binned_statistic(t-t0,Nion,bins =np.linspace(0,4000,400))
+							mask=np.isnan(Nion_)
+							Nion_[mask]=0
+						else:	
+							Nion__,t__,z_=binned_statistic(t-t0,Nion,bins =np.linspace(0,4000,400))
+							mask=np.isnan(Nion__)
+							Nion__[mask]=0
+							Nion_+=Nion__
 
 			ax[i].semilogy(t_[np.where(Nion_>0)],Nion_[np.where(Nion_>0)],c=colors[j],label=labels[j])
 			ax[i].set_xlabel('t [yr]',fontsize=10)
 			ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
 			ax[i].tick_params(axis="x", labelsize=10,direction="in",which='both')
-			ax[i].text(0.03,0.1,('A','B','C')[i],ha='center', va='center', transform=ax[i].transAxes,fontsize=10,fontweight='light')
+			ax[i].text(0.03,0.9,('A','B','C')[i],ha='center', va='center', transform=ax[i].transAxes,fontsize=10,fontweight='light')
 	ax[0].legend(frameon=False,loc=(1.03,0),fontsize=8)
 	ax[1].set_ylabel(r'N$_{\rm ion}$ [s$^{-1}$]',fontsize=10)
 
