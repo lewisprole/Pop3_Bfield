@@ -459,7 +459,7 @@ def largest_sink(dirname):
 def largest_plot(dirnames,interval):
 	colors='b','g','r','cyan','purple'
 	labels=r'$\rho_{sink}$=10$^{-10}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-9}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-8}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-7}$gcm$^{-3}$',r'$\rho_{sink}$=10$^{-6}$gcm$^{-3}$'
-	fig,ax=plt.subplots(2,sharex=True)
+	fig,ax=plt.subplots(3,sharex=True)
 	plt.subplots_adjust(hspace=0)
 	ax[1].set_ylabel(r'$\dot {\rm M}_{\rm largest}$ [M$_\odot$ yr$^{-1}$]',fontsize=10)
 	ax[0].set_ylabel(r'M$_{\rm largest}$ [M$_\odot$]',fontsize=10)
@@ -472,7 +472,8 @@ def largest_plot(dirnames,interval):
 		ax[0].semilogy(T,M,c=colors[i],label=labels[i])
 		T=T[1::interval]
 		ACC=ACC[1::interval] #acc units already cgs 
-		ax[1].semilogy(T,ACC,c=colors[i])
+		ACC,t,z=binned_statistic(T,ACC,bins =np.linspace(0,4000,400))
+		ax[1].semilogy(t,ACC,c=colors[i])
 	for i in range(2):
 		ax[i].tick_params(axis="y", labelsize=10,direction="in",which='both')
 		ax[i].tick_params(axis="x", labelsize=10,direction="in",which='both')
@@ -480,7 +481,7 @@ def largest_plot(dirnames,interval):
 			
 				
 def largest_plot_big(dirnames):
-	fig,ax=plt.subplots(ncols=3,nrows=2,sharex='col',sharey='row')
+	fig,ax=plt.subplots(ncols=3,nrows=3,sharex='col',sharey='row')
 	plt.subplots_adjust(hspace=0,wspace=0,right=0.75)
 	extensions='/1e8/sink_particle_info/','/1e9/sink_particle_info/','/1e10/sink_particle_info/','/1e11/sink_particle_info/','/1e12/sink_particle_info/'
 	colors='b','g','r','cyan','purple'
@@ -488,17 +489,23 @@ def largest_plot_big(dirnames):
 	for i in range(len(dirnames)):
 		for j in range(len(extensions)):
 			T,M,ACC=largest_sink(dirnames[i]+extensions[j])
+			Nion,Time,R,Lacc,Temp,Mass,Acc=photons(T,M,ACC)
 			if j==0:
 				t0=T[0]
 			T=(T-t0)*code_units.t_cu/(60*60*24*365)
 			ax[0,i].semilogy(T,M,c=colors[j],label=labels[j])
-			ACC,T,z=binned_statistic(T,ACC,bins =np.linspace(0,4000,400))
-			T=T[:-1]
+			ACC,t,z=binned_statistic(T,ACC,bins =np.linspace(0,4000,400))
+			t=t[:-1]
 			#T=T[1::50]		
 			#ACC=ACC[1::50] #acc units already cgs
-			ax[1,i].semilogy(T,ACC,c=colors[j],label=labels[j])
-			ax[1,i].set_xlabel('t [yr]',fontsize=10)
-			ax[1,i].set_xlim(-50,1050)
+			ax[1,i].semilogy(t,ACC,c=colors[j],label=labels[j])
+			Time=Time-t0*code_units.t_cu/(60*60*24*365)
+			
+			Nion,t,z=binned_statistic(Time,Nion,bins =np.linspace(0,4000,400))
+			t=t[:-1]
+			ax[2,i].semilogy(t,Nion,c=colors[j],label=labels[j])
+			ax[2,i].set_xlabel('t [yr]',fontsize=10)
+			ax[2,i].set_xlim(-50,1050)
 		ax[0,i].set_title(('A','B','C')[i],fontsize=10)
 		ax[1,i].set_xticks([0,300,600,900])
 		for j in range(2):
@@ -507,7 +514,7 @@ def largest_plot_big(dirnames):
 	ax[0,-1].legend(frameon=False,loc=(1.05,0.3),fontsize=8)
 	ax[1,0].set_ylabel(r'$\dot {\rm M}_{\rm largest}$ [M$_\odot$ yr$^{-1}$]',fontsize=10)
 	ax[0,0].set_ylabel(r'M$_{\rm largest}$ [M$_\odot$]',fontsize=10)
-
+	ax[2,0].set_ylabel(r'N$_{\rm ion}$ [s$^{-1}$]',fontsize=10)
 
 '''estimate the number of ionising photons per second'''
 def read_Hirano2014(txtfile):
