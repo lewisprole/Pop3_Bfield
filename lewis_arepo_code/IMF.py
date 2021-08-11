@@ -84,4 +84,6 @@ def IMF_time():
 		ax[i].set_ylim(0,N.max()+1)
 		ax[i].text(1.22,0.5,rhos[i],ha='center', va='center', transform=ax[i].transAxes,fontsize=10)
 	plt.subplots_adjust(left = 0.15,bottom = 0.17,right=0.7)
-	ax[-1].set_yscale('log')
+	ax[-1].set_xscale('log')
+	ax[-1].set_xlabel(r'M [M$_\odot$yr$^{-1}$',fontsize=10)
+	ax[2].set_ylabel(r'N$_{\rm sink}        $',fontsize=10,rotation=0)
